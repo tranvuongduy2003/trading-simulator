@@ -76,6 +76,7 @@ When work matches a row, **read** `.cursor/skills/<name>/SKILL.md` **first** and
 | DI in hosts | `dependency-injection-patterns` |
 | Aspire / AppHost | `aspire`, `aspire-configuration` |
 | Frontend data / React | `tanstack-query`, `react-expert` |
+| REST OpenAPI / API contract YAML & codegen | `openapi-contract-sync` |
 | shadcn / Tailwind | `shadcn`, `tailwind-patterns` |
 | Library APIs | `context7-research` |
 | Integration tests | `testcontainers-integration-tests` |

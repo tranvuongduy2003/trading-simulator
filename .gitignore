@@ -36,6 +36,10 @@ TestResults/
 # Node / frontend
 node_modules/
 web/dist/
+web/src/generated/
+
+# OpenAPI build output (committed contract is contracts/openapi/api.v1.yaml)
+contracts/openapi/.build/
 .pnp.*
 .yarn/*
 !.yarn/patches

@@ -7,6 +7,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "api:export": "node ../scripts/openapi/sync-contract.mjs",
+    "api:verify": "node ../scripts/openapi/sync-contract.mjs --check",
+    "api:codegen": "openapi-typescript ../contracts/openapi/api.v1.yaml -o src/generated/api-schema.ts --export-type",
+    "prebuild": "yarn api:codegen",
+    "predev": "yarn api:codegen",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -46,11 +51,13 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "openapi-typescript": "^7.10.1",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "yaml": "^2.8.1"
   }
 }
