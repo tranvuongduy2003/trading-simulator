@@ -6,7 +6,7 @@ alwaysApply: false
 
 # FRONTEND (web/)
 
-Source: [`docs/TECHNICAL.md`](docs/TECHNICAL.md) §11. See `design-system.mdc`, `api-guidelines.mdc`. Consult `core.mdc` first.
+Source: [`docs/PRD.md`](docs/PRD.md) §8 (UI), [`docs/TECHNICAL.md`](docs/TECHNICAL.md) §11. See `design-system.mdc`, `api-guidelines.mdc`, [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md). Consult `core.mdc` first.
 
 ## Skills (read first)
 

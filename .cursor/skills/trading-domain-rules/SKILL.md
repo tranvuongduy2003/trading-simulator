@@ -5,7 +5,7 @@ description: Enforces Trading bounded-context DDD rules for aggregates, value ob
 
 # Trading Domain Rules
 
-Source of truth: `docs/TECHNICAL.md` §5, `docs/DATABASE.md` §4–7. PRD business semantics are reflected in those sections.
+Source of truth: `docs/PRD.md` §6 (functional requirements), `docs/TECHNICAL.md` §5 (domain model), `docs/DATABASE.md` §4–7 (persistence). Cross-reference map: `docs/TRACEABILITY.md`.
 
 ## Layer constraints
 

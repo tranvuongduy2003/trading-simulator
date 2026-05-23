@@ -71,7 +71,7 @@ Do **not** use MCP writes for routine code changes — use the agent edit tools 
 
 | Path | Contents |
 |---|---|
-| `docs/` | PRD, TECHNICAL, DATABASE, memory |
+| `docs/` | PRD, TECHNICAL, DATABASE, TRACEABILITY, memory |
 | `src/` | .NET AppHost, Api, MatchingEngine, Domain, Infrastructure |
 | `web/` | React + Vite frontend |
 | `tests/` | Unit and integration tests |

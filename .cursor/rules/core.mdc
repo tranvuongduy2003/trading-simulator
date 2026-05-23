@@ -14,6 +14,7 @@ Real-time **stock trading simulator** (MVP v1.0), local-only via .NET Aspire. Si
 | [`docs/PRD.md`](docs/PRD.md) | Product scope, user flows, acceptance criteria |
 | [`docs/TECHNICAL.md`](docs/TECHNICAL.md) | Architecture, CQRS, channels, API, frontend, testing |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | Schema, indexes, constraints, Redis keys |
+| [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) | PRD US/FR → Tech/DB mapping for specs and implementation |
 | [`docs/memory/current-status.md`](docs/memory/current-status.md) | Active work, blockers, session checklist |
 | [`docs/memory/decisions.md`](docs/memory/decisions.md) | Accepted architecture decisions |
 | [`docs/memory/known-issues.md`](docs/memory/known-issues.md) | Documented bugs and workarounds |

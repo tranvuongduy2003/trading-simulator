@@ -28,11 +28,17 @@ Apply under `web/`. Consult `core.mdc`, `frontend.mdc` first.
 
 ## Layout (MVP)
 
+Align with [`docs/PRD.md`](docs/PRD.md) §8.1 (desktop ≥1280px).
+
 | Zone | Content |
 |------|---------|
-| Primary | Order entry + candlestick chart |
-| Secondary | Order book, trade tape, open orders |
-| Account | Wallet, holdings, P&L |
+| Top bar | Logo, symbol (AAPL), last trade price, daily change, user menu |
+| Left | Order book (bid/ask depth) |
+| Center | Candlestick chart + timeframe selector (1m, 5m, 15m, 1h) |
+| Right | Order form (limit / market tabs) |
+| Bottom (tabbed) | Open orders, order history, trade history, holdings |
+
+Wallet and P&L appear in holdings / account areas per PRD §6.6, not a separate primary column.
 
 Prices: 4 decimals · Quantities: integers · Currency: USD
 

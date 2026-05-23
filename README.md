@@ -107,6 +107,7 @@ Frontend design tokens: [`web/src/styles/globals.css`](web/src/styles/globals.cs
 
 ## Docs
 
-- [`docs/PRD.md`](docs/PRD.md) — product scope
+- [`docs/PRD.md`](docs/PRD.md) — product requirements (user stories, FRs, UI)
 - [`docs/TECHNICAL.md`](docs/TECHNICAL.md) — architecture
 - [`docs/DATABASE.md`](docs/DATABASE.md) — schema design
+- [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) — PRD ↔ technical cross-reference
