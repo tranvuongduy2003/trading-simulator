@@ -43,6 +43,13 @@ docs/      PRD, TECHNICAL, DATABASE, memory/, specs/, plans/
 .cursor/   rules/, skills/
 ```
 
+## C# NAMING AND DOCUMENTATION
+
+- **No XML doc comments** (`/// <summary>`, `/// <remarks>`) — use clear type and member names instead.
+- **No abbreviations** in type, method, property, file, or parameter names (for example `ApplicationDatabaseContext`, `userIdentifier`, `cancellationToken`; not `*Db*`, not `ct`). Exceptions: widely used framework terms (`DbContext`, `Guid`) and official library API names.
+- **No `Trading` prefix** on types or files — the solution namespace is already `TradingSimulator.*`; do not repeat `Trading` on `ApplicationDatabaseContext`, `SimulationHub`, `ApiProblemDetails`, etc.
+- Every project under `src/` and `tests/` includes **`AssemblyReference.cs`** at the project root namespace. Use `AssemblyReference.Assembly` for MediatR, FluentValidation, EF configuration discovery, and endpoint registration — not `typeof(DependencyInjection).Assembly` or `Assembly.GetEntryAssembly()`.
+
 ## QUALITY BARS (MVP)
 
 - Prefer files **≤ 500 lines**; split when a type or handler grows unwieldy.

@@ -25,6 +25,9 @@
     <Project Path="src/ServiceDefaults/TradingSimulator.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/Testing.Common/">
+    <Project Path="tests/Testing.Common/TradingSimulator.Testing.Common.csproj" />
+  </Folder>
   <Folder Name="/tests/Api.IntegrationTests/">
     <Project Path="tests/Api.IntegrationTests/TradingSimulator.Api.IntegrationTests.csproj" />
   </Folder>

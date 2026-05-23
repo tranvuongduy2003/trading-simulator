@@ -16,6 +16,22 @@ Source: [`docs/TECHNICAL.md`](docs/TECHNICAL.md) §8–§9, §16. Consult `core.
 
 `TradingSimulator.Api` — thin HTTP + SignalR. **MediatR only** in handlers; map to `TradingSimulator.Contracts` DTOs — never serialize domain entities.
 
+## Naming
+
+- No XML doc comments; no abbreviations in identifiers (see `core.mdc`).
+- Use `AssemblyReference.Assembly` for endpoint discovery.
+
+## SignalR layout
+
+| Location | Responsibility |
+|----------|----------------|
+| `Contracts/Realtime/` | Hub client interface, group names, message records |
+| `Application/Abstractions/Realtime/` | `IRealtimeNotificationPublisher`, `IRealtimeHubConnectionRegistry` |
+| `Api/Hubs/SimulationHub.cs` | Connection groups (`market:{symbol}`, `user:{userId}`) |
+| `Api/Realtime/SignalRRealtimeNotificationPublisher.cs` | `IHubContext` adapter (implements Application port) |
+
+Hub path: `/hubs/simulation`. Matching engine and handlers depend on `IRealtimeNotificationPublisher`, not `IHubContext` directly.
+
 ## REST surface
 
 | Area | Method / path | Handler |
@@ -45,7 +61,7 @@ Return the resource DTO directly (no custom `{ data, meta }` envelope).
 
 ```json
 {
-  "type": "https://errors.trading-simulator.local/order/insufficient-funds",
+  "type": "/errors/insufficient_funds",
   "title": "Insufficient funds",
   "status": 422,
   "detail": "Available balance is less than required reservation.",

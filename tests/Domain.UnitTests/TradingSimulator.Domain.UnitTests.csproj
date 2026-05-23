@@ -9,7 +9,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Application\TradingSimulator.Application.csproj" />
     <ProjectReference Include="..\..\src\Domain\TradingSimulator.Domain.csproj" />
+    <ProjectReference Include="..\Testing.Common\TradingSimulator.Testing.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -20,6 +20,13 @@ Source: [`docs/TECHNICAL.md`](docs/TECHNICAL.md) §3–§7. Consult `core.mdc` f
 | Channels | `csharp-concurrency-patterns` |
 | DI | `dependency-injection-patterns` |
 
+## Naming and documentation
+
+- No `/// <summary>` (or other XML doc) on types or members — names must carry meaning.
+- No abbreviations in identifiers (`ApplicationDatabaseContext`, `userIdentifier`, `cancellationToken`; not `*Db*`, not `ct`, not `sp`).
+- No `Trading` prefix on types or files (use `SimulationHub`, not `TradingSimulationHub`).
+- Each project has `AssemblyReference.cs`; register handlers, validators, and EF configurations via `AssemblyReference.Assembly`.
+
 ## Stack
 
 - **.NET 10**, nullable on, warnings as errors where project enables it
@@ -34,15 +41,15 @@ Source: [`docs/TECHNICAL.md`](docs/TECHNICAL.md) §3–§7. Consult `core.mdc` f
 TradingSimulator.Domain/          ← aggregates, VOs, domain events, domain services. NO outward refs.
 TradingSimulator.Application/     ← handlers, ports. Domain only.
 TradingSimulator.Infrastructure/  ← EF, Redis, repositories, channel adapters.
-TradingSimulator.Api/             ← HTTP, SignalR, Program.cs.
+TradingSimulator.Api/             ← HTTP, SignalR hub, realtime publisher, Program.cs.
+TradingSimulator.Contracts/       ← DTOs, realtime hub messages, `ISimulationHubClient`.
 TradingSimulator.MatchingEngine/  ← worker, matching loop, simulated liquidity.
-TradingSimulator.Contracts/       ← DTOs / hub messages (not domain types).
 ```
 
 | Layer | Must not reference |
 |-------|-------------------|
 | Domain | EF, ASP.NET, MediatR, Infrastructure |
-| Application | Infrastructure, HTTP |
+| Application | Infrastructure, HTTP (references **Contracts** for query/realtime message types) |
 | Api / MatchingEngine | Domain logic in endpoints/workers |
 
 ## Domain
