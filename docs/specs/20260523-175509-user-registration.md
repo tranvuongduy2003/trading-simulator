@@ -6,11 +6,11 @@ title: User Registration
 slug: user-registration
 filename_template: 20260523-175509-user-registration.md
 created_at: 2026-05-23T17:55:09+07:00
-updated_at: 2026-05-23T18:10:00+07:00
+updated_at: 2026-05-23T20:35:00+07:00
 status: draft
 owner: product
 tags: [spec, feature, trading-simulator, auth, registration, account]
-related_plan: null
+related_plan: docs/plans/20260523-201500-user-registration-story-1.md
 related_specs: []
 github_epic_issue: 4
 github_story_issues: [5, 6, 7, 8]
@@ -283,4 +283,4 @@ EC-12: Session expired → N/A on register path; handled at login/protected rout
 | 1 | Should registration auto-sign-in, or redirect to a login screen? | BR-06, PRD §7.4 | **Yes — auto sign-in** (session on success) | ✅ |
 | 2 | Exact password rules beyond "length + variety" — special characters required? | PRD FR-1.1 | **Yes —** min 8, letter, digit, and special character (BR-05) | ✅ |
 | 3 | Should `201` response include email in body, or only username + userId? | API sketch | **Yes — include `email`** in response body | ✅ |
-| 4 | Return **409** vs **422** for duplicate username/email? | API guidelines | Default **422** until decided | ❓ |
+| 4 | Return **409** vs **422** for duplicate username/email? | API guidelines | **422** — Story 1 generic conflict/validation; Story 2 `USERNAME_TAKEN` / `EMAIL_TAKEN` | ✅ |
