@@ -507,7 +507,7 @@ Acceptance: …" `
 - Update [`docs/memory/current-status.md`](docs/memory/current-status.md): `Latest completed: plan <feature>; Next up: /build Task 1 on branch feature/<slug>`
 - Set spec `related_plan` to the new plan path
 
-**Remind user:** Run `/build` in a **new session** on `feature/<slug>`. For PRs later, use `pr-description-writer` + `gh pr create`.
+**Remind user:** Run `/build` in a **new session** on `feature/<slug>`. For PRs later, use `create-pr` (or `pr-description-writer` + `gh pr create`).
 
 ---
 

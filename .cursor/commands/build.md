@@ -40,7 +40,7 @@ Invoke at most once per task per implementer.
 | Integration tests | `testcontainers-integration-tests` |
 | Local env broken | `env-doctor` |
 | User asks to **commit** | `git-commit-writer` |
-| User asks for **PR** or `gh pr create` | `pr-description-writer`, `github-cli` |
+| User asks for **PR** or full ship workflow | `create-pr` (or `pr-description-writer` + `github-cli`) |
 | User asks for **code review** | `code-reviewer` |
 | GitHub issue URL or `#<n>` in input | `github-cli` |
 
@@ -265,4 +265,4 @@ Report:
 - Plan: completed checkboxes; deviation notes current
 - `docs/memory/current-status.md` updated
 - Git: commit only on explicit request (`git-commit-writer`)
-- PR: only on explicit request (`pr-description-writer` + `gh pr create` per user PR workflow)
+- PR: only on explicit request (`create-pr` or `pr-description-writer` + `gh pr create`)
