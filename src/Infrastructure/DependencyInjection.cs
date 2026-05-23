@@ -12,7 +12,7 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("tradingdb")
+        var connectionString = configuration.GetConnectionString("trading")
             ?? configuration.GetConnectionString("Database");
 
         void ConfigureApplicationDatabaseContext(DbContextOptionsBuilder options)

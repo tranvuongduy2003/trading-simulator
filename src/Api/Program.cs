@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using TradingSimulator.Api;
 using TradingSimulator.Api.Endpoints;
 using TradingSimulator.Application;
@@ -10,16 +11,17 @@ builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddApiServices();
+builder.Services.AddApiServices(builder.Environment);
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
-app.UseApiPipeline();
+app.UseApiPipeline(app.Environment);
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
