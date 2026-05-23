@@ -38,10 +38,10 @@ Watch for:
 
 ```bash
 node --version   # LTS
-npm --version    # or pnpm --version
+yarn --version
 ```
 
-- Lockfile present: prefer `npm ci` over `npm install` when `package-lock.json` exists
+- Lockfile: `web/yarn.lock` — prefer `yarn --cwd web install --frozen-lockfile`
 - `VITE_*` vars: normally set by Aspire at runtime; local `.env.local` overrides only for standalone frontend dev
 - EBUSY / EPERM on Windows: close dev server and IDE file watchers before deleting `node_modules`
 
@@ -59,7 +59,7 @@ docker system df
 
 ## Network and connectivity
 
-- Corporate VPN/proxy breaking NuGet, npm, or Docker pulls
+- Corporate VPN/proxy breaking NuGet, Yarn registry, or Docker pulls
 - `localhost` vs `127.0.0.1` mismatches in frontend API URL
 - IPv6-only issues: try forcing IPv4 for Docker DNS
 
@@ -71,7 +71,7 @@ docker system df
 | `SDK not found` / `NETSDK1045` | Install required .NET SDK version |
 | `password authentication failed` (Postgres) | Stale volume or wrong connection string; restart Aspire resources |
 | `Connection refused` (Redis) | Redis container not healthy; check dashboard |
-| `NU1301` / npm registry timeout | Network/proxy; retry or mirror |
+| `NU1301` / Yarn registry timeout | Network/proxy; retry or mirror |
 | `certificate is not trusted` | Trust dev HTTPS cert |
 | Aspire resource "Unhealthy" | Open resource logs in dashboard; fix dependency order |
 

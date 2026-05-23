@@ -181,7 +181,7 @@ trading-simulator/
 
 ### 4.3 Solution File Format
 
-The solution uses the XML-based `.slnx` format. The `.slnx` file declares all projects under `src/` and `tests/` but does not include the `web/` frontend, which is built and run independently by Aspire as an npm app.
+The solution uses the XML-based `.slnx` format. The `.slnx` file declares all projects under `src/` and `tests/` but does not include the `web/` frontend, which is built and run independently by Aspire as a Yarn-managed Vite app.
 
 ---
 
@@ -617,7 +617,7 @@ The Aspire AppHost project is the single entry point for running the system loca
 - A Redis container with Redis Commander for inspection.
 - The API service project.
 - The Matching Engine service project.
-- The React frontend, declared as an npm app.
+- The React frontend (`web/`), declared as a Vite app with Yarn (`AddViteApp` + `WithYarn`).
 
 ### 12.3 Wiring
 
@@ -831,7 +831,7 @@ A trunk-based workflow with short-lived feature branches and pull requests targe
 ### 19.1 Prerequisites
 
 - .NET 10 SDK.
-- Node.js LTS and a package manager (npm or pnpm).
+- Node.js LTS and Yarn (see `web/yarn.lock`).
 - Docker Desktop running.
 
 ### 19.2 First-Time Setup

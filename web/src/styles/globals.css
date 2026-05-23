@@ -104,6 +104,8 @@
   --font-mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
 }
 
+@import './design-system.css';
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -111,5 +113,9 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  :focus-visible {
+    @apply ring-ring ring-offset-background ring-2 ring-offset-2 outline-none;
   }
 }

@@ -38,7 +38,7 @@ When a **rule** and a **doc** disagree, **the doc wins** — fix the rule in a f
 ```
 src/       AppHost, ServiceDefaults, Api, MatchingEngine, Application, Domain, Infrastructure, Contracts
 tests/     Domain.UnitTests, MatchingEngine.UnitTests, Api.IntegrationTests  (see backend-testing.mdc)
-web/       React 19 + Vite (not in .slnx; run via Aspire npm app)
+web/       React 19 + Vite (not in .slnx; Yarn; run via Aspire `web` Vite app)
 docs/      PRD, TECHNICAL, DATABASE, memory/, specs/, plans/
 .cursor/   rules/, skills/
 ```
@@ -82,7 +82,7 @@ When work matches a row, **read** `.cursor/skills/<name>/SKILL.md` **first** and
 | Local env broken | `env-doctor` |
 | Code review | `code-reviewer` |
 | Debug | `debugging-strategies` |
-| Commits / PRs | `git-commit-writer`, `pr-description-writer`, `github-cli` |
+| Commits / PRs | `create-pr`, `git-commit-writer`, `pr-description-writer`, `github-cli` |
 
 ## WHEN TO CONSULT WHICH RULE
 

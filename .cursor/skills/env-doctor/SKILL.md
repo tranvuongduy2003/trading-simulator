@@ -51,7 +51,7 @@ Run version and availability commands. Expected baseline from `docs/TECHNICAL.md
 |------|----------|
 | .NET SDK | .NET 10 |
 | Node.js | LTS |
-| Package manager | npm or pnpm |
+| Package manager | Yarn (`web/yarn.lock`) |
 | Docker | Engine reachable (Docker Desktop on Windows/macOS) |
 
 Suggested commands (adapt if a tool is missing):
@@ -60,7 +60,7 @@ Suggested commands (adapt if a tool is missing):
 dotnet --version
 dotnet --list-sdks
 node --version
-npm --version
+yarn --version
 docker version
 docker info
 ```
@@ -76,7 +76,7 @@ From repo root, verify structure and dependencies exist:
 dotnet restore
 
 # Frontend (when web/ exists)
-cd web && npm ci  # or npm install / pnpm install
+yarn --cwd web install --frozen-lockfile
 ```
 
 Check for:

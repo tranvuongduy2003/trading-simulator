@@ -84,8 +84,8 @@ var resource = builder.AddExperimentalResource("test");
 
 | Problem                       | Solution                                                         |
 | ----------------------------- | ---------------------------------------------------------------- |
-| "node_modules not found"      | Use `.WithNpmPackageInstallation()` to auto-install              |
-| npm install fails             | Check `package.json` is valid; check npm registry connectivity   |
+| "node_modules not found"      | Use `.WithYarn()` / `.WithNpm()` / `.WithPnpm()` on the JS app    |
+| Yarn install fails            | Check `package.json` / `yarn.lock`; verify registry connectivity |
 | Vite dev server won't start   | Verify `vite` is in devDependencies; check Vite config           |
 | Port mismatch                 | Ensure `targetPort` matches the port in your JS framework config |
 | TypeScript compilation errors | These happen in the service, not Aspire — check service logs     |

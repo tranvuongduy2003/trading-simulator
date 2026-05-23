@@ -74,7 +74,7 @@ cp web/.env.example web/.env   # once
 yarn --cwd web dev
 ```
 
-Default `web/.env` uses `VITE_API_URL=http://localhost:8001` with HTTP Vite. Development CORS on the API allows `https://localhost:5000` only.
+Default `web/.env` uses `VITE_API_URL=https://localhost:8000`. Set `VITE_DEV_HTTPS=1` for HTTPS Vite on port 5000 so browser CORS matches `https://localhost:5000` in API `appsettings.Development.json`.
 
 ## Solution layout
 

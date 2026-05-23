@@ -37,7 +37,7 @@ Requires the [Aspire CLI](https://aspire.dev) on `PATH`. Prefer MCP tools over g
 | Redis | Projections, session cache |
 | Api | REST + SignalR |
 | MatchingEngine | Matching loop |
-| npm `web/` | Vite frontend |
+| `web/` (Yarn + Vite) | Frontend — `AddViteApp("web", ...).WithYarn(...)` |
 
 **No hand-authored docker-compose** for orchestration.
 

@@ -42,6 +42,7 @@ var api = builder.AddProject<Projects.TradingSimulator_Api>("api", launchProfile
 
 #pragma warning disable ASPIRECERTIFICATES001 // WithHttpsDeveloperCertificate
 var web = builder.AddViteApp("web", "../../web")
+    .WithYarn(installArgs: ["--frozen-lockfile"])
     .WithReference(api)
     .WaitFor(api)
     .WithEndpoint("http", endpoint =>

@@ -267,7 +267,7 @@ var ml = builder.AddUvicornApp("ml", "../ml-service", "app:app")
 
 // TypeScript frontend (Vite + React)
 var web = builder.AddViteApp("web", "../frontend")
-    .WithNpmPackageInstallation()
+    .WithYarn(installArgs: ["--frozen-lockfile"])
     .WithHttpEndpoint(targetPort: 5173)
     .WithReference(api);
 
