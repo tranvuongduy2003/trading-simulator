@@ -1,6 +1,6 @@
 ---
 name: create-pr
-description: End-to-end pull request workflow for trading-simulator — branch, local CI, Conventional Commits, push, open PR, optionally link GitHub issues (Closes #N) and set Project board Status to In review. Use when the user runs /create-pr, create PR, open pull request, ship changes, or mentions attaching an issue to a PR.
+description: End-to-end pull request workflow for trading-simulator — branch, local CI, Conventional Commits, push, open PR, optionally link GitHub issues (Closes #N), attach Project/labels/assignees on PR and issues, and set Project Status. Use when the user runs /create-pr, create PR, open pull request, ship changes, or mentions attaching an issue to a PR.
 ---
 
 # Create Pull Request
@@ -21,12 +21,19 @@ Parse **before** Step 5 when present:
 
 | Input | Example | Effect |
 |-------|---------|--------|
-| Issue number(s) | `5`, `#5`, `5,6`, `5 6` | Link those issues to the PR; update Project Status |
+| Issue number(s) | `5`, `#5`, `5,6`, `5 6` | Link issues; sync Project / labels / assignees / Status |
 | `link-only` | "link only don't close" | Use `Refs #N` instead of `Closes #N` |
-| `skip-project-status` | "skip project status" | Skip Step 7 |
-| `status <name>` | `status In Progress` | Override Project Status option (default: `statusOnPrCreated` in config or `In review`) |
+| `skip-metadata` | "skip metadata" | Skip Step 7 entirely |
+| `skip-project-status` | "skip project status" | Step 7 without Status field change |
+| `status <name>` | `status In Progress` | Override Project Status option |
+| `labels a,b` | `labels enhancement` | Extra PR labels (comma-separated) |
+| `assignee x` | `assignee @me` | Extra PR assignee(s) |
+| `issue-labels a,b` | | Extra labels on linked issues |
+| `issue-assignee x` | | Extra assignees on linked issues |
 
-If no issue numbers are given, run Steps 1–5 only.
+If no issue numbers are given, run Step 7 with **PR-only** metadata (project, `prLabels`, `prAssignees` from config) when `skip-metadata` is not set and config enables `addPrToProject` or has PR labels/assignees.
+
+Otherwise Steps 1–5 only when there is nothing to sync.
 
 ## Prerequisites
 
@@ -44,8 +51,8 @@ If no issue numbers are given, run Steps 1–5 only.
 - [ ] 3. Changes staged (no secrets)
 - [ ] 4. Commit (git-commit-writer)
 - [ ] 5. Push + PR (pr-description-writer + gh)
-- [ ] 6. Link issues on PR (if --issue)
-- [ ] 7. Project Status → In review (if --issue)
+- [ ] 6. Link issues on PR (if issue numbers)
+- [ ] 7. Sync Project, labels, assignees, Status (unless skip-metadata)
 ```
 
 ---
@@ -164,24 +171,41 @@ Details: [references/github-issue-link.md](references/github-issue-link.md).
 
 ---
 
-## Step 7: Project Status → In review (when issue numbers provided)
+## Step 7: Sync Project, labels, assignees, Status
 
-Unless `skip-project-status`:
-
-1. Ensure each issue is on the Project board (`gh project item-add` from `/spec` Step 3.3).
-2. Run from repo root:
+Unless `skip-metadata`, run from repo root after Step 5 (capture `$pr` from `gh pr create`):
 
 ```powershell
-.cursor/skills/create-pr/scripts/set-project-issue-status.ps1 -IssueNumber 5
+$params = @{
+    PrNumber = $pr
+    IssueNumber = @(5)   # omit @() when no issues; still syncs PR-only metadata
+}
+if ($userLabels) { $params.ExtraPrLabels = $userLabels -split ',' }
+if ($userAssignees) { $params.ExtraPrAssignees = @($userAssignee) }
+if ($skipProjectStatus) { $params.SkipProjectStatus = $true }
+if ($statusOverride) { $params.StatusName = $statusOverride }
+
+.cursor/skills/create-pr/scripts/sync-pr-github-metadata.ps1 @params
 ```
 
-Multiple issues: `-IssueNumber 5,6,7`
+**What the script does** (see [references/github-issue-link.md](references/github-issue-link.md)):
 
-3. Status option name comes from `.github/github-project.json` → `statusOnPrCreated` (default **In review**). Match is case-insensitive.
+| Target | Actions |
+|--------|---------|
+| **PR** | `--add-project` (board title from config), `--add-label`, `--add-assignee` |
+| **Linked issues** | `gh project item-add` if missing; Status → `statusOnPrCreated`; optional `issueLabels` / `issueAssignees` |
 
-**If the option does not exist** on the board (e.g. only Todo / In Progress / Done): tell the user to add **In review** to the Project **Status** field in GitHub, or set `statusOnPrCreated` to an existing option in `github-project.json`.
+**Config** — copy [`.github/github-project.json.example`](../../.github/github-project.json.example):
+
+- `addPrToProject`, `ensureIssuesOnProject` (default `true`)
+- `inheritFromIssues.prLabels` / `prAssignees` — copy from linked issues onto the PR
+- `prLabels`, `prAssignees`, `issueLabels`, `issueAssignees` — always applied when set
+
+**If Status option missing** on the board: warn user to add **In review** in Project settings or set `statusOnPrCreated` to an existing option.
 
 **Requires** `project` scope on `gh auth`.
+
+Legacy wrapper (status only): `set-project-issue-status.ps1` delegates to this script using the current branch PR.
 
 ---
 
@@ -194,7 +218,8 @@ Multiple issues: `-IssueNumber 5,6,7`
 | Pipeline | pass/fail per step (brief) |
 | PR | URL |
 | Linked issues | `#5` … or `none` |
-| Project status | `In review` set / skipped / failed (reason) |
+| PR project / labels / assignees | applied / skipped |
+| Issue project / labels / assignees / Status | per issue or skipped |
 
 Mention deferred manual checks (Aspire smoke test, screenshots) in the PR Testing section, not as blockers unless CI failed.
 

@@ -1,4 +1,4 @@
-# Link issues and Project status after PR create
+# Link issues, Project, labels, and assignees after PR create
 
 ## Link issues to the PR
 
@@ -7,45 +7,54 @@ GitHub links issues from the PR description using closing keywords (shows under 
 | Mode | PR footer line | On merge to `main` |
 |------|----------------|-------------------|
 | Default (`link-closes`) | `Closes #123` | Issue auto-closes |
-| `link-only` | `Refs #123` | Issue stays open (mention only; may not appear in Development) |
+| `link-only` | `Refs #123` | Issue stays open (mention only) |
 
-Append a **Linked issues** section when `--issue` is provided:
+## Metadata sync (one script)
 
-```markdown
-## Linked issues
-
-Closes #5
-Closes #6
-```
-
-After `gh pr create`, if keywords were omitted, patch the body:
+After `gh pr create`, run:
 
 ```powershell
-$body = gh pr view $pr --json body -q .body
-$footer = "## Linked issues`n`nCloses #5"
-gh pr edit $pr --body ($body.TrimEnd() + "`n`n" + $footer)
+.cursor/skills/create-pr/scripts/sync-pr-github-metadata.ps1 -PrNumber 9 -IssueNumber 5
 ```
 
-## Project Status → In review
+| Target | Action |
+|--------|--------|
+| **PR** | `gh pr edit --add-project`, `--add-label`, `--add-assignee` |
+| **Issues** | `gh project item-add` if missing; Status field update; `--add-label`, `--add-assignee` |
 
-Requires `read:project` and `project` scopes (`gh auth refresh -h github.com -s read:project,project`).
-
-Config (`.github/github-project.json`):
+### Config (`.github/github-project.json`)
 
 ```json
 {
   "owner": "your-login",
   "projectNumber": 1,
-  "statusOnPrCreated": "In review"
+  "projectTitle": "Your project name",
+  "statusOnPrCreated": "In review",
+  "addPrToProject": true,
+  "ensureIssuesOnProject": true,
+  "inheritFromIssues": { "prLabels": true, "prAssignees": true },
+  "prLabels": [],
+  "prAssignees": ["@me"],
+  "issueLabels": [],
+  "issueAssignees": []
 }
 ```
 
-Run after PR exists:
+- **`inheritFromIssues`:** When linking issue #5, copy its labels/assignees onto the PR (union with `prLabels` / `prAssignees`).
+- **`projectTitle`:** Must match the board name for `gh pr edit --add-project` (fallback: fetch from `gh project view`).
+- **`ensureIssuesOnProject`:** Calls `gh project item-add` when the issue is not on the board yet.
 
-```powershell
-.cursor/skills/create-pr/scripts/set-project-issue-status.ps1 -IssueNumber 5,6
-```
+### CLI overrides (flags on `/create-pr`)
 
-The script matches the Status single-select option **case-insensitively** (spaces ignored). If `"In review"` is missing, add it to the Project board in GitHub UI (**Settings → Fields → Status**) or set `statusOnPrCreated` to an existing option (e.g. `In Progress`).
+| Flag | Example |
+|------|---------|
+| `labels` | `labels enhancement,spec` |
+| `assignee` | `assignee @me` or `assignee octocat` |
+| `skip-metadata` | Skip Step 7 entirely |
+| `skip-project-status` | Labels/assignees/project only; no Status field change |
 
-**Requires** the issue to already be on the project board (`gh project item-add`).
+Requires `gh auth refresh -h github.com -s read:project,project`.
+
+### Status field
+
+If `"In review"` is missing on the board, add it under Project **Settings → Status**, or set `statusOnPrCreated` to an existing option (e.g. `In Progress`).
