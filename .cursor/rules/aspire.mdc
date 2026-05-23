@@ -1,0 +1,73 @@
+---
+description: .NET Aspire — AppHost topology, ServiceDefaults, local dev.
+globs: src/**/AppHost/**/*,src/**/ServiceDefaults/**/*,**/AppHost.cs
+alwaysApply: false
+---
+
+# .NET ASPIRE
+
+Source: [`docs/TECHNICAL.md`](docs/TECHNICAL.md) §12. Consult `core.mdc` first.
+
+## Skills & MCP (read / use first)
+
+| Resource | When |
+|----------|------|
+| `.cursor/skills/aspire/SKILL.md` | AppHost, CLI, dashboard, resources |
+| `.cursor/skills/aspire-configuration/SKILL.md` | Wiring, env injection |
+| `.cursor/skills/aspire-service-defaults/SKILL.md` | Shared host extensions |
+| `.cursor/skills/env-doctor/SKILL.md` | Local setup failures |
+| **aspire** MCP (`.mcp.json`) | Running stack: resources, logs, traces, commands; docs/integrations without AppHost |
+
+**Cursor MCP** (repo root [`.mcp.json`](../../.mcp.json)):
+
+```json
+"aspire": {
+  "command": "aspire",
+  "args": ["agent", "mcp"]
+}
+```
+
+Requires the [Aspire CLI](https://aspire.dev) on `PATH`. Prefer MCP tools over guessing when the AppHost is running or when looking up Aspire integration/docs. Runtime tools need `aspire run` (or a dashboard URL via `--dashboard-url`). See `.cursor/skills/aspire/references/mcp-server.md`.
+
+## Topology (source of truth = AppHost)
+
+| Resource | Role |
+|----------|------|
+| PostgreSQL + volume | Source of truth |
+| Redis | Projections, session cache |
+| Api | REST + SignalR |
+| MatchingEngine | Matching loop |
+| npm `web/` | Vite frontend |
+
+**No hand-authored docker-compose** for orchestration.
+
+## Wiring
+
+- Connection strings → Api + MatchingEngine
+- API URL → `VITE_*` for frontend
+- MatchingEngine endpoint → Api (health if used)
+
+## ServiceDefaults
+
+Both executable services call ServiceDefaults extensions once — logging, health checks, service discovery. Do not duplicate in each `Program.cs`.
+
+## Config order (later wins)
+
+`appsettings.json` → `appsettings.Development.json` → Aspire env → user secrets
+
+Keys: channel capacity, initial cash, reset cooldown, simulated liquidity, log levels.
+
+## Local workflow
+
+1. Docker Desktop running
+2. Run **AppHost** (full stack)
+3. Aspire dashboard for logs/health
+4. Trust dev HTTPS cert on first setup
+
+EF migrations apply on startup in Development.
+
+## DON'TS
+
+- ❌ No documenting "run Api alone" as the primary dev path for full-stack work
+- ❌ No secrets in AppHost source — user secrets / env
+- ❌ No production CD assumptions — MVP is local-only

@@ -1,0 +1,91 @@
+---
+description: .NET 10 backend — Clean Architecture, DDD, CQRS, channels, matching engine.
+globs: src/**/*.cs,**/*.csproj,Directory.Build.props,Directory.Packages.props
+alwaysApply: false
+---
+
+# BACKEND (.NET)
+
+Source: [`docs/TECHNICAL.md`](docs/TECHNICAL.md) §3–§7. Consult `core.mdc` first. Tests → `backend-testing.mdc`.
+
+## Skills (read first)
+
+| Area | Skill |
+|------|-------|
+| Domain | `trading-domain-rules` |
+| Layers | `clean-architecture-rules` |
+| Handlers | `cqrs-handler-pattern` |
+| MatchingEngine | `matching-engine-patterns` |
+| C# style | `modern-csharp-coding-standards` |
+| Channels | `csharp-concurrency-patterns` |
+| DI | `dependency-injection-patterns` |
+
+## Stack
+
+- **.NET 10**, nullable on, warnings as errors where project enables it
+- **MediatR** — commands/queries; pipeline: Validation → Logging → Handler (+ UoW on commands)
+- **FluentValidation** — every command; failures never reach handler
+- **EF Core** — Infrastructure only; read queries `AsNoTracking` by default
+- **System.Threading.Channels** — order intake / trade events (MVP in-process)
+
+## Layer layout
+
+```
+TradingSimulator.Domain/          ← aggregates, VOs, domain events, domain services. NO outward refs.
+TradingSimulator.Application/     ← handlers, ports. Domain only.
+TradingSimulator.Infrastructure/  ← EF, Redis, repositories, channel adapters.
+TradingSimulator.Api/             ← HTTP, SignalR, Program.cs.
+TradingSimulator.MatchingEngine/  ← worker, matching loop, simulated liquidity.
+TradingSimulator.Contracts/       ← DTOs / hub messages (not domain types).
+```
+
+| Layer | Must not reference |
+|-------|-------------------|
+| Domain | EF, ASP.NET, MediatR, Infrastructure |
+| Application | Infrastructure, HTTP |
+| Api / MatchingEngine | Domain logic in endpoints/workers |
+
+## Domain
+
+```csharp
+// ✅ aggregate enforces invariants internally
+public sealed class Order
+{
+    public void ApplyFill(Quantity qty) { … }  // state machine: Pending → PartFilled → Filled
+}
+
+// ❌ anemic model, public setters bypassing rules, services injected into aggregates
+```
+
+- IDs: strongly typed (`OrderId`, `UserId`) — avoid raw `Guid` in domain public APIs
+- `OrderValidationService` — shape only (limit price, quantity); funds/holdings checked on aggregates
+- `MatchingService` — in-memory book only; no I/O
+- Events dispatched **after** successful persist (`OrderPlacedEvent`, `TradeExecutedEvent`, …)
+
+## Application (CQRS)
+
+| Commands | Notes |
+|----------|-------|
+| `RegisterUser`, `LoginUser`, `PlaceOrder`, `CancelOrder`, `ResetPortfolio` | API-triggered |
+| `ProcessMatch` | Engine-internal |
+
+- Queries return **Contracts DTOs** — never domain entities on the read side
+- **PlaceOrder:** reserve → insert Pending → commit → enqueue channel → return (no wait for match)
+- **ProcessMatch:** one UoW — orders, trade, both wallets/holdings, candlesticks
+- **Concurrency:** `row_version` + bounded retry at handler boundary
+
+## Matching engine
+
+- Bounded **Incoming Order Channel**; single-threaded match step
+- **Outgoing Trade Event Channel** → persistence, SignalR, Redis projections
+- Startup: rebuild book from open orders (see `migration.mdc` / `ix_orders_active_book`)
+- Per-message catch: log, reject if possible; **do not** stop the loop
+- Simulated liquidity: `is_simulated = true`
+
+## DON'TS
+
+- ❌ No domain rules in Api endpoints or MatchingEngine workers — MediatR handlers only
+- ❌ No `Task.Result` / `.Wait()` — async throughout
+- ❌ No raw SQL strings — EF LINQ or parameterized APIs
+- ❌ No reading `Environment.GetEnvironmentVariable` in handlers — `IOptions<T>` at startup
+- ❌ No catching `Exception` without log + appropriate rethrow/result

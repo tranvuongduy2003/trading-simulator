@@ -1,0 +1,108 @@
+---
+description: REST + SignalR API — auth, RFC 7807 errors, routes, performance.
+globs: src/**/Api/**/*,src/**/Contracts/**/*,web/**/lib/**/*
+alwaysApply: false
+---
+
+# API GUIDELINES
+
+Source: [`docs/TECHNICAL.md`](docs/TECHNICAL.md) §8–§9, §16. Consult `core.mdc`, `backend.mdc`, `frontend.mdc`.
+
+## Skills (read first)
+
+`cqrs-handler-pattern`, `clean-architecture-rules`, `testcontainers-integration-tests`, `database-performance`
+
+## Scope
+
+`TradingSimulator.Api` — thin HTTP + SignalR. **MediatR only** in handlers; map to `TradingSimulator.Contracts` DTOs — never serialize domain entities.
+
+## REST surface
+
+| Area | Method / path | Handler |
+|------|---------------|---------|
+| Auth | `POST /users` | RegisterUser |
+| Auth | `POST /auth/login` | LoginUser |
+| Auth | `POST /auth/logout` | invalidate session |
+| Wallet | `GET /wallet` (or `/me/wallet`) | GetMyWallet |
+| Portfolio | `GET /portfolio` | GetMyPortfolio |
+| Portfolio | `POST /portfolio/reset` | ResetPortfolio |
+| Orders | `POST /orders` | PlaceOrder |
+| Orders | `DELETE /orders/{id}` | CancelOrder |
+| Orders | `GET /orders/open` | GetMyOpenOrders |
+| Orders | `GET /orders/history` | GetMyOrderHistory |
+| Trades | `GET /trades` | GetMyTradeHistory |
+| Trades | `GET /market/trades` | GetRecentTrades |
+| Market | `GET /market/orderbook` | GetOrderBookSnapshot |
+| Market | `GET /market/candlesticks` | GetCandlesticks |
+
+Adopt a consistent `/api` prefix if the codebase uses one — match existing routes.
+
+## Success response
+
+Return the resource DTO directly (no custom `{ data, meta }` envelope).
+
+## Errors — RFC 7807
+
+```json
+{
+  "type": "https://errors.trading-simulator.local/order/insufficient-funds",
+  "title": "Insufficient funds",
+  "status": 422,
+  "detail": "Available balance is less than required reservation.",
+  "code": "INSUFFICIENT_FUNDS",
+  "errors": { "quantity": ["exceeds-available"] }
+}
+```
+
+- `code` — stable machine identifier; map to UI copy on the client
+- `detail` / `title` — sanitized; **no** stack traces, SQL, or internal IDs of other users
+- Validation failures → field extensions in `errors`
+
+## Status mapping
+
+| Status | Use |
+|--------|-----|
+| `200` | Read / update with body |
+| `201` | Created (order placed, user registered) |
+| `202` | Accepted when matching is explicitly async-only response |
+| `204` | Logout / no body |
+| `400` | Malformed JSON / binding failure |
+| `401` | No session |
+| `403` | Authenticated but not owner |
+| `404` | Resource not found |
+| `409` | Optimistic concurrency conflict |
+| `422` | Domain / validation rejection |
+| `500` | Unhandled — generic client message |
+
+## Auth
+
+- Cookie session; Redis cache, PG `user_sessions` authoritative
+- Public: register + login only
+- Ownership enforced in **Application** handlers, not only at routing
+- Anti-forgery on state-changing browser requests
+
+## Orders
+
+- **POST /orders:** persist + enqueue — return `201`/`202` with order id; **do not** block on match
+- **DELETE /orders/{id}:** enqueue cancel for ordering with placements
+
+## SignalR
+
+| Group | Messages |
+|-------|----------|
+| `market:{symbol}` | book update, last price, tape |
+| `user:{userId}` | fill, cancel confirm, balance |
+
+No Redis backplane in MVP. Hub fed from Outgoing Trade Event Channel consumer.
+
+## Read performance
+
+- Prefer Redis projections; fallback to PostgreSQL
+- Queries: no write transaction, no aggregate mutation
+
+## DON'TS
+
+- ❌ No `200` with error body — use correct status
+- ❌ No domain types in OpenAPI/JSON responses
+- ❌ No exposing other users' order/wallet IDs in error text
+- ❌ No long synchronous match in HTTP thread

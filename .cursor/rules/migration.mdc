@@ -1,0 +1,60 @@
+---
+description: EF Core migrations and PostgreSQL trading schema.
+globs: "**/Migrations/**,**/*Migration*.cs,**/*DbContext*.cs,src/**/Infrastructure/**/*.cs"
+alwaysApply: false
+---
+
+# MIGRATIONS & DATA
+
+Source: [`docs/DATABASE.md`](docs/DATABASE.md). Consult `core.mdc` first.
+
+## Skills (read first)
+
+- `efcore-patterns`, `database-performance`
+- `postgres-mcp` — read-only MCP queries against running Postgres (see [`.mcp.json`](../../.mcp.json)); not for migrations
+
+**Engine:** PostgreSQL 17 · **Schema:** `trading` · **Redis:** projections only (not migrated via EF)
+
+## EF Core rules
+
+- One migration per logical change; **never edit** a migration already merged — add a new file
+- Live under `TradingSimulator.Infrastructure/Migrations/`
+- Generate:
+
+```bash
+dotnet ef migrations add <Name> \
+  -p src/Infrastructure/TradingSimulator.Infrastructure.csproj \
+  -s src/Api/TradingSimulator.Api.csproj
+```
+
+- **Dev:** apply on service startup (Development)
+- Seed `symbols` (`AAPL`) in a migration, not at runtime
+
+## Schema essentials
+
+- Tables: `users`, `wallets`, `portfolios`, `holdings`, `symbols`, `orders`, `trades`, `candlesticks`, `user_sessions`, `portfolio_resets`
+- Append-only: `trades`, `portfolio_resets`
+- `row_version` on `users`, `wallets`, `portfolios`, `orders`
+- Partial index `ix_orders_active_book` — `WHERE status IN (0, 1)` for book rebuild
+
+## Migration checklist (PR)
+
+- [ ] Matches `docs/DATABASE.md` columns, checks, and indexes
+- [ ] Additive where possible; destructive drops in a **later** PR if needed
+- [ ] No business logic beyond seed/reference data
+- [ ] EF model uses `trading` schema; concurrency tokens mapped
+- [ ] Handlers' transaction boundaries still valid (place / match / cancel / reset)
+
+## Transaction boundaries (must stay aligned)
+
+1. **Place:** reserve → insert order → commit → channel
+2. **Match:** orders + trade + wallets + holdings + candlesticks → commit → then Redis
+3. **Cancel:** terminal order + release reservation → commit
+4. **Reset:** cancel opens → release → reset wallet/holdings → `portfolio_resets` row
+
+## DON'TS
+
+- ❌ No cross-store PG+Redis transactions
+- ❌ No hand-editing merged migration snapshots to "fix" history
+- ❌ No storing `available_balance` / `available_quantity` — compute at read time
+- ❌ No `Down()` reliance in dev beyond local experiments — prefer roll-forward

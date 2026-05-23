@@ -1,0 +1,95 @@
+---
+alwaysApply: true
+description: Trading simulator conventions, source-of-truth pointers, repo layout, and non-negotiable invariants.
+---
+
+# TRADING SIMULATOR — CORE
+
+Real-time **stock trading simulator** (MVP v1.0), local-only via .NET Aspire. Single symbol (`AAPL`), virtual USD.
+
+## SOURCE OF TRUTH
+
+| Document | When to consult |
+|---|---|
+| [`docs/PRD.md`](docs/PRD.md) | Product scope, user flows, acceptance criteria |
+| [`docs/TECHNICAL.md`](docs/TECHNICAL.md) | Architecture, CQRS, channels, API, frontend, testing |
+| [`docs/DATABASE.md`](docs/DATABASE.md) | Schema, indexes, constraints, Redis keys |
+| [`docs/memory/current-status.md`](docs/memory/current-status.md) | Active work, blockers, session checklist |
+| [`docs/memory/decisions.md`](docs/memory/decisions.md) | Accepted architecture decisions |
+| [`docs/memory/known-issues.md`](docs/memory/known-issues.md) | Documented bugs and workarounds |
+
+**Cross-reference:** `PRD §N` for product, `Tech §N` for technical, `DB §N` for storage (section numbers in each doc).
+
+When a **rule** and a **doc** disagree, **the doc wins** — fix the rule in a follow-up PR.
+
+## NON-NEGOTIABLE INVARIANTS
+
+1. **Clean Architecture** — Domain → Application → Infrastructure; Api and MatchingEngine are composition roots. Inner layers never reference outer layers.
+2. **Domain is pure C#** — no EF Core, ASP.NET, MediatR, or Infrastructure references in `TradingSimulator.Domain`.
+3. **Aspire AppHost is the local topology source of truth** — no hand-authored `docker-compose.yml` for orchestration.
+4. **`TradingSimulator.ServiceDefaults` is mandatory** for Api and MatchingEngine.
+5. **PostgreSQL is authoritative**; Redis holds rebuildable projections only (order book, tape, candles, session cache).
+6. **Matching is async** — API persists + enqueues; engine matches on a single-threaded channel loop.
+7. **One bounded context: Trading** — aggregates `User`, `Portfolio`, `Order`, `Trade` enforce PRD/Tech invariants.
+
+## REPOSITORY LAYOUT
+
+```
+src/       AppHost, ServiceDefaults, Api, MatchingEngine, Application, Domain, Infrastructure, Contracts
+tests/     Domain.UnitTests, MatchingEngine.UnitTests, Api.IntegrationTests  (see backend-testing.mdc)
+web/       React 19 + Vite (not in .slnx; run via Aspire npm app)
+docs/      PRD, TECHNICAL, DATABASE, memory/, specs/, plans/
+.cursor/   rules/, skills/
+```
+
+## QUALITY BARS (MVP)
+
+- Prefer files **≤ 500 lines**; split when a type or handler grows unwieldy.
+- **Selective tests** — domain aggregates, matching algorithm, small API integration suite; no coverage targets, no frontend tests.
+- **Public HTTP APIs** — consistent route prefix; breaking changes need explicit discussion (local MVP, no multi-version requirement yet).
+- Significant architecture choices → entry in [`docs/memory/decisions.md`](docs/memory/decisions.md).
+
+## SKILLS (read before acting)
+
+When work matches a row, **read** `.cursor/skills/<name>/SKILL.md` **first** and follow it.
+
+| Work | Skill |
+|------|-------|
+| Domain / aggregates | `trading-domain-rules` |
+| Layers / repositories | `clean-architecture-rules` |
+| Commands / queries / MediatR | `cqrs-handler-pattern` |
+| Matching engine / channels | `matching-engine-patterns` |
+| EF Core / migrations | `efcore-patterns` |
+| Live DB inspection (read-only SQL) | `postgres-mcp` |
+| Repo file tree / batch read via MCP | `filesystem-mcp` |
+| Query / index performance | `database-performance` |
+| C# style | `modern-csharp-coding-standards` |
+| Channels / async | `csharp-concurrency-patterns` |
+| DI in hosts | `dependency-injection-patterns` |
+| Aspire / AppHost | `aspire`, `aspire-configuration` |
+| Frontend data / React | `tanstack-query`, `react-expert` |
+| shadcn / Tailwind | `shadcn`, `tailwind-patterns` |
+| Library APIs | `context7-research` |
+| Integration tests | `testcontainers-integration-tests` |
+| Local env broken | `env-doctor` |
+| Code review | `code-reviewer` |
+| Debug | `debugging-strategies` |
+| Commits / PRs | `git-commit-writer`, `pr-description-writer`, `github-cli` |
+
+## WHEN TO CONSULT WHICH RULE
+
+| Concern | Rule |
+|---|---|
+| .NET services | `backend.mdc` |
+| Tests in `tests/**` | `backend-testing.mdc` |
+| React UI | `frontend.mdc` |
+| HTTP / SignalR contracts | `api-guidelines.mdc` |
+| Visual design | `design-system.mdc` |
+| EF / PostgreSQL schema | `migration.mdc` |
+| AppHost / local run | `aspire.mdc` |
+| Specs / plans / changelog | `memory-artifacts.mdc` |
+| Graph / impact exploration (if MCP configured) | `code-review-graph.mdc` |
+
+## OUT OF SCOPE (unless explicitly requested)
+
+Message broker, transactional outbox, multi-symbol, production CD, advanced observability, horizontal scaling, fractional shares.

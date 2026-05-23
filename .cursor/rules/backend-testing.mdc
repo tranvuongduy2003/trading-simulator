@@ -1,0 +1,80 @@
+---
+description: .NET test conventions — selective unit and integration tests (Tech §17).
+globs: tests/**/*.cs,**/*Tests/**/*.cs,**/*.Tests.csproj
+alwaysApply: false
+---
+
+# BACKEND TESTING
+
+Source: [`docs/TECHNICAL.md`](docs/TECHNICAL.md) §17. Consult `core.mdc` and `backend.mdc` first.
+
+## Skills (read first)
+
+- `.cursor/skills/testcontainers-integration-tests/SKILL.md`
+- `.cursor/skills/aspire-integration-testing/SKILL.md` (cross-service / AppHost scenarios)
+
+## Tooling
+
+- **xUnit** + **FluentAssertions**
+- **Testcontainers** — real PostgreSQL + Redis in `Api.IntegrationTests`
+- **NSubstitute** (or fakes) at Application **ports** only — never mock domain aggregates
+
+## Layout
+
+```
+tests/
+├── Domain.UnitTests/           ← aggregates, value objects, state machines
+├── MatchingEngine.UnitTests/   ← MatchingService, price-time, partial fills
+└── Api.IntegrationTests/       ← HTTP + DB + Redis wiring
+```
+
+## Naming
+
+`Method_Scenario_Expected` or readable Given-When-Then:
+
+```csharp
+[Fact]
+public void Cancel_FromPending_TransitionsToCancelled() { … }
+
+[Fact]
+public async Task PlaceOrder_WithInsufficientFunds_ReturnsRejection() { … }
+```
+
+## What to test (required focus)
+
+| Area | Examples |
+|------|----------|
+| **Domain** | Order transitions (valid/invalid), wallet reserve/release/settle, portfolio weighted-average |
+| **Matching** | Price-time priority, partial fills, market vs limit immediate match, insufficient liquidity cancel |
+| **Integration** | Register/login, place non-matching limit, opposing match → trade, cancel, insufficient funds |
+
+## What not to test
+
+- Trivial getters/pass-through wiring
+- EF configuration in isolation (covered by integration paths)
+- Third-party frameworks (ASP.NET, MediatR internals)
+- Frontend (manual only for MVP)
+
+## Integration test patterns
+
+- One fixture per test class or collection; **no shared mutable DB state** across unrelated facts
+- Use Testcontainers per suite; apply migrations or ensure schema before tests
+- Control time via injectable `IClock` / abstractions — avoid `DateTime.UtcNow` in assertions
+
+## Domain tests are pure
+
+```csharp
+// ✅ construct aggregate directly, assert behavior/events
+var order = Order.Place(...);
+order.Cancel();
+order.Status.Should().Be(OrderStatus.Cancelled);
+
+// ❌ no DI container, no EF, no mocks of domain types
+```
+
+## DON'TS
+
+- ❌ No `Thread.Sleep` — use polling with timeout helpers
+- ❌ No tests added only to raise coverage metrics
+- ❌ No integration tests that depend on manual Docker state left from a dev machine
+- ❌ No mocking `MatchingService` when testing matching rules — test the real algorithm

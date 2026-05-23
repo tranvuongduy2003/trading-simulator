@@ -1,0 +1,82 @@
+---
+description: React 19 + TypeScript frontend — structure, state, SignalR, API client.
+globs: web/**/*.ts,web/**/*.tsx,web/**/*.css,web/**/package.json,web/**/vite.config.*
+alwaysApply: false
+---
+
+# FRONTEND (web/)
+
+Source: [`docs/TECHNICAL.md`](docs/TECHNICAL.md) §11. See `design-system.mdc`, `api-guidelines.mdc`. Consult `core.mdc` first.
+
+## Skills (read first)
+
+| Area | Skill |
+|------|-------|
+| Server state | `tanstack-query` |
+| React patterns | `react-expert`, `vercel-react-best-practices` |
+| Composition | `vercel-composition-patterns` |
+| New UI / polish | `frontend-design` |
+| UX audit | `web-design-guidelines` |
+
+## Stack
+
+React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, **TanStack Query**, **Zustand**, react-hook-form + zod, `@microsoft/signalr`, lightweight-charts.
+
+## API access
+
+- Frontends call **Api directly** (no BFF in MVP) — cookie session, `credentials: 'include'`
+- Base URL from Vite env (`VITE_*` injected by Aspire)
+- Centralize HTTP in `web/src/lib/` — feature code does not hardcode URLs
+
+## Server state (TanStack Query)
+
+```tsx
+const walletQuery = useQuery({
+  queryKey: ['wallet'],
+  queryFn: ({ signal }) => api.wallet.get({ signal }),
+  staleTime: 30_000,
+});
+```
+
+- All REST reads/writes through Query mutations
+- Mutations: optimistic update + rollback on error where safe
+- SignalR pushes → `queryClient.setQueryData` or invalidate keys — avoid manual refetch storms
+
+## Client state (Zustand)
+
+- UI-only: chart interval, panel layout, form drafts
+- **Never** duplicate server state (wallet, orders, portfolio) in Zustand
+
+## Folder structure
+
+```
+web/src/
+  app/           providers, router
+  features/      auth | trading | portfolio | orders
+  components/    shared + ui/ (shadcn)
+  lib/           api client, signalr, utils
+  store/         zustand
+  types/         zod schemas
+```
+
+One feature = one folder. Cross-feature imports via `components/` or `lib/` only.
+
+## Forms
+
+react-hook-form + zod in `types/` — same schema for inference and validation. Mirror API rules (limit price required when type = limit, positive integer quantity).
+
+## Real-time
+
+- One SignalR connection per session (context/hook); auto-reconnect
+- Groups: `market:{symbol}`, `user:{userId}` — see `api-guidelines.mdc`
+
+## Testing
+
+No automated frontend tests for MVP unless explicitly requested.
+
+## DON'TS
+
+- ❌ No `useEffect` for data fetching — use TanStack Query
+- ❌ No hex colors in JSX — Tailwind semantic tokens (`bg-primary`, `text-muted-foreground`)
+- ❌ No `dangerouslySetInnerHTML` for API-sourced strings
+- ❌ No global mutable singletons outside Zustand/React context
