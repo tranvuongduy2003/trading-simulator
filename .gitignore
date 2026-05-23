@@ -123,6 +123,9 @@ Desktop.ini
 *.log
 logs/
 
+# GitHub Project board target (copy from .github/github-project.json.example)
+.github/github-project.json
+
 # Misc
 *.tmp
 *.temp
