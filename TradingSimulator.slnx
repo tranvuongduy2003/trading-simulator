@@ -1,0 +1,37 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Api/">
+    <Project Path="src/Api/TradingSimulator.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/AppHost/">
+    <Project Path="src/AppHost/TradingSimulator.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/src/Application/">
+    <Project Path="src/Application/TradingSimulator.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Contracts/">
+    <Project Path="src/Contracts/TradingSimulator.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/Domain/">
+    <Project Path="src/Domain/TradingSimulator.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="src/Infrastructure/TradingSimulator.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/MatchingEngine/">
+    <Project Path="src/MatchingEngine/TradingSimulator.MatchingEngine.csproj" />
+  </Folder>
+  <Folder Name="/src/ServiceDefaults/">
+    <Project Path="src/ServiceDefaults/TradingSimulator.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Api.IntegrationTests/">
+    <Project Path="tests/Api.IntegrationTests/TradingSimulator.Api.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Domain.UnitTests/">
+    <Project Path="tests/Domain.UnitTests/TradingSimulator.Domain.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/MatchingEngine.UnitTests/">
+    <Project Path="tests/MatchingEngine.UnitTests/TradingSimulator.MatchingEngine.UnitTests.csproj" />
+  </Folder>
+</Solution>

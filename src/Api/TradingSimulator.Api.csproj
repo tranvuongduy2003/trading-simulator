@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>trading-simulator-api</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Aspire.StackExchange.Redis" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Application\TradingSimulator.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\TradingSimulator.Infrastructure.csproj" />
+    <ProjectReference Include="..\Contracts\TradingSimulator.Contracts.csproj" />
+    <ProjectReference Include="..\ServiceDefaults\TradingSimulator.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

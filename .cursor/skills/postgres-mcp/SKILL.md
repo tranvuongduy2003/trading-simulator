@@ -7,6 +7,28 @@ description: Inspects and queries the local PostgreSQL database via the Cursor M
 
 Read-only PostgreSQL access through the **`postgres`** MCP server in [`.mcp.json`](../../../.mcp.json).
 
+## Connection string (source of truth: AppHost)
+
+Credentials and ports are defined by the Aspire AppHost, not hardcoded ad hoc values.
+
+| Setting | AppHost source | Local dev value |
+|---|---|---|
+| Postgres resource | `AddPostgres("postgres", …)` in [`src/AppHost/AppHost.cs`](../../../src/AppHost/AppHost.cs) | `postgres` |
+| Database | `AddDatabase("trading")` | `trading` → services use `ConnectionStrings__trading` |
+| Username | Aspire Postgres container default | `postgres` |
+| Password | `Parameters:postgres-password` in [`src/AppHost/appsettings.Development.json`](../../../src/AppHost/appsettings.Development.json) | `postgres` |
+| Host port | `.WithEndpoint(port: 5432, targetPort: 5432)` | `5432` |
+
+**MCP URI** (must stay in sync with AppHost):
+
+```
+postgresql://postgres:postgres@localhost:5432/trading?sslmode=disable
+```
+
+Also documented in [`.env.example`](../../../.env.example) as `POSTGRES_URI`. If you change `Parameters:postgres-password` or the database name in AppHost, update `.mcp.json`, `.env.example`, and `.env` together.
+
+When the stack is running, confirm the live string in the **Aspire dashboard** (Postgres → `trading` connection string) or via **aspire** MCP `list_resources`.
+
 ## Configuration
 
 ```json
@@ -15,7 +37,7 @@ Read-only PostgreSQL access through the **`postgres`** MCP server in [`.mcp.json
   "args": [
     "-y",
     "@modelcontextprotocol/server-postgres",
-    "postgresql://tikka:tikka@localhost:5432/tikka?sslmode=disable"
+    "postgresql://postgres:postgres@localhost:5432/trading?sslmode=disable"
   ]
 }
 ```
@@ -25,9 +47,9 @@ Read-only PostgreSQL access through the **`postgres`** MCP server in [`.mcp.json
 | Server id | `postgres` |
 | Package | `@modelcontextprotocol/server-postgres` |
 | Mode | **Read-only** (all SQL runs in a read-only transaction) |
-| Prerequisites | PostgreSQL reachable at the URL above; Docker / Aspire stack running if that is how the DB is started |
+| Prerequisites | AppHost running with Docker; Postgres reachable at the URI above |
 
-If MCP connection fails, check the URL against the Aspire dashboard connection string and update `.mcp.json` — do not assume `tikka` matches production AppHost credentials.
+If MCP connection fails, compare the URL to the Aspire dashboard connection string for database **`trading`** — do not use unrelated credentials (e.g. old `tikka` placeholders).
 
 ## When to use MCP vs other skills
 

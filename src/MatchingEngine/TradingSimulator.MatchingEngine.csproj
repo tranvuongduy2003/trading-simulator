@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <UserSecretsId>dotnet-TradingSimulator.MatchingEngine-38deee53-cb19-4d89-86d9-ca196d720622</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Aspire.StackExchange.Redis" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Application\TradingSimulator.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\TradingSimulator.Infrastructure.csproj" />
+    <ProjectReference Include="..\ServiceDefaults\TradingSimulator.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>
