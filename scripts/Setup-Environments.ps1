@@ -223,6 +223,31 @@ function Copy-EnvFile {
     Write-Ok "Created $TargetPath from template"
 }
 
+function Initialize-WebEnvFile {
+    param(
+        [string] $ExamplePath,
+        [string] $TargetPath,
+        [string] $ApiHttpsUrl
+    )
+
+    if (-not (Test-Path $ExamplePath)) {
+        Write-Warn "Missing template: $ExamplePath"
+        return
+    }
+
+    if ((Test-Path $TargetPath) -and -not $ForceEnvCopy) {
+        Write-Ok "Already exists (use -ForceEnvCopy to overwrite): $TargetPath"
+        return
+    }
+
+    $content = Get-Content -Path $ExamplePath -Raw
+    $content = $content -replace '(?m)^VITE_API_URL=.*$', "VITE_API_URL=$ApiHttpsUrl"
+
+    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText($TargetPath, $content.TrimEnd() + "`n", $utf8NoBom)
+    Write-Ok "Created $TargetPath from web/.env.example (VITE_API_URL=$ApiHttpsUrl)"
+}
+
 function Get-PostgresPasswordFromEnv([string] $EnvFilePath) {
     if (-not (Test-Path $EnvFilePath)) {
         return 'postgres'
@@ -365,7 +390,10 @@ Aspire CLI not on PATH (optional but recommended).
     Write-Step 'Seeding local config (.env, MCP)'
     $rootEnvPath = Join-Path $RepoRoot '.env'
     Copy-EnvFile -ExamplePath (Join-Path $RepoRoot '.env.example') -TargetPath $rootEnvPath
-    Copy-EnvFile -ExamplePath (Join-Path $WebDir '.env.example') -TargetPath (Join-Path $WebDir '.env')
+    Initialize-WebEnvFile `
+        -ExamplePath (Join-Path $WebDir '.env.example') `
+        -TargetPath (Join-Path $WebDir '.env') `
+        -ApiHttpsUrl $ApiHttpsUrl
     Initialize-McpConfig -RepoRoot $RepoRoot -EnvFilePath $rootEnvPath
 
     # --- HTTPS dev cert ---
@@ -374,8 +402,8 @@ Aspire CLI not on PATH (optional but recommended).
         Write-Host "    API: $ApiHttpsUrl (HTTP $ApiHttpUrl) | Web: $WebHttpsUrl" -ForegroundColor DarkGray
         Ensure-DevHttpsCertificate
         Write-Host @"
-    Standalone Vite HTTPS (optional): set VITE_DEV_HTTPS=1 in web\.env, then yarn --cwd web dev
-    web\.env should use VITE_API_URL=$ApiHttpsUrl when not running under AppHost.
+    Standalone Vite: web\.env uses VITE_API_URL=$ApiHttpsUrl (from Setup-Environments.ps1 / web\.env.example).
+    Optional HTTPS Vite: set VITE_DEV_HTTPS=1 in web\.env, then yarn --cwd web dev (matches API CORS).
 "@ -ForegroundColor DarkGray
     }
     else {

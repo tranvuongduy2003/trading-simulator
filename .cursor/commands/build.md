@@ -208,10 +208,8 @@ Use **aspire-mcp** or `aspire` skill if dashboard/resources fail.
 **Frontend** (`web/` when task touches UI):
 
 ```powershell
-cd web
-npm run typecheck
-npm run lint
-npm run build
+yarn --cwd web lint
+yarn --cwd web build
 ```
 
 **EF** (schema changed — paths per task / `migration.mdc`):

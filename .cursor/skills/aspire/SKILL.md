@@ -175,6 +175,7 @@ var ml = builder.AddPythonApp("ml-service", "../ml-service", "main.py")
 
 // React frontend (Vite)
 var web = builder.AddViteApp("web", "../frontend")
+    .WithYarn(installArgs: ["--frozen-lockfile"])
     .WithHttpEndpoint(targetPort: 5173).WithReference(api);
 
 // Go worker

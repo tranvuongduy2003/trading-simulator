@@ -38,7 +38,7 @@ When a **rule** and a **doc** disagree, **the doc wins** — fix the rule in a f
 ```
 src/       AppHost, ServiceDefaults, Api, MatchingEngine, Application, Domain, Infrastructure, Contracts
 tests/     Domain.UnitTests, MatchingEngine.UnitTests, Api.IntegrationTests  (see backend-testing.mdc)
-web/       React 19 + Vite (not in .slnx; run via Aspire npm app)
+web/       React 19 + Vite (not in .slnx; Yarn; run via Aspire `web` Vite app)
 docs/      PRD, TECHNICAL, DATABASE, memory/, specs/, plans/
 .cursor/   rules/, skills/
 ```

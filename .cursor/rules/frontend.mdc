@@ -22,6 +22,13 @@ Source: [`docs/PRD.md`](docs/PRD.md) §8 (UI), [`docs/TECHNICAL.md`](docs/TECHNI
 
 React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, **TanStack Query**, **Zustand**, react-hook-form + zod, `@microsoft/signalr`, lightweight-charts.
 
+## Package manager (Yarn)
+
+- **`web/` uses Yarn only** — lockfile is `yarn.lock`. Do not run `npm install` or commit `package-lock.json`.
+- Prefer commands from repo root: `yarn --cwd web install`, `yarn --cwd web dev`, `yarn --cwd web build`, `yarn --cwd web lint`.
+- shadcn: `yarn --cwd web dlx shadcn@latest add <component>` (or `yarn --cwd web exec shadcn add <component>`).
+- Aspire AppHost: `AddViteApp("web", ...).WithYarn(...)` on the `web` resource (Aspire 13.3+).
+
 ## API access
 
 - Frontends call **Api directly** (no BFF in MVP) — cookie session, `credentials: 'include'`
