@@ -20,7 +20,7 @@ public sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(Environments.Development);
-        builder.UseSetting("ConnectionStrings:trading", _postgresConnectionString);
-        builder.UseSetting("ConnectionStrings:cache", _redisConnectionString);
+        builder.UseSetting("ConnectionStrings:Trading", _postgresConnectionString);
+        builder.UseSetting("ConnectionStrings:Cache", _redisConnectionString);
     }
 }

@@ -1,10 +1,9 @@
-using System.Text.RegularExpressions;
 using TradingSimulator.Domain.Abstractions;
 using TradingSimulator.Domain.Exceptions;
 
 namespace TradingSimulator.Domain.Users;
 
-public sealed partial class Username : ValueObject
+public sealed class Username : ValueObject
 {
     private const int MinimumLength = 3;
     private const int MaximumLength = 32;
@@ -29,7 +28,7 @@ public sealed partial class Username : ValueObject
                 $"Username must be between {MinimumLength} and {MaximumLength} characters.");
         }
 
-        if (!UsernamePattern().IsMatch(value))
+        if (!HasAllowedCharactersOnly(value))
         {
             throw new BusinessRuleValidationException(
                 "USERNAME_INVALID_CHARACTERS",
@@ -44,6 +43,16 @@ public sealed partial class Username : ValueObject
         yield return Value;
     }
 
-    [GeneratedRegex("^[a-zA-Z0-9_]+$")]
-    private static partial Regex UsernamePattern();
+    private static bool HasAllowedCharactersOnly(string value)
+    {
+        foreach (char character in value)
+        {
+            if (!char.IsAsciiLetterOrDigit(character) && character != '_')
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

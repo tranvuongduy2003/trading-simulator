@@ -1,12 +1,12 @@
-using System.Text.RegularExpressions;
 using TradingSimulator.Domain.Abstractions;
 using TradingSimulator.Domain.Exceptions;
 
 namespace TradingSimulator.Domain.Users;
 
-public sealed partial class Password : ValueObject
+public sealed class Password : ValueObject
 {
     private const int MinimumLength = 8;
+    private const string AllowedSpecialCharacters = "!@#$%^&*()_+-=[]{}|;:'\",.<>?/\\`~";
 
     private Password(string value) => Value = value;
 
@@ -28,21 +28,21 @@ public sealed partial class Password : ValueObject
                 $"Password must be at least {MinimumLength} characters.");
         }
 
-        if (!PasswordHasLetter().IsMatch(plaintext))
+        if (!ContainsLetter(plaintext))
         {
             throw new BusinessRuleValidationException(
                 "PASSWORD_MISSING_LETTER",
                 "Password must include at least one letter.");
         }
 
-        if (!PasswordHasDigit().IsMatch(plaintext))
+        if (!ContainsDigit(plaintext))
         {
             throw new BusinessRuleValidationException(
                 "PASSWORD_MISSING_DIGIT",
                 "Password must include at least one digit.");
         }
 
-        if (!PasswordHasSpecialCharacter().IsMatch(plaintext))
+        if (!ContainsSpecialCharacter(plaintext))
         {
             throw new BusinessRuleValidationException(
                 "PASSWORD_MISSING_SPECIAL",
@@ -54,12 +54,12 @@ public sealed partial class Password : ValueObject
 
     protected override IEnumerable<object?> GetEqualityComponents() => [];
 
-    [GeneratedRegex("[A-Za-z]")]
-    private static partial Regex PasswordHasLetter();
+    private static bool ContainsLetter(string value) =>
+        value.Any(static character => char.IsAsciiLetter(character));
 
-    [GeneratedRegex("[0-9]")]
-    private static partial Regex PasswordHasDigit();
+    private static bool ContainsDigit(string value) =>
+        value.Any(static character => char.IsAsciiDigit(character));
 
-    [GeneratedRegex(@"[!@#$%^&*()_+\-=\[\]{}|;:'"",.<>?/\\`~]")]
-    private static partial Regex PasswordHasSpecialCharacter();
+    private static bool ContainsSpecialCharacter(string value) =>
+        value.Any(static character => AllowedSpecialCharacters.Contains(character));
 }

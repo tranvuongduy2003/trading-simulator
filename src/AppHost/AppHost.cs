@@ -7,7 +7,7 @@ var postgres = builder.AddPostgres("postgres", password: postgresPassword)
     .WithPgAdmin(pgAdmin => pgAdmin.WithUrlForEndpoint("http", url => url.DisplayText = "pgAdmin"))
     .WithEndpoint(port: 5432, targetPort: 5432);
 
-var tradingDb = postgres.AddDatabase("trading");
+_ = postgres.AddDatabase("trading");
 
 var redis = builder.AddRedis("cache")
     .WithRedisCommander(redisCommander =>
@@ -15,14 +15,10 @@ var redis = builder.AddRedis("cache")
     .WithEndpoint(port: 6379, targetPort: 6379);
 
 var matchingEngine = builder.AddProject<Projects.TradingSimulator_MatchingEngine>("matching-engine")
-    .WithReference(tradingDb)
-    .WithReference(redis)
     .WaitFor(postgres);
 
 #pragma warning disable ASPIRECERTIFICATES001 // WithHttpsDeveloperCertificate
 var api = builder.AddProject<Projects.TradingSimulator_Api>("api", launchProfileName: "https")
-    .WithReference(tradingDb)
-    .WithReference(redis)
     .WaitFor(postgres)
     .WaitFor(redis)
     .WithHttpsDeveloperCertificate()
