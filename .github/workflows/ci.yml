@@ -35,11 +35,14 @@ jobs:
       - name: Build .NET
         run: dotnet build TradingSimulator.slnx --no-restore -c Release
 
-      - name: Test .NET
-        run: dotnet test TradingSimulator.slnx --no-build -c Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
-
       - name: Install frontend dependencies
         run: yarn --cwd web install --frozen-lockfile
+
+      - name: Verify OpenAPI contract matches API
+        run: yarn --cwd web api:verify
+
+      - name: Test .NET
+        run: dotnet test TradingSimulator.slnx --no-build -c Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
 
       - name: Lint frontend
         run: yarn --cwd web lint

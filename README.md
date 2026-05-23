@@ -111,9 +111,22 @@ Password: `Parameters:postgres-password` in `src/AppHost/appsettings.Development
 
 **Secrets in git:** Copy `.env.example` → `.env`, `web/.env.example` → `web/.env`, and `.mcp.json.example` → `.mcp.json` (local only; see [`.gitignore`](.gitignore)).
 
+## API contract (OpenAPI → TypeScript)
+
+REST shapes are defined in [`contracts/openapi/api.v1.yaml`](contracts/openapi/api.v1.yaml) (committed). The web app generates types into `web/src/generated/` (gitignored).
+
+After changing API endpoints:
+
+```bash
+yarn --cwd web api:export    # refresh YAML from C# build
+yarn --cwd web api:codegen   # refresh TypeScript (also runs before dev/build)
+```
+
+CI runs `api:verify` to ensure the YAML matches the API. See [`contracts/openapi/README.md`](contracts/openapi/README.md).
+
 ## CI
 
-GitHub Actions builds the .NET solution, runs tests, and builds the frontend on every push/PR to `main`. See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+GitHub Actions builds the .NET solution, verifies the OpenAPI contract, runs tests, and builds the frontend on every push/PR to `main`. See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ## Tooling
 
