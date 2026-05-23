@@ -71,6 +71,8 @@ owner: product
 tags: [spec, feature, trading-simulator]
 related_plan: null
 related_specs: []
+github_epic_issue: null
+github_story_issues: []
 prd_refs: [<PRD §sections or requirement IDs>]
 tech_refs: [<Tech §sections>]
 db_refs: [<DB §sections or "None">]
@@ -205,18 +207,127 @@ Cover at minimum: insufficient funds/shares, invalid symbol (non-AAPL), cancel f
 
 ---
 
-## STEP 2 — SAVE & SYNC
+## STEP 2 — SAVE & SYNC (docs)
 
-After writing the file:
+After writing the spec file:
 
 1. Append one line to [`docs/CHANGELOG.md`](docs/CHANGELOG.md): `- spec: <feature> (docs/specs/<timestamp>-<feature-kebab>.md)`.
 2. Update [`docs/memory/current-status.md`](docs/memory/current-status.md) — `Latest completed: spec <feature>`.
-3. **Optional GitHub tracking** (skip silently if `gh auth status` fails or no remote):
-   - Read [`.cursor/skills/github-cli/SKILL.md`](mdc:.cursor/skills/github-cli/SKILL.md).
-   - Create one **tracking issue** for the feature; optional child issues per story.
-   - Labels: `spec`, `enhancement` (or project convention).
-   - Append to spec body (after frontmatter): `> GitHub: #<n> [title](url)`
-   - Do **not** auto-close issues; state transitions belong to `/build`.
+3. Set spec frontmatter `github_epic_issue` / `github_story_issues` after Step 3 completes.
+
+## STEP 3 — GITHUB EPIC, STORY ISSUES & PROJECT BOARD (MANDATORY when `gh` works)
+
+After Step 2, sync GitHub so every **Story** in spec §2 has its own trackable issue on the **Project board**. Read [`.cursor/skills/github-cli/SKILL.md`](mdc:.cursor/skills/github-cli/SKILL.md) and [`.cursor/skills/github-cli/ISSUES.md`](mdc:.cursor/skills/github-cli/ISSUES.md).
+
+**Skip entire step only if:** `gh auth status` fails, the repo has no `origin` remote, or the user explicitly says to skip GitHub. When skipping, say why in the completion summary.
+
+### 3.0 Prerequisites — auth scopes & project config
+
+**Token scopes** (Projects v2 requires both):
+
+```bash
+gh auth status
+gh auth refresh -h github.com -s read:project,project
+```
+
+If refresh starts device flow, tell the user to complete https://github.com/login/device before continuing.
+
+**Project target** — resolve in this order:
+
+1. [`.github/github-project.json`](mdc:.github/github-project.json) if present:
+   ```json
+   {
+     "owner": "tranvuongduy2003",
+     "projectNumber": 1,
+     "projectTitle": "Optional display name for logs"
+   }
+   ```
+2. Environment: `GH_PROJECT_OWNER`, `GH_PROJECT_NUMBER` (optional `GH_PROJECT_TITLE`).
+3. If still unknown: `gh project list --owner @me` (and `--owner <org>` if applicable); if multiple matches, use `AskQuestion` once — do not guess.
+
+Copy [`.github/github-project.json.example`](mdc:.github/github-project.json.example) to `.github/github-project.json` locally (gitignored); set `owner` and `projectNumber`.
+
+**Labels** — ensure they exist (create if missing):
+
+```bash
+gh label create "spec" --description "Product spec artifact" --color "0E8A16" 2>/dev/null || true
+```
+
+Default labels on every epic and story issue: `spec`, `enhancement`.
+
+### 3.1 Epic (parent) issue
+
+Create **one epic issue** for the whole feature (not one per story).
+
+| Field | Value |
+|-------|--------|
+| **Title** | `Spec: <feature name> (<PRD US-XX if known>)` |
+| **Labels** | `spec`, `enhancement` |
+
+**Epic body** — copy [`.github/.issue-bodies/epic.template.md`](mdc:.github/.issue-bodies/epic.template.md) to a temp file, fill every section from the spec (no unfilled placeholders), then:
+
+```bash
+gh issue create --title "Spec: <feature> (<US-XX>)" --label "spec,enhancement" --body-file <temp-epic.md>
+```
+
+Record epic number `EPIC`.
+
+### 3.2 Story issues — one detailed issue per spec §2 story
+
+For **each** `### Story N:` block in spec §2 (Phase 1 only; skip Future scope stories):
+
+| Field | Value |
+|-------|--------|
+| **Title** | `<PRD US-XX if known> / Story N: <short title from spec>` |
+| **Labels** | `spec`, `enhancement` |
+
+**Story body** — copy [`.github/.issue-bodies/story.template.md`](mdc:.github/.issue-bodies/story.template.md) per story, fill from that story’s §2 block plus applicable §3–§9 (verbatim ACs; no placeholder text left in the published issue).
+
+Create issues sequentially; record story issue numbers `S1`, `S2`, …
+
+**PowerShell-friendly creation** (prefer `--body-file` over inline bodies):
+
+```powershell
+Copy-Item .github/.issue-bodies/story.template.md $env:TEMP\gh-story-1.md
+# Edit $env:TEMP\gh-story-1.md — fill all sections from spec
+gh issue create --title "US-01 / Story 1: <title>" --label "spec,enhancement" --body-file "$env:TEMP\gh-story-1.md"
+Remove-Item $env:TEMP\gh-story-1.md
+```
+
+### 3.3 Add all issues to the GitHub Project board
+
+For the epic and **every** story issue, add to the configured project:
+
+```bash
+# Prefer Projects v2 CLI (needs read:project + project scopes)
+gh project item-add <projectNumber> --owner <owner> --url https://github.com/<owner>/<repo>/issues/<number>
+```
+
+Run once per issue (`EPIC`, `S1`, `S2`, …). If `item-add` fails but `gh issue edit <n> --add-project "<projectTitle>"` works with the exact title from config, use that as fallback.
+
+Do **not** set Project **Status** fields unless the user asked — default column is enough.
+
+### 3.4 Wire epic ↔ stories ↔ spec
+
+1. **Edit epic** `#EPIC`: fill the Stories checklist with `- [ ] #S1 — Story 1: …` for each story issue.
+2. **Comment on epic:** `Story issues created for project board: #S1, #S2, …`
+3. **Update spec file:**
+   - After frontmatter, add: `> GitHub epic: #<EPIC> [<title>](url>)`
+   - Frontmatter: `github_epic_issue: <EPIC>`, `github_story_issues: [<S1>, <S2>, …]`
+4. **Do not** close issues; `/build` moves them. Do not create GitHub issues for Future scope one-liners unless the user asks.
+
+### 3.5 Report to user
+
+In the completion message, include:
+
+| Item | Link |
+|------|------|
+| Epic | `#<EPIC>` + URL |
+| Stories | `#<S1>` … per story |
+| Project | owner + project number/title used |
+| Auth | Remind to run `gh auth refresh -h github.com -s read:project,project` if Project add was skipped |
+
+If Project add failed (missing scope or wrong project name), list created issue URLs and the exact command to run after fixing auth/config.
 
 ## QUALITY CHECKLIST (self-verify before presenting)
 
@@ -230,11 +341,14 @@ After writing the file:
 - [ ] No multi-tenant or multi-symbol scope creep unless user requested
 - [ ] Spec fits one phase (≤ 7 stories); larger ideas in Future scope
 - [ ] Could `/plan` consume this without asking questions? If not, fix.
+- [ ] GitHub: epic issue exists and body includes spec link, scope, and story checklist
+- [ ] GitHub: one **detailed** issue per Phase 1 story (happy + failure ACs copied, not stubs)
+- [ ] GitHub: epic + all story issues added to Project board (or user told how to fix auth/config)
 
 ## DO
 
-Read PRD + Technical + Database first · Stay in product mode · Cite `PRD §`, `Tech §`, `DB §` · Use `AskQuestion` for narrow ambiguity · Save the spec file before reporting
+Read PRD + Technical + Database first · Stay in product mode · Cite `PRD §`, `Tech §`, `DB §` · Use `AskQuestion` for narrow ambiguity · Save the spec file before reporting · Run Step 3 when `gh` is available · Use `--body-file` for issue bodies
 
 ## DO NOT
 
-Specify file paths, class names, or framework APIs · Spec >7 stories without splitting · Skip §3 / §5 / §6 · Introduce message broker / multi-symbol without explicit approval · Move on without answering "what's the smallest version?"
+Specify file paths, class names, or framework APIs in the **spec** (issue bodies may link to `docs/specs/…`) · Spec >7 stories without splitting · Skip §3 / §5 / §6 · Introduce message broker / multi-symbol without explicit approval · Move on without answering "what's the smallest version?" · Create a single monolithic issue instead of epic + per-story issues · Leave story issues as one-line stubs without ACs

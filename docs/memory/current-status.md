@@ -1,7 +1,7 @@
 # Current Status
 
 Last updated: 2026-05-23
-Owner: @you
+Owner: @tranvuongduy2003
 
 ## Active Focus
 
@@ -9,10 +9,7 @@ Owner: @you
 
 ## Latest Completed
 
-- `docs/PRD.md` restored as product PRD (v1.0); added `docs/TRACEABILITY.md` mapping US/FR → Tech/DB.
-- Aligned `Trading:PortfolioResetCooldownMinutes` to PRD FR-1.4 (1440 = 24 hours).
-- Updated cursor rules/skills and design-system layout refs to PRD §8.
-- Cursor rules aligned with `temp/` patterns (skills, routing, testing split, memory artifact paths).
+- spec: user registration (`docs/specs/20260523-175509-user-registration.md`)
 
 ## In Progress
 
