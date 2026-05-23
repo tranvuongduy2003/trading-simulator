@@ -37,7 +37,9 @@ dotnet dev-certs https --trust
 
 ## Run locally
 
-Start the full stack from the AppHost (recommended):
+### Full stack (Aspire)
+
+Start PostgreSQL, Redis, API, matching engine, and Vite:
 
 ```bash
 dotnet run --project src/AppHost/TradingSimulator.AppHost.csproj
@@ -49,11 +51,30 @@ Or with the Aspire CLI:
 aspire run --project src/AppHost/TradingSimulator.AppHost.csproj
 ```
 
-The Aspire dashboard shows logs, health, and endpoints for PostgreSQL (with PgAdmin), Redis (with Redis Commander), API, matching engine, and the Vite frontend.
+The dashboard shows logs and health. Fixed host ports:
 
-**HTTPS (default under AppHost):** API at `https://localhost:8000` (HTTP `http://localhost:8001`), Vite at `https://localhost:5000`. Aspire injects the ASP.NET dev certificate for both; run `dotnet dev-certs https --trust` once if the browser warns. `VITE_API_URL` is set to the API HTTPS endpoint automatically.
+| Service | URL / port |
+|---------|------------|
+| Web (Vite) | `https://localhost:5000` |
+| API (HTTPS) | `https://localhost:8000` |
+| API (HTTP) | `http://localhost:8001` |
+| PostgreSQL | `localhost:5432` |
+| Redis | `localhost:6379` |
 
-To run **Vite alone** with HTTPS, copy `web/.env.example` to `web/.env`, set `VITE_DEV_HTTPS=1`, then `yarn --cwd web dev`.
+Aspire injects `ConnectionStrings__trading` and `ConnectionStrings__cache` into API and matching engine, and sets `VITE_API_URL` to the API HTTPS endpoint for the `web` resource.
+
+Run `dotnet dev-certs https --trust` once if the browser warns on HTTPS.
+
+### Frontend only (`yarn`)
+
+Use this instead of the AppHost `web` resource (do not run both on port 5000):
+
+```bash
+cp web/.env.example web/.env   # once
+yarn --cwd web dev
+```
+
+Default `web/.env` uses `VITE_API_URL=http://localhost:8001` with HTTP Vite. Development CORS on the API allows `https://localhost:5000` only.
 
 ## Solution layout
 
@@ -77,7 +98,7 @@ Layering (later wins): `appsettings.json` → `appsettings.Development.json` →
 
 Key areas live under the `Trading` section in service `appsettings.json` (initial cash, channel capacity, simulated liquidity, reset cooldown).
 
-Frontend reads `VITE_API_URL` (injected by AppHost when running under Aspire).
+Frontend reads `VITE_API_URL` from Aspire when started by AppHost, or from `web/.env` when using `yarn dev`.
 
 ### Local connection strings (AppHost source of truth)
 

@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Api\TradingSimulator.Api.csproj" />
+    <ProjectReference Include="..\Testing.Common\TradingSimulator.Testing.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
