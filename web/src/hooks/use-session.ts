@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
-import { authApi } from '@/features/auth'
+import { authApi, type WalletResponse } from '@/features/auth'
+import { toNumber } from '@/lib/format'
 import { ApiError } from '@/types/api-problem'
 import { useAuthStore } from '@/store/auth-store'
 
@@ -12,7 +13,7 @@ export function useSession() {
 
   const query = useQuery({
     queryKey: ['auth', 'session'],
-    queryFn: ({ signal }) => authApi.getSession(signal),
+    queryFn: ({ signal }) => authApi.getWallet(signal),
     retry: false,
     staleTime: 60_000,
   })
@@ -33,14 +34,21 @@ export function useSession() {
       return
     }
 
-    const wallet = query.data as { userIdentifier?: string; displayName?: string }
-
+    const wallet = query.data
     setSession({
-      userIdentifier:
-        typeof wallet.userIdentifier === 'string' ? wallet.userIdentifier : 'session-active',
-      displayName: wallet.displayName ?? null,
+      userId: wallet.userId,
+      username: wallet.username,
     })
   }, [clearSession, query.data, query.error, query.isError, query.isPending, setSession, setStatus])
 
   return query
+}
+
+export function normalizeWallet(wallet: WalletResponse) {
+  return {
+    ...wallet,
+    totalBalance: toNumber(wallet.totalBalance),
+    reservedBalance: toNumber(wallet.reservedBalance),
+    availableBalance: toNumber(wallet.availableBalance),
+  }
 }

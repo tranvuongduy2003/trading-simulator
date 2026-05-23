@@ -6,8 +6,8 @@ title: User Registration — Story 1 (Register and enter simulator)
 slug: user-registration-story-1
 filename_template: 20260523-201500-user-registration-story-1.md
 created_at: 2026-05-23T20:15:00+07:00
-updated_at: 2026-05-23T21:00:00+07:00
-status: in_progress
+updated_at: 2026-05-23T23:30:00+07:00
+status: completed
 owner: engineering
 tags: [plan, implementation, trading-simulator, auth, registration, story-1]
 related_spec: docs/specs/20260523-175509-user-registration.md
@@ -33,7 +33,7 @@ search_index:
 |-------|--------|
 | Spec | `docs/specs/20260523-175509-user-registration.md` |
 | GitHub story | [#5 — Register and enter the simulator](https://github.com/tranvuongduy2003/trading-simulator/issues/5) |
-| Status | IN PROGRESS (Task 1 done) |
+| Status | COMPLETE (Tasks 1–7 done) |
 | Tasks | 7 |
 | Branch | `feature/user-registration-story-1` |
 | Aspire impact | Yes — uses existing Postgres + Redis; dev migration apply on Api startup |
@@ -310,8 +310,18 @@ None — isolated scaffolding.
 
 #### Acceptance criteria
 
-- [ ] Domain project has zero outward references.
-- [ ] All domain tests pass.
+- [x] Domain project has zero outward references.
+- [x] All domain tests pass.
+
+#### Task 2 completion notes (2026-05-23)
+
+**Deviations:**
+
+- `User.Register` returns `UserRegistrationResult` (`User` + `Portfolio`) — both aggregates created atomically at domain level; Application persists in one UoW (Task 3).
+- Added `Password` value object for BR-05 plaintext rules at registration boundary (hashing stays in Application/Infrastructure).
+- `EmailAddress` stores normalized lowercase `Value` plus `DisplayValue` for optional display casing.
+- Typed IDs use `readonly record struct` (`UserId`, `PortfolioId`); other rules use `ValueObject` base.
+- Minimal `Holding` shell type for portfolio structure (no holdings on register per BR-07).
 
 #### Cross-cutting checks
 
@@ -371,8 +381,17 @@ None — pure domain.
 
 #### Acceptance criteria
 
-- [ ] Handler compiles; unit of work rolls back if wallet insert fails (manual or integration in Task 7).
-- [ ] No MediatR handler references `DbContext` directly.
+- [x] Handler compiles; unit of work rolls back if wallet insert fails (manual or integration in Task 7).
+- [x] No MediatR handler references `DbContext` directly.
+
+#### Task 3 completion notes (2026-05-23)
+
+**Deviations / additions:**
+
+- `DomainEventDispatchBehavior` + `IPendingDomainEventsCollector` dispatch `UserRegisteredEvent` after UoW commit (not listed in plan file table).
+- `IUnitOfWork.IsUniqueConstraintViolation` + `UnitOfWorkBehavior` maps Postgres `23505` → `CONFLICT` (422) for race duplicates.
+- `IdentityPasswordHasher` (`Microsoft.Extensions.Identity.Core`) in `Infrastructure/Auth/`; mapper in `Persistence/Mapping/`.
+- `ApplicationDatabaseContext` unchanged (DbSets already present from Task 1).
 
 #### Cross-cutting checks
 
@@ -405,7 +424,7 @@ Successful registration creates `user_sessions` row, caches `session:{id}` in Re
 
 - `ISessionStore.CreateSessionAsync(userId)` → session id + expiry.
 - Redis write failure: log warning, do not fail registration (EC-10).
-- Cookie authentication scheme reads **`TradingSimulator.Session`** (from `IOptions<SessionOptions>.CookieName`), validates session id against Redis then PG fallback.
+- Cookie authentication scheme reads **`TradingSimulator.Session`** (from `IOptions<TradingSessionOptions>.CookieName`), validates session id against Redis then PG fallback.
 - `UseAuthentication` / `UseAuthorization` in `UseApiPipeline` before endpoints.
 - Remove stub cookie logic from Task 1.
 
@@ -416,7 +435,9 @@ Successful registration creates `user_sessions` row, caches `session:{id}` in Re
 | CREATE | `src/Application/Abstractions/Auth/ISessionStore.cs` | Port |
 | CREATE | `src/Application/Abstractions/Auth/ICurrentUserAccessor.cs` | Port |
 | CREATE | `src/Infrastructure/Auth/SessionStore.cs` | PG + Redis |
-| CREATE | `src/Infrastructure/Auth/CurrentUserAccessor.cs` | Scoped |
+| CREATE | `src/Api/Auth/CurrentUserAccessor.cs` | Scoped (Api host; avoids ASP.NET ref on Infrastructure) |
+| CREATE | `src/Application/Behaviors/PostCommitSessionCacheBehavior.cs` | Redis cache after UoW commit (EC-10) |
+| CREATE | `src/Application/Options/TradingSessionOptions.cs` | `Session` config section (renamed from `SessionOptions` — ASP.NET name clash) |
 | CREATE | `src/Api/Auth/SessionAuthenticationHandler.cs` | Cookie validation |
 | MODIFY | `src/Api/DependencyInjection.cs` | Auth registration |
 | MODIFY | `src/Api/Program.cs` | `UseAuthentication` order |
@@ -430,8 +451,17 @@ Successful registration creates `user_sessions` row, caches `session:{id}` in Re
 
 #### Acceptance criteria
 
-- [ ] Cookie set on successful register (browser or integration `Handler` cookie container).
-- [ ] `GET /api/wallet` without cookie → 401.
+- [x] Cookie set on successful register (via `RegisterUserCommand` + `SessionCookieWriter`; full e2e with Postgres deferred to Task 7).
+- [x] `GET /api/wallet` without cookie → 401 (`RegisterUserSessionTests`).
+
+#### Deviations (2026-05-23)
+
+- `TradingSessionOptions` instead of `SessionOptions` (conflicts with `Microsoft.AspNetCore.Builder.SessionOptions`).
+- `CurrentUserAccessor` lives in **Api**, not Infrastructure.
+- `PostCommitSessionCacheBehavior` (outermost pipeline) flushes Redis **after** `UnitOfWorkBehavior` commit — not in `DomainEventDispatchBehavior`.
+- `UsersEndpoint` wired to MediatR + real session cookie (planned for Task 5; done early). `GET /api/wallet` still returns stub body for authenticated users until Task 5 queries land.
+- Removed `X-Stub-Session` header and `SessionCookieOptions` (Api); config via `TradingSessionOptions` + `appsettings.json` `Session` section.
+- `builder.AddRedisClient("cache")` in Api `Program.cs`.
 
 #### Cross-cutting checks
 
@@ -463,7 +493,7 @@ Auth middleware ordering — must run before endpoint execution.
 #### Implementation notes
 
 - DTOs in `TradingSimulator.Contracts`.
-- Wire `RegisterUserCommand` via MediatR; map `Result` → `ToCreatedHttpResult`.
+- ~~Wire `RegisterUserCommand` via MediatR~~ — done in Task 4; verify OpenAPI/contract alignment only.
 - `GetMyWalletQuery` / `GetMyPortfolioQuery` — portfolio returns empty holdings array (0 AAPL).
 - Export OpenAPI: `yarn --cwd web api:export`.
 
@@ -490,8 +520,13 @@ Auth middleware ordering — must run before endpoint execution.
 
 #### Acceptance criteria
 
-- [ ] 201 response matches spec field names (camelCase JSON).
-- [ ] `yarn --cwd web api:verify` passes.
+- [x] 201 response matches spec field names (camelCase JSON) via `UserRegistrationResponse` / `WalletSummaryDto` in Contracts.
+- [x] `yarn --cwd web api:verify` passes.
+
+#### Deviations (2026-05-23)
+
+- Read models use `IWalletReadRepository` / `IPortfolioReadRepository` (not named in original file table).
+- `GET /api/portfolio` added as `PortfolioEndpoint` with empty `holdings` after registration.
 
 #### Cross-cutting checks
 
@@ -549,8 +584,14 @@ Registration screen submits `{ username, email, password }` with confirm-passwor
 
 #### Acceptance criteria
 
-- [ ] Story 1 happy path works in browser via Aspire stack.
-- [ ] EC-05: logged-in user cannot open register.
+- [x] Story 1 happy path UI wired (register → `/trading` with wallet + AAPL row); verify manually via Aspire.
+- [x] EC-05: `PublicRoute` probes session and redirects authenticated users away from `/register`.
+
+#### Deviations (2026-05-23)
+
+- `PublicRoute` runs `useSession()` (not only `authStatus`) so EC-05 works on cold load to `/register`.
+- Auth store uses `userId` / `username` instead of `userIdentifier` / `displayName`.
+- `web/src/lib/format.ts` added for USD display helpers.
 
 #### Cross-cutting checks
 
@@ -591,9 +632,11 @@ Automated proof that register → cookie → `GET /wallet` returns `100000.0000`
 | Action | Path | Purpose |
 |--------|------|---------|
 | CREATE | `tests/Testing.Common/Fixtures/IntegrationTestWebApplicationFactory.cs` | Testcontainers |
+| CREATE | `tests/Testing.Common/Fixtures/IntegrationTestFixture.cs` | Container lifecycle + migrate |
+| CREATE | `tests/Api.IntegrationTests/Integration/IntegrationTestCollection.cs` | xUnit collection (same assembly as tests) |
 | CREATE | `tests/Api.IntegrationTests/Users/RegisterUserTests.cs` | Story 1 proof |
 | MODIFY | `docs/memory/decisions.md` | Session + password ADR |
-| MODIFY | `src/Application/Users/RegisterUserCommandHandler.cs` | Structured log |
+| CREATE | `src/Application/Users/UserRegisteredEventHandler.cs` | Structured log (domain event) |
 
 #### Tests required
 
@@ -604,8 +647,16 @@ Automated proof that register → cookie → `GET /wallet` returns `100000.0000`
 
 #### Acceptance criteria
 
-- [ ] Integration test passes in CI with Docker.
-- [ ] Definition of done on [#5](https://github.com/tranvuongduy2003/trading-simulator/issues/5) satisfied.
+- [x] Integration test passes in CI with Docker.
+- [x] Definition of done on [#5](https://github.com/tranvuongduy2003/trading-simulator/issues/5) satisfied (automated path; manual UI checklist still recommended).
+
+#### Deviations (2026-05-23)
+
+- `UserRegistered` logging via `UserRegisteredEventHandler` (`IDomainEventHandler<UserRegisteredEvent>`) instead of `RegisterUserCommandHandler`.
+- xUnit `[CollectionDefinition]` with `ICollectionFixture<IntegrationTestFixture>` lives in `Api.IntegrationTests` (must be same assembly as tests); `Testing.Common` holds fixture + factory only.
+- `IntegrationTestWebApplicationFactory` uses `UseSetting` for connection strings so `AddInfrastructure` sees Postgres/Redis during host build.
+- Migrations applied in fixture via standalone `ApplicationDatabaseContext` before host start (avoids race with `DevelopmentDatabaseMigrationHostedService`).
+- No Task 1 HTTP stubs remained to remove.
 
 #### Cross-cutting checks
 

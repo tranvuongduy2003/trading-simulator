@@ -1,8 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TradingSimulator.Application.Abstractions.Auth;
 using TradingSimulator.Application.Abstractions.Persistence;
+using TradingSimulator.Infrastructure.Auth;
 using TradingSimulator.Infrastructure.Persistence;
+using TradingSimulator.Infrastructure.Persistence.Repositories;
 
 namespace TradingSimulator.Infrastructure;
 
@@ -38,6 +41,14 @@ public static class DependencyInjection
             serviceProvider.GetRequiredService<ApplicationDatabaseContext>());
         services.AddScoped<IApplicationDatabaseContextFactory, ApplicationDatabaseContextFactory>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IWalletReadRepository, WalletReadRepository>();
+        services.AddScoped<IPortfolioReadRepository, PortfolioReadRepository>();
+        services.AddScoped<ISessionStore, SessionStore>();
+        services.AddScoped<ISessionRedisCache, SessionRedisCache>();
+        services.AddScoped<IPasswordHasher, IdentityPasswordHasher>();
+        services.AddScoped<IDevelopmentDatabaseMigrator, DevelopmentDatabaseMigrator>();
+        services.AddHostedService<DevelopmentDatabaseMigrationHostedService>();
 
         return services;
     }

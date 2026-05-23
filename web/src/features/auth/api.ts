@@ -1,8 +1,41 @@
 import { apiClient } from '@/lib/api'
 
-export type SessionResponse = {
-  userIdentifier: string
-  displayName: string
+export type WalletSummary = {
+  currency: string
+  totalBalance: number
+  reservedBalance: number
+  availableBalance: number
+}
+
+export type UserRegistrationResponse = {
+  userId: string
+  username: string
+  email: string
+  createdAt: string
+  wallet: WalletSummary
+}
+
+export type WalletResponse = {
+  userId: string
+  username: string
+  currency: string
+  totalBalance: number
+  reservedBalance: number
+  availableBalance: number
+}
+
+export type Holding = {
+  symbol: string
+  totalQuantity: number
+  reservedQuantity: number
+  availableQuantity: number
+  averagePrice: number
+}
+
+export type PortfolioResponse = {
+  portfolioId: string
+  userId: string
+  holdings: Holding[]
 }
 
 export type LoginRequest = {
@@ -11,14 +44,20 @@ export type LoginRequest = {
 }
 
 export type RegisterRequest = {
+  username: string
   email: string
   password: string
-  displayName: string
 }
 
-/** Probes cookie session; uses wallet route until a dedicated session endpoint exists. */
-export function getSession(signal?: AbortSignal) {
-  return apiClient.get<SessionResponse>('/api/wallet', { signal })
+export function getWallet(signal?: AbortSignal) {
+  return apiClient.get<WalletResponse>('/api/wallet', { signal })
+}
+
+/** @deprecated Use getWallet — kept for session probe naming. */
+export const getSession = getWallet
+
+export function getPortfolio(signal?: AbortSignal) {
+  return apiClient.get<PortfolioResponse>('/api/portfolio', { signal })
 }
 
 export function login(request: LoginRequest, signal?: AbortSignal) {
@@ -26,7 +65,7 @@ export function login(request: LoginRequest, signal?: AbortSignal) {
 }
 
 export function register(request: RegisterRequest, signal?: AbortSignal) {
-  return apiClient.post<void>('/api/users', request, { signal })
+  return apiClient.post<UserRegistrationResponse>('/api/users', request, { signal })
 }
 
 export function logout(signal?: AbortSignal) {

@@ -7,6 +7,7 @@ using TradingSimulator.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddRedisClient("cache");
 
 builder.Services.AddOpenApi();
 builder.Services.AddApplication();

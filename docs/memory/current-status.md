@@ -5,19 +5,20 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
-- User registration Story 1 — Task 2 (domain aggregates) on branch `feature/user-registration-story-1`.
+- User registration Story 1 complete on branch `feature/user-registration-story-1` — ready for PR / manual smoke.
 
 ## Latest Completed
 
-- Task 1: schema stub + `POST /api/users` / `GET /api/wallet` HTTP placeholders (`InitialTradingSchema` migration, stub endpoints, integration tests).
+- Task 7: Testcontainers integration test (`RegisterUser_Returns201_AndWalletShowsInitialCash`), ADR-001/002, `UserRegistered` structured log via domain event handler.
 
 ## In Progress
 
-- None (ready for `/build` Task 2).
+- None.
 
 ## Next Up
 
-- `/build` Task 2 — `User.Register` domain aggregate and value objects.
+- Open PR for Story 1 (`create-pr` skill) or manual Aspire smoke: register at `/register` → trading shows $100,000.00 and 0 AAPL.
+- Story 2 plan (duplicate username/email UX) when prioritized.
 
 ## Blockers
 
@@ -25,10 +26,12 @@ Owner: @tranvuongduy2003
 
 ## Known Issues
 
-- MSB3277: EF Core Relational 10.0.7 (Aspire) vs 10.0.8 (Infrastructure Design) — build warning only; tests pass.
+- MSB3277: EF Core Relational 10.0.7 vs 10.0.8 — warning only.
+- Api integration tests require Docker (Testcontainers).
+- Manual Story 1 verification: `aspire run` with Postgres + Redis + Vite CORS origin.
 
 ## Session Start Checklist
 
 - [x] Read `docs/plans/20260523-201500-user-registration-story-1.md`
 - [x] Branch `feature/user-registration-story-1`
-- [ ] `aspire run` (Docker + stack healthy) — verify migration on fresh Postgres manually
+- [ ] Manual: register at `/register` → trading shows $100,000.00 and 0 AAPL

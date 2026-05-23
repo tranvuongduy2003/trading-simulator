@@ -2,15 +2,22 @@ import { Link } from 'react-router-dom'
 
 import { paths } from '@/app/paths'
 
+import { RegisterForm } from '../register-form'
+
 export function RegisterPage() {
   return (
-    <div className="flex flex-col gap-3">
-      <h1 className="text-2xl font-semibold tracking-tight">Register</h1>
-      <p className="text-muted-foreground text-sm">Registration form placeholder.</p>
-      <p className="text-muted-foreground text-sm">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Create account</h1>
+        <p className="text-muted-foreground text-sm">Register to trade AAPL with virtual USD.</p>
+      </div>
+
+      <RegisterForm />
+
+      <p className="text-muted-foreground text-center text-sm">
         Already have an account?{' '}
         <Link to={paths.login} className="text-foreground underline-offset-4 hover:underline">
-          Login
+          Log in
         </Link>
       </p>
     </div>
