@@ -1,6 +1,6 @@
 ---
 name: create-pr
-description: End-to-end pull request workflow for this repo — create a prefixed branch, run local CI checks, commit with Conventional Commits, push, and open a GitHub PR. Use when the user asks to create a PR, open a pull request, ship changes, or run branch → pipeline → commit → PR.
+description: End-to-end pull request workflow for trading-simulator — branch, local CI, Conventional Commits, push, open PR, optionally link GitHub issues (Closes #N) and set Project board Status to In review. Use when the user runs /create-pr, create PR, open pull request, ship changes, or mentions attaching an issue to a PR.
 ---
 
 # Create Pull Request
@@ -10,9 +10,23 @@ Orchestrates the full PR workflow for **trading-simulator**. Delegates commit me
 ## When to use
 
 - User says: create PR, open PR, ship it, branch and PR, `/create-pr`
+- User says: create PR **for issue #N** / attach issue / link issue
 - After implementation is done and changes should land on `main` via review
 
 **Do not use** for commit-only or description-only requests — use `git-commit-writer` or `pr-description-writer` alone.
+
+## Parameters (from `/create-pr` command or user message)
+
+Parse **before** Step 5 when present:
+
+| Input | Example | Effect |
+|-------|---------|--------|
+| Issue number(s) | `5`, `#5`, `5,6`, `5 6` | Link those issues to the PR; update Project Status |
+| `link-only` | "link only don't close" | Use `Refs #N` instead of `Closes #N` |
+| `skip-project-status` | "skip project status" | Skip Step 7 |
+| `status <name>` | `status In Progress` | Override Project Status option (default: `statusOnPrCreated` in config or `In review`) |
+
+If no issue numbers are given, run Steps 1–5 only.
 
 ## Prerequisites
 
@@ -20,10 +34,9 @@ Orchestrates the full PR workflow for **trading-simulator**. Delegates commit me
 - `gh` installed and authenticated (`gh auth status`)
 - On repo root; base branch is **`main`** unless user specifies another
 - User explicitly requested commit/PR (project rule: no surprise commits)
+- **Issue linking + Project status:** `gh auth refresh -h github.com -s read:project,project` and [`.github/github-project.json`](../../.github/github-project.json) (copy from [`github-project.json.example`](../../.github/github-project.json.example))
 
 ## Workflow checklist
-
-Copy and track progress:
 
 ```
 - [ ] 1. Branch created from main
@@ -31,6 +44,8 @@ Copy and track progress:
 - [ ] 3. Changes staged (no secrets)
 - [ ] 4. Commit (git-commit-writer)
 - [ ] 5. Push + PR (pr-description-writer + gh)
+- [ ] 6. Link issues on PR (if --issue)
+- [ ] 7. Project Status → In review (if --issue)
 ```
 
 ---
@@ -79,7 +94,7 @@ yarn --cwd web build
 ## Step 3: Stage changes
 
 1. `git status` — review untracked and modified files.
-2. **Never stage:** `.env`, credentials, `**/bin/`, `**/obj/`, local IDE junk, user-specific paths.
+2. **Never stage:** `.env`, credentials, `**/bin/`, `**/obj/`, `.github/github-project.json`, local IDE junk.
 3. Stage intentionally: `git add` paths or `git add -A` after confirming no secrets.
 4. If nothing to commit, stop and tell the user.
 
@@ -107,23 +122,70 @@ git commit -m "feat(scope): short subject" -m "Optional body paragraph."
 
 1. `git push -u origin HEAD`
 2. **Read and follow** [`.cursor/skills/pr-description-writer/SKILL.md`](../pr-description-writer/SKILL.md) to draft the body from `git diff main...HEAD` and `git log --oneline main..HEAD`.
-3. Create PR with **github-cli**:
+3. If issue numbers are known, include a **Linked issues** section in the initial body (see Step 6).
+4. Create PR:
 
 ```powershell
-gh pr create --title "<same as commit subject or concise title>" --body "<markdown from pr-description-writer>"
+gh pr create --base main --title "<subject>" --body-file $env:TEMP\pr-body.md
 ```
 
-- Base branch: `main` (add `--base main` if needed)
-- Return the PR URL to the user
-- Optionally: `gh pr checks --watch` if user wants CI status
+5. Capture PR number from output URL.
 
 **PR title:** Prefer the commit subject line; expand only if too vague.
 
 ---
 
-## Report to user
+## Step 6: Link issues to the PR (when issue numbers provided)
 
-Include:
+Append to the PR description so GitHub shows the link under the issue **Development** panel.
+
+**Default (`link-closes`):**
+
+```markdown
+## Linked issues
+
+Closes #5
+```
+
+**Alternate (`link-only`):** use `Refs #5` (does not auto-close on merge).
+
+If the section was not in the initial body, patch after create:
+
+```powershell
+$pr = 9   # from gh pr create output
+$existing = gh pr view $pr --json body --jq .body
+$footer = "## Linked issues`n`nCloses #5"
+gh pr edit $pr --body ($existing.TrimEnd() + "`n`n" + $footer)
+```
+
+**Epic + stories:** pass every issue to link (e.g. `5` for the story in progress; avoid `Closes #4` on the epic until all stories ship unless the user asks).
+
+Details: [references/github-issue-link.md](references/github-issue-link.md).
+
+---
+
+## Step 7: Project Status → In review (when issue numbers provided)
+
+Unless `skip-project-status`:
+
+1. Ensure each issue is on the Project board (`gh project item-add` from `/spec` Step 3.3).
+2. Run from repo root:
+
+```powershell
+.cursor/skills/create-pr/scripts/set-project-issue-status.ps1 -IssueNumber 5
+```
+
+Multiple issues: `-IssueNumber 5,6,7`
+
+3. Status option name comes from `.github/github-project.json` → `statusOnPrCreated` (default **In review**). Match is case-insensitive.
+
+**If the option does not exist** on the board (e.g. only Todo / In Progress / Done): tell the user to add **In review** to the Project **Status** field in GitHub, or set `statusOnPrCreated` to an existing option in `github-project.json`.
+
+**Requires** `project` scope on `gh auth`.
+
+---
+
+## Report to user
 
 | Item | Value |
 |------|--------|
@@ -131,6 +193,8 @@ Include:
 | Commit | hash + subject |
 | Pipeline | pass/fail per step (brief) |
 | PR | URL |
+| Linked issues | `#5` … or `none` |
+| Project status | `In review` set / skipped / failed (reason) |
 
 Mention deferred manual checks (Aspire smoke test, screenshots) in the PR Testing section, not as blockers unless CI failed.
 
@@ -143,4 +207,5 @@ Mention deferred manual checks (Aspire smoke test, screenshots) in the PR Testin
 | Commit message | `git-commit-writer` |
 | PR body | `pr-description-writer` |
 | `gh` commands | `github-cli` |
+| Command entry | [`.cursor/commands/create-pr.md`](../../commands/create-pr.md) |
 | Implement before PR | `/build` in [`.cursor/commands/build.md`](../../commands/build.md) |
