@@ -18,7 +18,6 @@ internal sealed class UsersEndpoint : IEndpoint
             .Accepts<RegisterUserRequest>("application/json")
             .Produces<UserRegistrationResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status409Conflict)
             .Produces(StatusCodes.Status422UnprocessableEntity);
 
     private static async Task<IResult> RegisterUser(

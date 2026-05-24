@@ -2,6 +2,11 @@
 
 All notable project and process changes are tracked here.
 
+## 2026-05-24
+
+- impl: user registration story 2 — `USERNAME_TAKEN` / `EMAIL_TAKEN` on exists-check, `RegisterUserDuplicateTests`, OpenAPI `POST /api/users` documents 422 only
+- plan: user registration story 2 — reject duplicate identity (`docs/plans/20260524-120000-user-registration-story-2.md`)
+
 ## 2026-05-23
 
 - impl: Task 7 user registration story 1 — Testcontainers fixture, `RegisterUser_Returns201_AndWalletShowsInitialCash`, ADR session/password, `UserRegistered` log
