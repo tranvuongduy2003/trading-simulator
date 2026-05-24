@@ -4,5 +4,5 @@ public sealed class ChannelPipelineOptions
 {
     public const string SectionName = "Channels";
 
-    public int IncomingOrderCapacity { get; set; } = 1024;
+    public int IncomingOrderCapacity { get; set; } = 1000;
 }
