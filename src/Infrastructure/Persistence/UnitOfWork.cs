@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using TradingSimulator.Application.Abstractions.Persistence;
 
 namespace TradingSimulator.Infrastructure.Persistence;
@@ -16,4 +17,13 @@ internal sealed class UnitOfWork(ApplicationDatabaseContext databaseContext) : I
 
     public bool IsConcurrencyConflict(Exception exception) =>
         exception is DbUpdateConcurrencyException;
+
+    public bool IsUniqueConstraintViolation(Exception exception) =>
+        exception switch
+        {
+            DbUpdateException { InnerException: PostgresException postgresException }
+                => postgresException.SqlState == PostgresErrorCodes.UniqueViolation,
+            PostgresException postgresException => postgresException.SqlState == PostgresErrorCodes.UniqueViolation,
+            _ => false,
+        };
 }

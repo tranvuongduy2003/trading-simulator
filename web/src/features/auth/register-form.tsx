@@ -1,0 +1,140 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
+
+import { paths } from '@/app/paths'
+import { Button } from '@/components/ui/button'
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
+import { useAuthStore } from '@/store/auth-store'
+import { registerFormSchema, type RegisterFormValues } from '@/types/auth'
+
+import * as authApi from './api'
+import { applyRegisterApiError } from './map-register-error'
+
+export function RegisterForm() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const setSession = useAuthStore((state) => state.setSession)
+
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerFormSchema),
+    defaultValues: {
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  })
+
+  const registerMutation = useMutation({
+    mutationFn: (values: RegisterFormValues) =>
+      authApi.register({
+        username: values.username,
+        email: values.email,
+        password: values.password,
+      }),
+    onSuccess: (response) => {
+      setSession({
+        userId: response.userId,
+        username: response.username,
+      })
+
+      queryClient.setQueryData(['auth', 'session'], {
+        userId: response.userId,
+        username: response.username,
+        currency: response.wallet.currency,
+        totalBalance: response.wallet.totalBalance,
+        reservedBalance: response.wallet.reservedBalance,
+        availableBalance: response.wallet.availableBalance,
+      } satisfies authApi.WalletResponse)
+
+      void queryClient.invalidateQueries({ queryKey: ['wallet'] })
+      void queryClient.invalidateQueries({ queryKey: ['portfolio'] })
+
+      navigate(paths.trading, { replace: true })
+    },
+    onError: (error) => {
+      form.setValue('password', '')
+      form.setValue('confirmPassword', '')
+      applyRegisterApiError(error, form.setError)
+    },
+  })
+
+  const onSubmit = form.handleSubmit((values) => {
+    registerMutation.mutate(values)
+  })
+
+  return (
+    <form className="flex flex-col gap-6" onSubmit={onSubmit} noValidate>
+      <p className="text-muted-foreground text-sm">
+        Start with $100,000 virtual cash — no real money.
+      </p>
+
+      <FieldGroup>
+        <Field data-invalid={!!form.formState.errors.username}>
+          <FieldLabel htmlFor="register-username">Username</FieldLabel>
+          <Input
+            id="register-username"
+            autoComplete="username"
+            disabled={registerMutation.isPending}
+            {...form.register('username')}
+          />
+          <FieldError errors={[form.formState.errors.username]} />
+        </Field>
+
+        <Field data-invalid={!!form.formState.errors.email}>
+          <FieldLabel htmlFor="register-email">Email</FieldLabel>
+          <Input
+            id="register-email"
+            type="email"
+            autoComplete="email"
+            disabled={registerMutation.isPending}
+            {...form.register('email')}
+          />
+          <FieldError errors={[form.formState.errors.email]} />
+        </Field>
+
+        <Field data-invalid={!!form.formState.errors.password}>
+          <FieldLabel htmlFor="register-password">Password</FieldLabel>
+          <Input
+            id="register-password"
+            type="password"
+            autoComplete="new-password"
+            disabled={registerMutation.isPending}
+            {...form.register('password')}
+          />
+          <FieldDescription>
+            At least 8 characters with a letter, a digit, and a special character.
+          </FieldDescription>
+          <FieldError errors={[form.formState.errors.password]} />
+        </Field>
+
+        <Field data-invalid={!!form.formState.errors.confirmPassword}>
+          <FieldLabel htmlFor="register-confirm-password">Confirm password</FieldLabel>
+          <Input
+            id="register-confirm-password"
+            type="password"
+            autoComplete="new-password"
+            disabled={registerMutation.isPending}
+            {...form.register('confirmPassword')}
+          />
+          <FieldError errors={[form.formState.errors.confirmPassword]} />
+        </Field>
+      </FieldGroup>
+
+      <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+        {registerMutation.isPending ? (
+          <>
+            <Spinner className="mr-2" />
+            Creating account…
+          </>
+        ) : (
+          'Create account'
+        )}
+      </Button>
+    </form>
+  )
+}

@@ -7,21 +7,20 @@ var postgres = builder.AddPostgres("postgres", password: postgresPassword)
     .WithPgAdmin(pgAdmin => pgAdmin.WithUrlForEndpoint("http", url => url.DisplayText = "pgAdmin"))
     .WithEndpoint(port: 5432, targetPort: 5432);
 
-var tradingDb = postgres.AddDatabase("trading");
+var tradingDatabase = postgres.AddDatabase("trading");
 
-var redis = builder.AddRedis("cache")
+var redis = builder.AddRedis("Cache")
     .WithRedisCommander(redisCommander =>
         redisCommander.WithUrlForEndpoint("http", url => url.DisplayText = "Redis Commander"))
     .WithEndpoint(port: 6379, targetPort: 6379);
 
 var matchingEngine = builder.AddProject<Projects.TradingSimulator_MatchingEngine>("matching-engine")
-    .WithReference(tradingDb)
-    .WithReference(redis)
+    .WithReference(tradingDatabase)
     .WaitFor(postgres);
 
 #pragma warning disable ASPIRECERTIFICATES001 // WithHttpsDeveloperCertificate
 var api = builder.AddProject<Projects.TradingSimulator_Api>("api", launchProfileName: "https")
-    .WithReference(tradingDb)
+    .WithReference(tradingDatabase)
     .WithReference(redis)
     .WaitFor(postgres)
     .WaitFor(redis)
@@ -64,6 +63,6 @@ var web = builder.AddViteApp("web", "../../web")
     });
 #pragma warning restore ASPIRECERTIFICATES001
 
-api.WithEnvironment("Cors__AllowedOrigins__0", web.GetEndpoint("http"));
+api.WithEnvironment("Cors__AllowedOrigins__0", "https://localhost:5000");
 
 builder.Build().Run();

@@ -662,9 +662,13 @@ Defaults below implement [`PRD.md`](PRD.md) unless overridden by environment or 
 
 | Key | PRD | Default |
 |-----|-----|---------|
+| `Session:CookieName` | Auth (§15) | `TradingSimulator.Session` |
+| `Session:ExpirationHours` | Auth (§15) | `24` |
+| `Concurrency:MaxRetryAttempts` | §10.4 optimistic concurrency | `3` |
+| `Concurrency:BaseDelayMilliseconds` | §10.4 optimistic concurrency | `25` |
+| `Channels:IncomingOrderCapacity` | NFR throughput | `1000` |
 | `Trading:InitialVirtualCash` | FR-1.3 | `100000` |
 | `Trading:PortfolioResetCooldownMinutes` | FR-1.4 (24 hours) | `1440` |
-| `Trading:IncomingOrderChannelCapacity` | NFR throughput | `1000` |
 | `Trading:SimulatedLiquidity:*` | PRD §11.2 dependency | enabled; refresh interval configurable |
 
 ---

@@ -1,8 +1,11 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
+using TradingSimulator.Api.Auth;
 using TradingSimulator.Api.Hubs;
 using TradingSimulator.Api.Middleware;
 using TradingSimulator.Api.Options;
 using TradingSimulator.Api.Realtime;
+using TradingSimulator.Application.Abstractions.Auth;
 using TradingSimulator.Application.Abstractions.Realtime;
 
 namespace TradingSimulator.Api;
@@ -19,6 +22,16 @@ public static class DependencyInjection
                 .BindConfiguration(CorsOptions.SectionName);
             services.AddCors();
         }
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
+
+        services.AddAuthentication(SessionAuthenticationDefaults.Scheme)
+            .AddScheme<AuthenticationSchemeOptions, SessionAuthenticationHandler>(
+                SessionAuthenticationDefaults.Scheme,
+                null);
+
+        services.AddAuthorization();
 
         services.AddSignalR();
         services.AddScoped<IRealtimeNotificationPublisher, SignalRRealtimeNotificationPublisher>();
@@ -37,8 +50,6 @@ public static class DependencyInjection
         this IApplicationBuilder application,
         IHostEnvironment environment)
     {
-        application.UseMiddleware<ExceptionHandlingMiddleware>();
-
         if (environment.IsDevelopment())
         {
             var allowedOrigins = application.ApplicationServices
@@ -57,6 +68,11 @@ public static class DependencyInjection
                     .AllowCredentials());
             }
         }
+
+        application.UseMiddleware<ExceptionHandlingMiddleware>();
+
+        application.UseAuthentication();
+        application.UseAuthorization();
 
         return application;
     }

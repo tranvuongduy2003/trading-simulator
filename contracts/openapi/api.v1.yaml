@@ -1,5 +1,156 @@
 # Generated from TradingSimulator.Api (OpenAPI v1). Do not edit by hand — run:
 #   yarn --cwd web api:export
+components:
+  schemas:
+    HoldingDto:
+      properties:
+        availableQuantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        averagePrice:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+        reservedQuantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        symbol:
+          type: string
+        totalQuantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+      required:
+        - symbol
+        - totalQuantity
+        - reservedQuantity
+        - availableQuantity
+        - averagePrice
+      type: object
+    PortfolioResponse:
+      properties:
+        holdings:
+          items:
+            $ref: "#/components/schemas/HoldingDto"
+          type: array
+        portfolioId:
+          format: uuid
+          type: string
+        userId:
+          format: uuid
+          type: string
+      required:
+        - portfolioId
+        - userId
+        - holdings
+      type: object
+    RegisterUserRequest:
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        username:
+          type: string
+      required:
+        - username
+        - email
+        - password
+      type: object
+    UserRegistrationResponse:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        email:
+          type: string
+        userId:
+          format: uuid
+          type: string
+        username:
+          type: string
+        wallet:
+          $ref: "#/components/schemas/WalletSummaryDto"
+      required:
+        - userId
+        - username
+        - email
+        - createdAt
+        - wallet
+      type: object
+    WalletResponse:
+      properties:
+        availableBalance:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+        currency:
+          type: string
+        reservedBalance:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+        totalBalance:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+        userId:
+          format: uuid
+          type: string
+        username:
+          type: string
+      required:
+        - userId
+        - username
+        - currency
+        - totalBalance
+        - reservedBalance
+        - availableBalance
+      type: object
+    WalletSummaryDto:
+      properties:
+        availableBalance:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+        currency:
+          type: string
+        reservedBalance:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+        totalBalance:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+      required:
+        - currency
+        - totalBalance
+        - reservedBalance
+        - availableBalance
+      type: object
 info:
   title: TradingSimulator.Api | v1
   version: 1.0.0
@@ -13,5 +164,64 @@ paths:
           description: OK
       tags:
         - Health
+  /api/portfolio:
+    get:
+      operationId: GetMyPortfolio
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioResponse"
+          description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+      tags:
+        - Portfolio
+  /api/users:
+    post:
+      operationId: RegisterUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterUserRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserRegistrationResponse"
+          description: Created
+        "400":
+          description: Bad Request
+        "409":
+          description: Conflict
+        "422":
+          description: Unprocessable Entity
+      tags:
+        - Users
+  /api/wallet:
+    get:
+      operationId: GetMyWallet
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletResponse"
+          description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+      tags:
+        - Wallet
 tags:
   - name: Health
+  - name: Portfolio
+  - name: Users
+  - name: Wallet

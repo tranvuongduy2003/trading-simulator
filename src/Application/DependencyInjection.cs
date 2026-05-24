@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using TradingSimulator.Application.Abstractions.Auth;
 using TradingSimulator.Application.Abstractions.Services;
 using TradingSimulator.Application.Behaviors;
 using TradingSimulator.Application.Options;
@@ -18,9 +19,14 @@ public static partial class DependencyInjection
         services.AddValidatorsFromAssembly(AssemblyReference.Assembly);
         services.AddDomainEventHandlers(AssemblyReference.Assembly);
 
+        services.AddScoped<IPendingDomainEventsCollector, PendingDomainEventsCollector>();
+        services.AddScoped<IPendingSessionCacheCollector, PendingSessionCacheCollector>();
+
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(DomainEventDispatchBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PostCommitSessionCacheBehavior<,>));
 
         services.AddSingleton<IClock, SystemClock>();
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
@@ -30,6 +36,12 @@ public static partial class DependencyInjection
 
         services.AddOptions<ChannelPipelineOptions>()
             .BindConfiguration(ChannelPipelineOptions.SectionName);
+
+        services.AddOptions<TradingOptions>()
+            .BindConfiguration(TradingOptions.SectionName);
+
+        services.AddOptions<TradingSessionOptions>()
+            .BindConfiguration(TradingSessionOptions.SectionName);
 
         return services;
     }

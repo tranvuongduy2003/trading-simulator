@@ -59,6 +59,19 @@ public sealed class UnitOfWorkBehavior<TRequest, TResponse>(
                     backoff);
                 await Task.Delay(backoff, cancellationToken);
             }
+            catch (Exception ex) when (unitOfWork.IsUniqueConstraintViolation(ex))
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                logger.LogWarning(
+                    ex,
+                    "Unique constraint violation on {RequestName}",
+                    typeof(TRequest).Name);
+
+                return ResultFactory.CreateFailure<TResponse>(
+                    Error.Validation(
+                        "CONFLICT",
+                        "A resource with the same unique identifier already exists."));
+            }
             catch
             {
                 await transaction.RollbackAsync(cancellationToken);

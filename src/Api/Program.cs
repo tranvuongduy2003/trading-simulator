@@ -3,6 +3,7 @@ using TradingSimulator.Api;
 using TradingSimulator.Api.Endpoints;
 using TradingSimulator.Application;
 using TradingSimulator.Infrastructure;
+using TradingSimulator.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApiServices(builder.Environment);
 
 var app = builder.Build();
+
+await app.ApplyMigrationsAsync();
 
 app.MapDefaultEndpoints();
 app.UseApiPipeline(app.Environment);

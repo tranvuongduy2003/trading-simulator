@@ -11,7 +11,7 @@ Transform an approved product spec into an engineering plan that:
 1. **Traces** every spec story to concrete tasks, files, and tests
 2. **Respects** Clean Architecture, CQRS, async matching, and storage rules
 3. **Surfaces** risks, open questions, and decision triggers before coding
-4. **Syncs** optionally to GitHub Issues for tracking (not Azure DevOps)
+4. **Syncs** spec stories (and optional epic) to GitHub Issues for tracking — plan tasks stay in the plan markdown only
 
 ## Step 1: Parse input
 
@@ -24,7 +24,7 @@ Extract:
 | **Spec** | Path to `docs/specs/<timestamp>-<name>.md`, or newest spec in `docs/specs/` |
 | **Focus** | Story, phase, or slice if spec is broad |
 | **Hints** | Areas to mimic, constraints, deferred work |
-| **Flags** | `--dry-run` (skip GitHub sync in Step 8) · `--with-epic` (parent issue over story issues) · `--no-issues` (markdown only) |
+| **Flags** | `--dry-run` (skip GitHub sync in Step 8) · `--with-epic` (parent issue over story issues) · `--no-issues` (markdown only; no story/epic issues) |
 
 If scope is ambiguous, ask **one** narrow question via `AskQuestion`.
 
@@ -165,7 +165,6 @@ github:
   repo: <owner/repo or null>
   epic_issue: null
   story_issue_ids: []
-  task_issue_ids: []
   last_synced_at: null
 search_index:
   keywords: [<5-12 implementation terms>]
@@ -293,7 +292,7 @@ tests/…
 | Spec story | Story <id> \| Infrastructure \| Polish |
 | Depends on | Task <X> \| None |
 | Estimated complexity | S \| M \| L (relative, not hours) |
-| GitHub issue | #<id> after sync \| TBD |
+| Parent story issue | #<id> after sync \| TBD \| N/A |
 
 #### Objective
 
@@ -387,7 +386,10 @@ tests/…
 | Local ref | Issue # | Type | Title | URL |
 |-----------|---------|------|-------|-----|
 | spec.Story 1 | | Story | … | |
-| plan.Task 1 | | Task | … | |
+| spec.Story 2 | | Story | … | |
+| epic (optional) | | Epic | … | |
+
+> **Plan tasks** (Task 1…N) are **not** mirrored as GitHub issues. Track them in this plan’s Progress tracker and per-task acceptance checklists. During `/build`, comment on the **parent story issue** when useful.
 
 ```
 
@@ -411,7 +413,7 @@ Score the plan before presenting. Fix gaps.
 | 8 | Async matching respected on order/trade tasks |
 | 9 | Open questions and risks populated |
 | 10 | Out-of-scope items echo spec + global MVP exclusions |
-| 11 | GitHub section scaffold present (unless `--no-issues`) |
+| 11 | GitHub Links lists stories (and epic if used) only — no task-level issues (unless `--no-issues`) |
 | 12 | `/build` could start Task 1 without further research |
 
 ---
@@ -427,9 +429,9 @@ Record findings in **Open questions** or adjust tasks. Do not write product code
 
 ---
 
-## Step 8: Sync to GitHub (optional, not Azure DevOps)
+## Step 8: Sync to GitHub (optional)
 
-> **Default:** mirror spec stories and plan tasks to GitHub Issues when `gh` is authenticated and a remote exists.
+> **Default:** mirror **spec stories** (and optional epic) to GitHub Issues when `gh` is authenticated and a remote exists. **Do not** create issues for plan tasks/subtasks.
 >
 > **Skip when:** `--dry-run`, `--no-issues`, spec `status: draft` without user approval, or `gh auth status` fails (report once, continue with markdown only).
 
@@ -448,8 +450,8 @@ Read [`.cursor/skills/github-cli/SKILL.md`](mdc:.cursor/skills/github-cli/SKILL.
 The **GitHub Links** table is the only source of truth for created issues.
 
 - Row with `#` → update body/title if plan changed (`gh issue edit <n>`)
-- No row → create, append row, set `**GitHub issue:** #<n>` on the task block
-- Update frontmatter `github.last_synced_at` on success
+- No row → create story (or epic) issue, append row, set `**Parent story issue:** #<n>` on each task block that maps to that story
+- Update frontmatter `github.last_synced_at` and `github.story_issue_ids` on success
 
 Never invent issue numbers. Never write tokens into markdown.
 
@@ -458,34 +460,29 @@ Never invent issue numbers. Never write tokens into markdown.
 | Level | GitHub type | When |
 |-------|-------------|------|
 | Feature | Issue (label `epic`) | `--with-epic` only |
-| Spec story | Issue (label `story`) | Each user story |
-| Plan task | Issue (label `task`) | Each task; reference parent story in body |
+| Spec story | Issue (label `story`) | Each user story in the spec |
+| Plan task | — | **Never** — tasks live only in `docs/plans/…` |
+
+When a story maps to multiple plan tasks, add a **task checklist** to the story issue body (plan path + `Task N: title`) — still one issue per story, not one per task.
 
 **Create story issue:**
 
 ```powershell
 gh issue create `
   --title "Story: <title>" `
-  --body "<summary + AC + link to spec path>" `
-  --label "story"
-```
-
-**Create task issue** (body links plan task + parent `#story`):
-
-```powershell
-gh issue create `
-  --title "Task <N>: <title>" `
-  --body "Parent: #<story>
+  --body "<summary + AC + link to spec path>
 Plan: docs/plans/<file>.md
-Acceptance: …" `
-  --label "task"
+Tasks:
+- [ ] Task 1: <title>
+- [ ] Task 2: <title>" `
+  --label "story"
 ```
 
 ### 8.4 What not to do
 
+- Do **not** create GitHub issues for plan tasks or other subtasks — story (and optional epic) only
 - Do **not** close issues automatically — `/build` or the user closes when done
 - Do **not** force-push or merge PRs from `/plan`
-- Do **not** use Azure DevOps (`az boards`) — this project uses **GitHub**
 
 ### 8.5 On failure
 
@@ -499,7 +496,7 @@ Acceptance: …" `
 
 1. Show plan path and executive summary
 2. Highlight open questions and risks needing user input
-3. Use `AskQuestion` for: approve · adjust tasks · `--dry-run` · create issues
+3. Use `AskQuestion` for: approve · adjust tasks · `--dry-run` · sync story issues
 
 **After save (mandatory):**
 
@@ -515,7 +512,7 @@ Acceptance: …" `
 
 **DO:** Invoke skills first · Read PRD + Technical + Database · Code review pass on plan · Cite `PRD §`, `Tech §`, `DB §` · Reuse patterns · Professional traceability · GitHub sync when configured · `AskQuestion` for approval
 
-**DON'T:** Write product code · Skip test strategy · Invent folders outside `core.mdc` · Use Azure DevOps · Auto-close GitHub issues · Add time estimates unless asked · Plan persisted-event mutation forbidden by `migration.mdc` · Plan multi-symbol/broker without explicit approval
+**DON'T:** Write product code · Skip test strategy · Invent folders outside `core.mdc` · Create GitHub issues for plan tasks/subtasks · Auto-close GitHub issues · Add time estimates unless asked · Plan persisted-event mutation forbidden by `migration.mdc` · Plan multi-symbol/broker without explicit approval
 
 ## Quality checklist (final)
 
@@ -525,6 +522,6 @@ Acceptance: …" `
 - [ ] 3–10 tasks with full per-task template
 - [ ] Verification matrix maps AC → tests
 - [ ] Risks and open questions documented
-- [ ] GitHub Links scaffold (or skip reason recorded)
+- [ ] GitHub Links lists stories only (or skip reason recorded)
 - [ ] Branch `feature/<slug>` declared in header
 - [ ] Ready for `/build` Task 1 without further discovery

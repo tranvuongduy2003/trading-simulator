@@ -5,4 +5,8 @@ public static class ApplicationSectionNames
     public const string Concurrency = Options.ConcurrencyOptions.SectionName;
 
     public const string Channels = Options.ChannelPipelineOptions.SectionName;
+
+    public const string Trading = Options.TradingOptions.SectionName;
+
+    public const string Session = Options.TradingSessionOptions.SectionName;
 }

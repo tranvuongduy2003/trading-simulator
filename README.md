@@ -96,7 +96,7 @@ web/                 React 19 + Vite frontend (outside .slnx)
 
 Layering (later wins): `appsettings.json` → `appsettings.Development.json` → Aspire-injected env → user secrets.
 
-Key areas live under the `Trading` section in service `appsettings.json` (initial cash, channel capacity, simulated liquidity, reset cooldown).
+Key areas in service `appsettings.json`: `Session` (cookie auth), `Concurrency` (unit-of-work retries), `Channels` (`IncomingOrderCapacity`), and `Trading` (initial cash, reset cooldown, simulated liquidity). See Tech §13.
 
 Frontend reads `VITE_API_URL` from Aspire when started by AppHost, or from `web/.env` when using `yarn dev`.
 
