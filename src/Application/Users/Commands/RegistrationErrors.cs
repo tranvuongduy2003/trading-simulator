@@ -1,6 +1,6 @@
 using TradingSimulator.Application.Common;
 
-namespace TradingSimulator.Application.Users;
+namespace TradingSimulator.Application.Users.Commands;
 
 public static class RegistrationErrors
 {

@@ -1,6 +1,6 @@
 using TradingSimulator.Application.Abstractions.Messaging;
 
-namespace TradingSimulator.Application.Users;
+namespace TradingSimulator.Application.Users.Commands;
 
 public sealed record RegisterUserCommand(
     string Username,

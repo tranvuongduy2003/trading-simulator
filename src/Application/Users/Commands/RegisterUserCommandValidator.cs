@@ -1,7 +1,7 @@
 using FluentValidation;
 using TradingSimulator.Domain.Users;
 
-namespace TradingSimulator.Application.Users;
+namespace TradingSimulator.Application.Users.Commands;
 
 public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using TradingSimulator.Api.Auth;
 using TradingSimulator.Api.Mapping;
 using TradingSimulator.Application.Options;
-using TradingSimulator.Application.Users;
+using TradingSimulator.Application.Users.Commands;
 using TradingSimulator.Contracts.Users;
 
 namespace TradingSimulator.Api.Endpoints;
