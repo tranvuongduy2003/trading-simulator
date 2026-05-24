@@ -167,7 +167,7 @@ The plan file is the source of truth for execution.
 
 - Blocked: `[SKIP]` + reason in plan Notes
 - **Memory sync:** `current-status.md` (last/next task); `CHANGELOG.md` if material; `known-issues.md` if new bug found
-- **GitHub:** if plan §GitHub Links maps this task to `#<n>`, optionally comment progress via `gh issue comment` — do not close unless user asks
+- **GitHub:** if the task’s **Parent story issue** (or §GitHub Links story row) has `#<n>`, optionally comment progress on that story issue via `gh issue comment` — do not create task-level issues; do not close unless user asks
 - **Do not commit** unless the user explicitly asks (then use `git-commit-writer`)
 
 ## Step 8: Validate

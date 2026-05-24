@@ -153,33 +153,6 @@ jobs:
           parameters: ./deploy/main.parameters.json
 ```
 
-### Azure DevOps example
-
-```yaml
-trigger:
-  branches:
-    include: [main]
-
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-  - task: UseDotNet@2
-    inputs:
-      version: '10.0.x'
-
-  - script: curl -sSL https://aspire.dev/install.sh | bash
-    displayName: 'Install Aspire CLI'
-
-  - script: aspire publish -p azure -o $(Build.ArtifactStagingDirectory)/deploy
-    displayName: 'Generate deployment manifests'
-
-  - task: AzureResourceManagerTemplateDeployment@3
-    inputs:
-      deploymentScope: 'Resource Group'
-      templateLocation: '$(Build.ArtifactStagingDirectory)/deploy/main.bicep'
-```
-
 ---
 
 ## Environment-specific configuration
