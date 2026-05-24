@@ -21,6 +21,8 @@ export function RegisterForm() {
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
     defaultValues: {
       username: '',
       email: '',
@@ -107,7 +109,7 @@ export function RegisterForm() {
             {...form.register('password')}
           />
           <FieldDescription>
-            At least 8 characters with a letter, a digit, and a special character.
+            8+ characters, including a letter, number, and special character.
           </FieldDescription>
           <FieldError errors={[form.formState.errors.password]} />
         </Field>

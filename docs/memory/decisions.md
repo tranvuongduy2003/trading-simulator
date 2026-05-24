@@ -27,6 +27,19 @@ If a decision changes, add a new entry and mark the old one as superseded.
 
 ---
 
+## ADR-003: Two-layer request validation (binding vs business rules)
+
+- Date: 2026-05-25
+- Status: Accepted
+- Context: Story 3 needs distinct **400** (`INVALID_REQUEST`) for malformed or incomplete JSON bodies and **422** (`VALIDATION_FAILED`) for BR-03–BR-05. A user-specific `RegisterUserBindingEndpointFilter` in `Endpoints/` would not scale as more commands are added.
+- Decision: Treat validation as two layers in the Api host:
+  1. **Transport binding** — `InvalidRequestMiddleware` (JSON parse / bad HTTP) and generic `CompleteJsonBodyEndpointFilter<TBody>` via `RequireCompleteJsonBody<T>()` when any non-optional contract property is null after deserialization. Shared factory: `InvalidRequestProblems`.
+  2. **Business rules** — FluentValidation in Application (`ValidationBehavior`) before handlers; unchanged.
+  Optional body properties use nullable reference types (`string?`) or `[BindOptional]` on the contract. Endpoints only call `.RequireCompleteJsonBody<TContract>()`; no per-entity filter classes.
+- Consequences: Contracts stay dumb DTOs; Api owns HTTP problem shape for binding failures. New POST/PUT bodies reuse the same extension. Domain/Application remain the authority for semantic validation.
+
+---
+
 ## Template
 - Date: YYYY-MM-DD
 - Status: Proposed | Accepted | Superseded

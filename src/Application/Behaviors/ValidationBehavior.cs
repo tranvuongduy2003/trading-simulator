@@ -36,13 +36,28 @@ public sealed class ValidationBehavior<TRequest, TResponse>(
         var errors = failures
             .GroupBy(f => f.PropertyName)
             .ToDictionary(
-                g => string.IsNullOrWhiteSpace(g.Key) ? "_form" : g.Key,
-                g => g.Select(f => f.ErrorMessage).ToArray());
+                g => ToErrorFieldKey(g.Key),
+                g => g.Select(f => f.ErrorMessage).Distinct().ToArray());
 
         var error = Error.Validation(
             "One or more validation errors occurred.",
             errors);
 
         return ResultFactory.CreateFailure<TResponse>(error);
+    }
+
+    private static string ToErrorFieldKey(string propertyName)
+    {
+        if (string.IsNullOrWhiteSpace(propertyName))
+        {
+            return "_form";
+        }
+
+        if (propertyName.Length == 1)
+        {
+            return propertyName.ToLowerInvariant();
+        }
+
+        return char.ToLowerInvariant(propertyName[0]) + propertyName[1..];
     }
 }

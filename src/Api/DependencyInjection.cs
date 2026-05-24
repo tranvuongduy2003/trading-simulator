@@ -70,6 +70,7 @@ public static class DependencyInjection
         }
 
         application.UseMiddleware<ExceptionHandlingMiddleware>();
+        application.UseMiddleware<InvalidRequestMiddleware>();
 
         application.UseAuthentication();
         application.UseAuthorization();

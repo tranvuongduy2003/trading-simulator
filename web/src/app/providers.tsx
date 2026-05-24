@@ -26,6 +26,12 @@ function UnauthorizedListener() {
 
   useEffect(() => {
     const handleUnauthorized = () => {
+      // Session bootstrap calls /api/wallet while logged out; 401 is expected.
+      // Clearing the query cache here refetches that probe and traps public routes on the loader.
+      if (useAuthStore.getState().status !== 'authenticated') {
+        return
+      }
+
       clearSession()
       queryClient.clear()
     }

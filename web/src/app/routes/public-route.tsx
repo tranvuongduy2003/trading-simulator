@@ -9,7 +9,10 @@ export function PublicRoute() {
   const authStatus = useAuthStore((state) => state.status)
   const sessionQuery = useSession()
 
-  if (authStatus === 'unknown' || sessionQuery.isPending) {
+  const isBootstrappingSession =
+    authStatus === 'unknown' && (sessionQuery.isPending || sessionQuery.isFetching)
+
+  if (isBootstrappingSession) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
         <Skeleton className="h-10 w-48" />

@@ -2,6 +2,11 @@
 
 All notable project and process changes are tracked here.
 
+## 2026-05-25
+
+- impl: user registration story 3 — granular FluentValidation (BR-03–BR-05), `INVALID_REQUEST` binding, `RegisterUserValidationTests`, client onBlur + aligned zod copy, OpenAPI `POST /api/users` 400/422 problem responses, `ResultFactory` fix
+- plan: user registration story 3 — validate registration input (`docs/plans/20260525-120000-user-registration-story-3.md`)
+
 ## 2026-05-24
 
 - impl: user registration story 2 — `USERNAME_TAKEN` / `EMAIL_TAKEN` on exists-check, `RegisterUserDuplicateTests`, OpenAPI `POST /api/users` documents 422 only

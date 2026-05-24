@@ -54,6 +54,32 @@ components:
         - userId
         - holdings
       type: object
+    ProblemDetails:
+      properties:
+        detail:
+          type:
+            - "null"
+            - string
+        instance:
+          type:
+            - "null"
+            - string
+        status:
+          format: int32
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+        title:
+          type:
+            - "null"
+            - string
+        type:
+          type:
+            - "null"
+            - string
+      type: object
     RegisterUserRequest:
       properties:
         email:
@@ -197,8 +223,16 @@ paths:
                 $ref: "#/components/schemas/UserRegistrationResponse"
           description: Created
         "400":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
           description: Bad Request
         "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
           description: Unprocessable Entity
       tags:
         - Users
