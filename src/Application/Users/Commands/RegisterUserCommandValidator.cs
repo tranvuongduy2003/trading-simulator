@@ -1,5 +1,5 @@
-using FluentValidation;
 using System.Net.Mail;
+using FluentValidation;
 using TradingSimulator.Application.Users;
 
 namespace TradingSimulator.Application.Users.Commands;
