@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using TradingSimulator.Application.Abstractions.Auth;
@@ -15,7 +16,8 @@ internal sealed class SessionStore(
     ApplicationDatabaseContext databaseContext,
     IClock clock,
     IOptions<TradingSessionOptions> sessionOptions,
-    IServiceProvider serviceProvider) : ISessionStore
+    IServiceProvider serviceProvider,
+    ILogger<SessionStore> logger) : ISessionStore
 {
     public async Task<SessionCreationResult> CreateSessionAsync(
         UserId userId,
@@ -46,14 +48,24 @@ internal sealed class SessionStore(
         var multiplexer = serviceProvider.GetService<IConnectionMultiplexer>();
         if (multiplexer is not null)
         {
-            var cachedUserId = await multiplexer
-                .GetDatabase()
-                .StringGetAsync(SessionRedisKeys.Session(sessionId));
-
-            if (cachedUserId.HasValue
-                && Guid.TryParse(cachedUserId.ToString(), out var userIdFromCache))
+            try
             {
-                return UserId.From(userIdFromCache);
+                var cachedUserId = await multiplexer
+                    .GetDatabase()
+                    .StringGetAsync(SessionRedisKeys.Session(sessionId));
+
+                if (cachedUserId.HasValue
+                    && Guid.TryParse(cachedUserId.ToString(), out var userIdFromCache))
+                {
+                    return UserId.From(userIdFromCache);
+                }
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(
+                    exception,
+                    "Redis session lookup failed for {SessionId}; falling back to PostgreSQL",
+                    sessionId);
             }
         }
 

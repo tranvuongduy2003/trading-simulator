@@ -50,11 +50,6 @@ public static class DependencyInjection
         this IApplicationBuilder application,
         IHostEnvironment environment)
     {
-        application.UseMiddleware<ExceptionHandlingMiddleware>();
-
-        application.UseAuthentication();
-        application.UseAuthorization();
-
         if (environment.IsDevelopment())
         {
             var allowedOrigins = application.ApplicationServices
@@ -73,6 +68,11 @@ public static class DependencyInjection
                     .AllowCredentials());
             }
         }
+
+        application.UseMiddleware<ExceptionHandlingMiddleware>();
+
+        application.UseAuthentication();
+        application.UseAuthorization();
 
         return application;
     }

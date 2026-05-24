@@ -36,19 +36,12 @@ public static class DatabaseMigrationExtensions
 
         try
         {
-            var pendingMigrations = await databaseContext.Database
-                .GetPendingMigrationsAsync(cancellationToken);
-
-            if (!pendingMigrations.Any())
-            {
-                return;
-            }
-
-            logger.LogInformation(
-                "Applying {MigrationCount} pending EF Core migration(s) to PostgreSQL.",
-                pendingMigrations.Count());
-
+            // MigrateAsync creates the trading schema and history table on first run.
+            // Do not call GetPendingMigrationsAsync/GetAppliedMigrationsAsync first — they
+            // query trading.__ef_migrations_history before the schema exists.
             await databaseContext.Database.MigrateAsync(cancellationToken);
+
+            logger.LogInformation("EF Core database migrations are up to date.");
         }
         catch (Exception exception)
         {
