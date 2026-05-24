@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Options;
 using TradingSimulator.Api.Auth;
+using TradingSimulator.Api.Http;
 using TradingSimulator.Api.Mapping;
 using TradingSimulator.Application.Options;
 using TradingSimulator.Application.Users.Commands;
@@ -15,10 +16,11 @@ internal sealed class UsersEndpoint : IEndpoint
             .WithName("RegisterUser")
             .WithTags("Users")
             .AllowAnonymous()
+            .RequireCompleteJsonBody<RegisterUserRequest>()
             .Accepts<RegisterUserRequest>("application/json")
             .Produces<UserRegistrationResponse>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status422UnprocessableEntity);
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
     private static async Task<IResult> RegisterUser(
         RegisterUserRequest request,

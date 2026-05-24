@@ -1,5 +1,6 @@
 using FluentValidation;
-using TradingSimulator.Domain.Users;
+using System.Net.Mail;
+using TradingSimulator.Application.Users;
 
 namespace TradingSimulator.Application.Users.Commands;
 
@@ -9,57 +10,63 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
     {
         RuleFor(command => command.Username)
             .NotEmpty()
-            .Must(BeValidUsername)
-            .WithMessage("Username must be 3–32 characters and contain only letters, digits, and underscores.");
+            .WithMessage(RegistrationValidationMessages.UsernameRequired)
+            .MinimumLength(3)
+            .WithMessage(RegistrationValidationMessages.UsernameLength)
+            .MaximumLength(32)
+            .WithMessage(RegistrationValidationMessages.UsernameLength)
+            .Matches("^[A-Za-z0-9_]+$")
+            .WithMessage(RegistrationValidationMessages.UsernameInvalidCharacters)
+            .When(command => !string.IsNullOrEmpty(command.Username));
 
         RuleFor(command => command.Email)
-            .NotEmpty()
-            .Must(BeValidEmail)
-            .WithMessage("Email address format is invalid.");
+            .Must(email => !string.IsNullOrWhiteSpace(NormalizeEmail(email)))
+            .WithMessage(RegistrationValidationMessages.EmailRequired)
+            .Must(email => NormalizeEmail(email).Length <= 254)
+            .WithMessage(RegistrationValidationMessages.EmailTooLong)
+            .Must(email => BeValidEmailFormat(NormalizeEmail(email)))
+            .WithMessage(RegistrationValidationMessages.EmailInvalid);
 
         RuleFor(command => command.Password)
             .NotEmpty()
-            .Must(BeValidPassword)
-            .WithMessage(
-                "Password must be at least 8 characters and include a letter, a digit, and a special character.");
+            .WithMessage(RegistrationValidationMessages.PasswordRequired)
+            .MinimumLength(8)
+            .WithMessage(RegistrationValidationMessages.PasswordTooShort)
+            .Must(ContainsLetter)
+            .WithMessage(RegistrationValidationMessages.PasswordMissingLetter)
+            .Must(ContainsDigit)
+            .WithMessage(RegistrationValidationMessages.PasswordMissingDigit)
+            .Must(ContainsSpecialCharacter)
+            .WithMessage(RegistrationValidationMessages.PasswordMissingSpecial);
     }
 
-    private static bool BeValidUsername(string username)
+    private static string NormalizeEmail(string? email) => email?.Trim() ?? string.Empty;
+
+    private static bool BeValidEmailFormat(string email)
     {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return false;
+        }
+
         try
         {
-            _ = Username.Create(username);
+            _ = new MailAddress(email);
             return true;
         }
-        catch
+        catch (FormatException)
         {
             return false;
         }
     }
 
-    private static bool BeValidEmail(string email)
-    {
-        try
-        {
-            _ = EmailAddress.Create(email);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
+    private static bool ContainsLetter(string password) =>
+        password.Any(static character => char.IsAsciiLetter(character));
 
-    private static bool BeValidPassword(string password)
-    {
-        try
-        {
-            _ = Password.Create(password);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
+    private static bool ContainsDigit(string password) =>
+        password.Any(static character => char.IsAsciiDigit(character));
+
+    private static bool ContainsSpecialCharacter(string password) =>
+        password.Any(character =>
+            RegistrationValidationMessages.AllowedPasswordSpecialCharacters.Contains(character));
 }

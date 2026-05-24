@@ -10,8 +10,8 @@ updated_at: 2026-05-23T20:35:00+07:00
 status: draft
 owner: product
 tags: [spec, feature, trading-simulator, auth, registration, account]
-related_plan: docs/plans/20260524-120000-user-registration-story-2.md
-related_plans: [docs/plans/20260523-201500-user-registration-story-1.md, docs/plans/20260524-120000-user-registration-story-2.md]
+related_plan: docs/plans/20260525-120000-user-registration-story-3.md
+related_plans: [docs/plans/20260523-201500-user-registration-story-1.md, docs/plans/20260524-120000-user-registration-story-2.md, docs/plans/20260525-120000-user-registration-story-3.md]
 related_specs: []
 github_epic_issue: 4
 github_story_issues: [5, 6, 7, 8]

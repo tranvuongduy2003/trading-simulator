@@ -20,7 +20,9 @@ export function useSession() {
 
   useEffect(() => {
     if (query.isPending) {
-      setStatus('unknown')
+      if (useAuthStore.getState().status !== 'unauthenticated') {
+        setStatus('unknown')
+      }
       return
     }
 

@@ -37,11 +37,6 @@ export function applyRegisterApiError(
   }
 
   for (const [field, messages] of Object.entries(validationErrors)) {
-    const normalizedField = field.charAt(0).toLowerCase() + field.slice(1)
-    if (normalizedField in { username: 1, email: 1, password: 1 }) {
-      setError(normalizedField as keyof RegisterFormValues, {
-        message: messages[0] ?? 'Invalid value.',
-      })
-    }
+    setError(field as keyof RegisterFormValues, { message: messages.join(' ') })
   }
 }

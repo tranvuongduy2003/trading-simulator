@@ -63,6 +63,10 @@ export const problemDetailsToastInterceptor: ApiResponseInterceptor = (context) 
     return context
   }
 
+  if (context.response.status === 401) {
+    return context
+  }
+
   if (context.body instanceof ApiError) {
     toast.error(context.body.problem.title ?? 'Request failed', {
       description: context.body.problem.detail,

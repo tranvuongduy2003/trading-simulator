@@ -15,8 +15,10 @@ internal static class ResultFactory
             responseType.GetGenericTypeDefinition() == typeof(Result<>))
         {
             var valueType = responseType.GetGenericArguments()[0];
-            var failureMethod = typeof(Result)
-                .GetMethod(nameof(CreateGenericFailure), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+            var failureMethod = typeof(ResultFactory)
+                .GetMethod(
+                    nameof(CreateGenericFailure),
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
                 .MakeGenericMethod(valueType);
 
             return (TResponse)failureMethod.Invoke(null, [error])!;
