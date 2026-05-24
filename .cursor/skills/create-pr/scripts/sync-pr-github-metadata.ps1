@@ -5,6 +5,7 @@ param(
 
     [int[]] $IssueNumber = @(),
 
+    # Applies to linked issues only (not the PR).
     [string] $StatusName,
 
     [string[]] $ExtraPrLabels = @(),
@@ -42,6 +43,46 @@ function Get-RepoNameWithOwner {
     return gh repo view --json nameWithOwner --jq .nameWithOwner
 }
 
+function Get-StatusOption([object]$statusField, [string]$statusName) {
+    if (-not $statusField -or -not $statusName) {
+        return $null
+    }
+
+    $target = Normalize-StatusName $statusName
+    $option = $statusField.options | Where-Object { (Normalize-StatusName $_.name) -eq $target } | Select-Object -First 1
+    if (-not $option) {
+        $available = ($statusField.options.name -join ", ")
+        Write-Warning "Status '$statusName' not found. Available: $available"
+    }
+
+    return $option
+}
+
+function Set-ProjectItemStatus(
+    [string]$projectId,
+    [object]$statusField,
+    [object]$statusOption,
+    [string]$itemId) {
+    gh project item-edit `
+        --project-id $projectId `
+        --id $itemId `
+        --field-id $statusField.id `
+        --single-select-option-id $statusOption.id | Out-Null
+}
+
+function Get-ProjectItems([int]$projectNumber, [string]$owner) {
+    return (gh project item-list $projectNumber --owner $owner --format json --limit 200 | ConvertFrom-Json).items
+}
+
+function Find-ProjectItemByContent(
+    [object[]]$items,
+    [string]$contentType,
+    [int]$contentNumber) {
+    return $items | Where-Object {
+        $_.content.type -eq $contentType -and $_.content.number -eq $contentNumber
+    } | Select-Object -First 1
+}
+
 $config = Get-GhProjectConfig $ConfigPath
 $owner = $config.owner
 $projectNumber = $config.projectNumber
@@ -71,6 +112,21 @@ if ($config.issueLabels) { $configIssueLabels = @($config.issueLabels) }
 
 $configIssueAssignees = @()
 if ($config.issueAssignees) { $configIssueAssignees = @($config.issueAssignees) }
+
+$issueStatusName = $StatusName
+if (-not $issueStatusName) {
+    if ($config.issueStatusOnPrCreated) {
+        $issueStatusName = $config.issueStatusOnPrCreated
+    }
+    elseif ($config.statusOnPrCreated) {
+        $issueStatusName = $config.statusOnPrCreated
+    }
+    else {
+        $issueStatusName = "In review"
+    }
+}
+
+$prStatusName = $config.prStatusOnProject
 
 $inheritedLabels = [System.Collections.Generic.List[string]]::new()
 $inheritedAssignees = [System.Collections.Generic.List[string]]::new()
@@ -135,53 +191,61 @@ if ($didPrEdit) {
     & gh @prEditArgs | Out-Null
 }
 
+$needsProjectFields = $addPrToProject -or ($IssueNumber.Count -gt 0 -and -not $SkipProjectStatus)
+$projectId = $null
+$statusField = $null
+$issueStatusOption = $null
+$prStatusOption = $null
+
+if ($needsProjectFields -and -not $SkipProjectStatus) {
+    $project = gh project view $projectNumber --owner $owner --format json | ConvertFrom-Json
+    $projectId = $project.id
+
+    $fieldsJson = gh project field-list $projectNumber --owner $owner --format json | ConvertFrom-Json
+    $statusField = $fieldsJson.fields | Where-Object { $_.name -eq "Status" }
+
+    $issueStatusOption = Get-StatusOption $statusField $issueStatusName
+    $prStatusOption = Get-StatusOption $statusField $prStatusName
+}
+
+function Update-PrProjectStatus {
+    if (-not $addPrToProject -or -not $projectId -or -not $statusField -or -not $prStatusOption) {
+        return
+    }
+
+    $items = Get-ProjectItems $projectNumber $owner
+    $prItem = Find-ProjectItemByContent $items "PullRequest" $PrNumber
+
+    if (-not $prItem) {
+        Write-Warning "PR #$PrNumber not found on project; PR Status not updated."
+        return
+    }
+
+    Set-ProjectItemStatus $projectId $statusField $prStatusOption $prItem.id
+    Write-Host "PR #$PrNumber project Status -> '$($prStatusOption.name)'"
+}
+
 if ($IssueNumber.Count -eq 0) {
+    Update-PrProjectStatus
     return
 }
 
-$project = gh project view $projectNumber --owner $owner --format json | ConvertFrom-Json
-$projectId = $project.id
-
-$fieldsJson = gh project field-list $projectNumber --owner $owner --format json | ConvertFrom-Json
-$statusField = $fieldsJson.fields | Where-Object { $_.name -eq "Status" }
-
-$statusOption = $null
-if (-not $SkipProjectStatus -and $statusField) {
-    if (-not $StatusName) {
-        $StatusName = if ($config.statusOnPrCreated) { $config.statusOnPrCreated } else { "In review" }
-    }
-    $target = Normalize-StatusName $StatusName
-    $statusOption = $statusField.options | Where-Object { (Normalize-StatusName $_.name) -eq $target } | Select-Object -First 1
-    if (-not $statusOption) {
-        $available = ($statusField.options.name -join ", ")
-        Write-Warning "Status '$StatusName' not found. Available: $available"
-    }
-}
-
-function Get-ProjectItems {
-    return (gh project item-list $projectNumber --owner $owner --format json --limit 200 | ConvertFrom-Json).items
-}
-
-$items = Get-ProjectItems
+$items = Get-ProjectItems $projectNumber $owner
 
 foreach ($num in $IssueNumber) {
-    $item = $items | Where-Object { $_.content.number -eq $num } | Select-Object -First 1
+    $item = Find-ProjectItemByContent $items "Issue" $num
 
     if (-not $item -and $ensureIssuesOnProject) {
         $issueUrl = "https://github.com/$repo/issues/$num"
         gh project item-add $projectNumber --owner $owner --url $issueUrl | Out-Null
         Write-Host "Issue #$num added to project #$projectNumber"
-        $items = Get-ProjectItems
-        $item = $items | Where-Object { $_.content.number -eq $num } | Select-Object -First 1
+        $items = Get-ProjectItems $projectNumber $owner
+        $item = Find-ProjectItemByContent $items "Issue" $num
     }
 
-    if ($item -and $statusOption) {
-        gh project item-edit `
-            --project-id $projectId `
-            --id $item.id `
-            --field-id $statusField.id `
-            --single-select-option-id $statusOption.id | Out-Null
-        Write-Host "Issue #$num project Status -> '$($statusOption.name)'"
+    if ($item -and $issueStatusOption) {
+        Set-ProjectItemStatus $projectId $statusField $issueStatusOption $item.id
+        Write-Host "Issue #$num project Status -> '$($issueStatusOption.name)'"
     }
 
     $issueLabels = [System.Collections.Generic.List[string]]::new()
@@ -215,3 +279,5 @@ foreach ($num in $IssueNumber) {
         & gh @issueEditArgs | Out-Null
     }
 }
+
+Update-PrProjectStatus

@@ -19,8 +19,8 @@ After `gh pr create`, run:
 
 | Target | Action |
 |--------|--------|
-| **PR** | `gh pr edit --add-project`, `--add-label`, `--add-assignee` |
-| **Issues** | `gh project item-add` if missing; Status field update; `--add-label`, `--add-assignee` |
+| **PR** | `gh pr edit --add-project`, `--add-label`, `--add-assignee`; Status via `prStatusOnProject` |
+| **Issues** | `gh project item-add` if missing; Status → `issueStatusOnPrCreated`; `--add-label`, `--add-assignee` |
 
 ### Config (`.github/github-project.json`)
 
@@ -29,7 +29,8 @@ After `gh pr create`, run:
   "owner": "your-login",
   "projectNumber": 1,
   "projectTitle": "Your project name",
-  "statusOnPrCreated": "In review",
+  "issueStatusOnPrCreated": "In review",
+  "prStatusOnProject": "In review",
   "addPrToProject": true,
   "ensureIssuesOnProject": true,
   "inheritFromIssues": { "prLabels": true, "prAssignees": true },
@@ -57,4 +58,7 @@ Requires `gh auth refresh -h github.com -s read:project,project`.
 
 ### Status field
 
-If `"In review"` is missing on the board, add it under Project **Settings → Status**, or set `statusOnPrCreated` to an existing option (e.g. `In Progress`).
+- **`issueStatusOnPrCreated`** (alias `statusOnPrCreated`): linked **issues / US** when a PR is created.
+- **`prStatusOnProject`**: **PR** card Status (e.g. `In review`). Omit to leave PR Status unchanged after `--add-project`.
+
+If a status name is missing on the board, add it under Project **Settings → Status**, or pick an existing option name.

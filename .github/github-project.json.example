@@ -2,7 +2,9 @@
   "owner": "YOUR_GITHUB_LOGIN_OR_ORG",
   "projectNumber": 1,
   "projectTitle": "Your Project board title (used by gh pr edit --add-project)",
+  "issueStatusOnPrCreated": "In review",
   "statusOnPrCreated": "In review",
+  "prStatusOnProject": "In review",
   "addPrToProject": true,
   "ensureIssuesOnProject": true,
   "inheritFromIssues": {
