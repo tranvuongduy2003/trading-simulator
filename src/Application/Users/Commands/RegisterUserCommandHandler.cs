@@ -9,7 +9,7 @@ using TradingSimulator.Domain.Common;
 using TradingSimulator.Domain.Exceptions;
 using TradingSimulator.Domain.Users;
 
-namespace TradingSimulator.Application.Users;
+namespace TradingSimulator.Application.Users.Commands;
 
 public sealed class RegisterUserCommandHandler(
     IUserRepository userRepository,
@@ -29,16 +29,12 @@ public sealed class RegisterUserCommandHandler(
 
         if (await userRepository.ExistsByUsernameAsync(command.Username, cancellationToken))
         {
-            return Error.Validation(
-                "CONFLICT",
-                "A user with this username already exists.");
+            return RegistrationErrors.UsernameTaken;
         }
 
         if (await userRepository.ExistsByEmailAsync(normalizedEmail, cancellationToken))
         {
-            return Error.Validation(
-                "CONFLICT",
-                "A user with this email already exists.");
+            return RegistrationErrors.EmailTaken;
         }
 
         try

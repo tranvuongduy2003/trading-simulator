@@ -193,7 +193,8 @@ if ($statusOverride) { $params.StatusName = $statusOverride }
 | Target | Actions |
 |--------|---------|
 | **PR** | `--add-project` (board title from config), `--add-label`, `--add-assignee` |
-| **Linked issues** | `gh project item-add` if missing; Status → `statusOnPrCreated`; optional `issueLabels` / `issueAssignees` |
+| **Linked issues** | `gh project item-add` if missing; Status → `issueStatusOnPrCreated` (issues only); optional `issueLabels` / `issueAssignees` |
+| **PR Status** | Set when `prStatusOnProject` is configured (often same column as the linked issue, e.g. `In review`) |
 
 **Config** — copy [`.github/github-project.json.example`](../../.github/github-project.json.example):
 
@@ -201,7 +202,7 @@ if ($statusOverride) { $params.StatusName = $statusOverride }
 - `inheritFromIssues.prLabels` / `prAssignees` — copy from linked issues onto the PR
 - `prLabels`, `prAssignees`, `issueLabels`, `issueAssignees` — always applied when set
 
-**If Status option missing** on the board: warn user to add **In review** in Project settings or set `statusOnPrCreated` to an existing option.
+**If Status option missing** on the board: warn user to add the column in Project settings or set `issueStatusOnPrCreated` / `prStatusOnProject` to existing option names.
 
 **Requires** `project` scope on `gh auth`.
 

@@ -7,6 +7,4 @@ public interface IUnitOfWork
     Task<IUnitOfWorkTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 
     bool IsConcurrencyConflict(Exception exception);
-
-    bool IsUniqueConstraintViolation(Exception exception);
 }

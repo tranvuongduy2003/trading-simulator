@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using TradingSimulator.Application.Abstractions.Messaging;
 using TradingSimulator.Domain.Events;
 
-namespace TradingSimulator.Application.Users;
+namespace TradingSimulator.Application.Users.EventHandlers;
 
 internal sealed class UserRegisteredEventHandler(ILogger<UserRegisteredEventHandler> logger)
     : IDomainEventHandler<UserRegisteredEvent>
