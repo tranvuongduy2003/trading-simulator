@@ -12,7 +12,7 @@ owner: product
 tags: [spec, feature, trading-simulator, auth, registration, account]
 related_plan: docs/plans/20260525-095103-user-registration-story-4.md
 related_plans: [docs/plans/20260523-201500-user-registration-story-1.md, docs/plans/20260524-120000-user-registration-story-2.md, docs/plans/20260525-120000-user-registration-story-3.md, docs/plans/20260525-095103-user-registration-story-4.md]
-related_specs: []
+related_specs: [docs/specs/20260525-103709-user-login.md]
 github_epic_issue: 4
 github_story_issues: [5, 6, 7, 8]
 prd_refs: [PRD §4, PRD §5.1 US-01, PRD §6.1 FR-1.1, PRD §6.1 FR-1.3, PRD §7.4]
