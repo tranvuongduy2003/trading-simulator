@@ -5,12 +5,19 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
+- User login story 5 **automation complete** on `feature/user-login-story-5` — open PR → `main` (closes #26); manual UI checklist pending operator
 - User login story 4 **automation complete** on `feature/user-login-story-4` — open PR → `main` (closes #25); manual UI checklist pending operator
 - User login story 3 automation complete on `feature/user-login-story-3` — open PR → `main` (GitHub #24); manual UI checklist pending operator
 - PR for `feature/user-login-story-2` → `main` (GitHub #23 — Story 2 automation complete)
 
 ## Latest Completed
 
+- impl: user login story 5 **Tasks 1–5** — validation 422, transient tests, login UI errors, OpenAPI **422** on login, `api:verify`, **51** Users Testcontainers tests green
+- impl: user login story 5 **Task 4** — login Zod email rules, `map-login-error` 422 fields, `onBlur` form
+- impl: user login story 5 **Task 3** — `LoginUserTransientFailureTests` (3), `ThrowOnCreateSessionStore`; 23 login integration tests green
+- impl: user login story 5 **Task 2** — `LoginUserValidationTests` (5 tests), `AssertValidationFailedAsync` on login helpers
+- impl: user login story 5 **Task 1** — `LoginUserCommandValidator`, `LoginValidationMessages`, `Password.ForCredentialVerification`, handler split
+- plan: user login story 5 (`docs/plans/20260525-190000-user-login-story-5.md`) — validation 422, transient 500, double-submit
 - impl: user login story 4 **Tasks 1–5** — logout API/UI, **5** `LogoutUserTests`, OpenAPI + `api:verify`, `UserLoggedOut` log; **43** Users Testcontainers tests
 - impl: user login story 4 **Task 4** — EC-07 guards in `useSession` + `ProtectedRoute`; `yarn build` green
 - impl: user login story 4 **Task 3** — `useLogout`, header user menu in `AppLayout`; `yarn lint` + `yarn build` green
@@ -35,7 +42,8 @@ Owner: @tranvuongduy2003
 - Open PR `feature/user-login-story-3` → `main` (closes #24 when merged)
 - Operator: Story 3 manual UI checklist (6 steps in plan)
 - Open PR `feature/user-login-story-2` → `main` (closes #23 when merged)
-- Epic #21 Story 5 (login validation hardening, #26)
+- Open PR `feature/user-login-story-5` → `main` (closes #26 when merged)
+- Manual: Story 5 UI checklist (plan §Manual UI checklist) on Aspire
 
 ## Blockers
 

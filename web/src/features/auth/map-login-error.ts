@@ -19,13 +19,22 @@ export function applyLoginApiError(
     return
   }
 
+  if (error.problem.code === 'INTERNAL_ERROR' || error.status >= 500) {
+    setError('root', { message: loginTransientErrorMessage })
+    return
+  }
+
   if (error.problem.code === 'INVALID_CREDENTIALS' || error.status === 401) {
     setError('root', { message: loginInvalidCredentialsMessage })
     return
   }
 
-  if (error.problem.code === 'INTERNAL_ERROR' || error.status >= 500) {
-    setError('root', { message: loginTransientErrorMessage })
+  const validationErrors = error.problem.errors
+  if (!validationErrors) {
     return
+  }
+
+  for (const [field, messages] of Object.entries(validationErrors)) {
+    setError(field as keyof LoginFormValues, { message: messages.join(' ') })
   }
 }

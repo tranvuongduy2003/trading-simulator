@@ -4,6 +4,8 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- impl: user login story 5 — `LoginUserCommandValidator`, validation/transient integration tests (8), login form 422/500 UX, OpenAPI login **422**, `api:verify`, **51** Users Testcontainers tests; manual checklist pending
+- plan: user login story 5 — validate login input and transient failures (`docs/plans/20260525-190000-user-login-story-5.md`)
 - impl: user login story 4 — `POST /api/auth/logout`, session revoke (PG + Redis), user menu + `useLogout`, EC-07 guards, **5** `LogoutUserTests`, OpenAPI `LogoutUser`, `api:verify`; **43** Users Testcontainers tests; manual checklist pending
 - plan: user login story 4 — log out when done (`docs/plans/20260525-180000-user-login-story-4.md`)
 - impl: user login story 3 — `SessionPersistenceTests` (5), `SessionStore` PG validation on resolve, session-expired UX, cookies-disabled guard; **38** Users Testcontainers tests + `api:verify`; manual UI checklist pending

@@ -3,6 +3,7 @@ using System.Text.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using TradingSimulator.Api.Common;
+using TradingSimulator.Application.Common;
 using TradingSimulator.Application.Users;
 
 namespace TradingSimulator.Api.IntegrationTests.Users;
@@ -31,4 +32,16 @@ internal static class LoginUserTestHelpers
 
         return problem;
     }
+
+    public static Task<ApiProblemDetails> AssertValidationFailedAsync(
+        HttpResponseMessage response,
+        string expectedCode = Error.ValidationFailedCode,
+        Action<IReadOnlyDictionary<string, string[]>>? assertErrors = null) =>
+        RegisterUserTestHelpers.AssertValidationFailedAsync(response, expectedCode, errors =>
+        {
+            response.Headers.Contains("Set-Cookie").Should().BeFalse(
+                "validation failure must not issue a session cookie");
+            response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
+            assertErrors?.Invoke(errors);
+        });
 }
