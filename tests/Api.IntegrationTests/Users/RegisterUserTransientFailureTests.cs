@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using TradingSimulator.Api.Common;
 using TradingSimulator.Api.IntegrationTests.Integration;
 using TradingSimulator.Api.IntegrationTests.Users.Fakes;
-using TradingSimulator.Application.Abstractions.Auth;
+using TradingSimulator.Application.Abstractions.Cache;
 using TradingSimulator.Application.Abstractions.Persistence;
 using TradingSimulator.Contracts.Users;
 using TradingSimulator.Infrastructure.Persistence;
@@ -84,7 +84,7 @@ public sealed class RegisterUserTransientFailureTests(IntegrationTestFixture fix
     [Fact]
     public async Task RegisterUser_WhenRedisCacheWriteFails_StillReturns201_AndWalletWorks()
     {
-        await using var factory = fixture.CreateFactory(ConfigureThrowingSessionRedisCache);
+        await using var factory = fixture.CreateFactory(ConfigureThrowingCacheService);
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
 
         var suffix = Guid.NewGuid().ToString("N")[..8];
@@ -163,10 +163,10 @@ public sealed class RegisterUserTransientFailureTests(IntegrationTestFixture fix
         services.AddScoped<IUserRepository, ThrowOnAddUserRepository>();
     }
 
-    private static void ConfigureThrowingSessionRedisCache(IServiceCollection services)
+    private static void ConfigureThrowingCacheService(IServiceCollection services)
     {
-        services.RemoveAll<ISessionRedisCache>();
-        services.AddScoped<ISessionRedisCache, ThrowingSessionRedisCache>();
+        services.RemoveAll<ICacheService>();
+        services.AddSingleton<ICacheService, ThrowingCacheService>();
     }
 
     private async Task<int> CountWalletsAsync()

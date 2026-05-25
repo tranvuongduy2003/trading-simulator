@@ -1,9 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using StackExchange.Redis;
 using TradingSimulator.Application.Abstractions.Auth;
+using TradingSimulator.Application.Abstractions.Cache;
 using TradingSimulator.Application.Abstractions.Services;
 using TradingSimulator.Application.Options;
 using TradingSimulator.Domain.Users;
@@ -16,9 +15,11 @@ internal sealed class SessionStore(
     ApplicationDatabaseContext databaseContext,
     IClock clock,
     IOptions<TradingSessionOptions> sessionOptions,
-    IServiceProvider serviceProvider,
+    ICacheService cacheService,
     ILogger<SessionStore> logger) : ISessionStore
 {
+    private static string SessionKey(Guid sessionId) => $"session:{sessionId:D}";
+
     public async Task<SessionCreationResult> CreateSessionAsync(
         UserId userId,
         CancellationToken cancellationToken = default)
@@ -45,29 +46,7 @@ internal sealed class SessionStore(
         Guid sessionId,
         CancellationToken cancellationToken = default)
     {
-        var multiplexer = serviceProvider.GetService<IConnectionMultiplexer>();
-        if (multiplexer is not null)
-        {
-            try
-            {
-                var cachedUserId = await multiplexer
-                    .GetDatabase()
-                    .StringGetAsync(SessionRedisKeys.Session(sessionId));
-
-                if (cachedUserId.HasValue
-                    && Guid.TryParse(cachedUserId.ToString(), out var userIdFromCache))
-                {
-                    return UserId.From(userIdFromCache);
-                }
-            }
-            catch (Exception exception)
-            {
-                logger.LogWarning(
-                    exception,
-                    "Redis session lookup failed for {SessionId}; falling back to PostgreSQL",
-                    sessionId);
-            }
-        }
+        var cacheHadEntry = await cacheService.KeyExistsAsync(SessionKey(sessionId), cancellationToken);
 
         var now = clock.UtcNow;
         var session = await databaseContext.UserSessions
@@ -79,6 +58,43 @@ internal sealed class SessionStore(
                     && userSession.ExpiresAt > now,
                 cancellationToken);
 
-        return session is null ? null : UserId.From(session.UserId);
+        if (session is not null)
+        {
+            return UserId.From(session.UserId);
+        }
+
+        if (cacheHadEntry)
+        {
+            await cacheService.DeleteAsync(SessionKey(sessionId), cancellationToken);
+        }
+
+        return null;
+    }
+
+    public async Task TryWriteCacheAsync(
+        PendingSessionCacheEntry entry,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var timeToLive = entry.ExpiresAt - DateTimeOffset.UtcNow;
+            if (timeToLive <= TimeSpan.Zero)
+            {
+                return;
+            }
+
+            await cacheService.SetAsync(
+                SessionKey(entry.SessionId),
+                entry.UserId.ToString("D"),
+                timeToLive,
+                cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(
+                exception,
+                "Failed to write session {SessionId} to cache",
+                entry.SessionId);
+        }
     }
 }

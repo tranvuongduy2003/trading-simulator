@@ -7,7 +7,7 @@ namespace TradingSimulator.Application.Behaviors;
 
 public sealed class PostCommitSessionCacheBehavior<TRequest, TResponse>(
     IPendingSessionCacheCollector pendingSessionCacheCollector,
-    ISessionRedisCache sessionRedisCache,
+    ISessionStore sessionStore,
     ILogger<PostCommitSessionCacheBehavior<TRequest, TResponse>> logger)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
@@ -29,13 +29,13 @@ public sealed class PostCommitSessionCacheBehavior<TRequest, TResponse>(
         {
             try
             {
-                await sessionRedisCache.TryWriteAsync(entry, cancellationToken);
+                await sessionStore.TryWriteCacheAsync(entry, cancellationToken);
             }
             catch (Exception exception)
             {
                 logger.LogWarning(
                     exception,
-                    "Failed to cache session {SessionId} in Redis after commit",
+                    "Failed to write session {SessionId} to cache after commit",
                     entry.SessionId);
             }
         }

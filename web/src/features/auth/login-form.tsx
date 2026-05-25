@@ -11,13 +11,18 @@ import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { useAuthStore } from '@/store/auth-store'
-import { loginFormSchema, type LoginFormValues } from '@/types/auth'
+import { ApiError } from '@/types/api-problem'
+import { loginFormSchema, type LoginFormValues, type LoginLocationState } from '@/types/auth'
 
 import * as authApi from './api'
-import { applyLoginApiError } from './map-login-error'
+import {
+  applyLoginApiError,
+  loginCookiesRequiredMessage,
+  loginTransientErrorMessage,
+} from './map-login-error'
 
-type LoginLocationState = {
-  from?: string
+function areCookiesEnabled(): boolean {
+  return typeof navigator === 'undefined' || navigator.cookieEnabled
 }
 
 export function LoginForm() {
@@ -42,14 +47,24 @@ export function LoginForm() {
         password: values.password,
       }),
     onSuccess: async (response) => {
+      try {
+        await queryClient.fetchQuery({
+          queryKey: ['auth', 'session'],
+          queryFn: ({ signal }) => authApi.getWallet(signal),
+        })
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) {
+          form.setError('root', { message: loginCookiesRequiredMessage })
+          return
+        }
+
+        form.setError('root', { message: loginTransientErrorMessage })
+        return
+      }
+
       setSession({
         userId: response.userId,
         username: response.username,
-      })
-
-      await queryClient.fetchQuery({
-        queryKey: ['auth', 'session'],
-        queryFn: ({ signal }) => authApi.getWallet(signal),
       })
 
       void queryClient.invalidateQueries({ queryKey: ['wallet'] })
@@ -79,6 +94,13 @@ export function LoginForm() {
     void form.handleSubmit((values) => {
       submittingRef.current = true
       form.clearErrors('root')
+
+      if (!areCookiesEnabled()) {
+        form.setError('root', { message: loginCookiesRequiredMessage })
+        submittingRef.current = false
+        return
+      }
+
       loginMutation.mutate(values)
     })(event)
   }
