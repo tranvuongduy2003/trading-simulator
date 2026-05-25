@@ -4,6 +4,11 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- impl: user registration story 4 Task 4 — regression (18 Testcontainers `Users` tests), plan complete; manual UI checklist pending operator sign-off
+- impl: user registration story 4 Task 3 — `POST /api/users` documents **500** in OpenAPI (`ProducesProblem` + `api:export`)
+- impl: user registration story 4 Task 2 — `RegisterUserTransientFailureTests` (EC-04 retry, EC-09 500, EC-10 Redis, parallel wallet invariant); test factory `CreateFactory` hook
+- impl: user registration story 4 Task 1 — register form retry alert on 500/network, submit guard, `suppressErrorToast` on `POST /api/users`
+- plan: user registration story 4 — recover from transient failures (`docs/plans/20260525-095103-user-registration-story-4.md`)
 - impl: user registration story 3 — granular FluentValidation (BR-03–BR-05), `INVALID_REQUEST` binding, `RegisterUserValidationTests`, client onBlur + aligned zod copy, OpenAPI `POST /api/users` 400/422 problem responses, `ResultFactory` fix
 - plan: user registration story 3 — validate registration input (`docs/plans/20260525-120000-user-registration-story-3.md`)
 

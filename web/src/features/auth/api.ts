@@ -65,7 +65,10 @@ export function login(request: LoginRequest, signal?: AbortSignal) {
 }
 
 export function register(request: RegisterRequest, signal?: AbortSignal) {
-  return apiClient.post<UserRegistrationResponse>('/api/users', request, { signal })
+  return apiClient.post<UserRegistrationResponse>('/api/users', request, {
+    signal,
+    suppressErrorToast: true,
+  })
 }
 
 export function logout(signal?: AbortSignal) {

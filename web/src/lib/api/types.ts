@@ -9,6 +9,7 @@ export type ApiRequestContext = {
   path: string
   url: string
   init: ApiRequestInit
+  suppressErrorToast?: boolean
 }
 
 export type ApiResponseContext<TBody = unknown> = {
@@ -29,4 +30,5 @@ export type ApiRequestOptions = Omit<RequestInit, 'method' | 'body'> & {
   method?: HttpMethod
   body?: unknown
   parseJson?: boolean
+  suppressErrorToast?: boolean
 }
