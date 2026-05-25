@@ -1,6 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { WALLET_LOAD_ERROR_MESSAGE } from '@/features/trading/wallet-display'
+import {
+  formatReservedHelper,
+  formatWalletBreakdownLine,
+  WALLET_LOAD_ERROR_MESSAGE,
+  ZERO_RESERVED_HELPER,
+} from '@/features/trading/wallet-display'
 import { normalizeWallet } from '@/hooks/use-session'
 import { formatUsd } from '@/lib/format'
 
@@ -35,12 +40,18 @@ export function VirtualCashCard({ isPending, isError, wallet }: VirtualCashCardP
 
         {wallet ? (
           <>
+            {/* Available from API only — not total − reserved */}
             <p className="text-2xl font-semibold tabular-nums">
               {formatUsd(wallet.availableBalance)}
             </p>
             <p className="text-muted-foreground text-sm">Available to trade</p>
             <p className="text-muted-foreground text-xs tabular-nums">
-              Total {formatUsd(wallet.totalBalance)} · Reserved {formatUsd(wallet.reservedBalance)}
+              {formatWalletBreakdownLine(wallet.totalBalance, wallet.reservedBalance)}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              {wallet.reservedBalance > 0
+                ? formatReservedHelper(wallet.reservedBalance)
+                : ZERO_RESERVED_HELPER}
             </p>
           </>
         ) : null}
