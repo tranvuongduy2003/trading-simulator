@@ -4,6 +4,9 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- impl: virtual cash story 1 **Tasks 1–6** (automation) — `GetMyWalletTests` (3), decoupled wallet/portfolio UI, `useWalletQuery`, `VirtualCashCard`, `WalletTopBarChip`, OpenAPI wallet **500**, **54** Users Testcontainers tests + `api:verify` + `yarn build`; manual UI checklist pending; PR `feature/virtual-cash-story-1` → `main` (closes #34)
+- plan: virtual cash story 1 updated — spec Q1 Yes, top-bar cash chip + Task 4 (`docs/plans/20260525-203000-virtual-cash-story-1.md`, ADR-004)
+- plan: virtual cash balance story 1 — see available cash (`docs/plans/20260525-203000-virtual-cash-story-1.md`)
 - spec: virtual cash balance US-03 (`docs/specs/20260525-201500-virtual-cash-balance.md`)
 - impl: user login story 5 — `LoginUserCommandValidator`, validation/transient integration tests (8), login form 422/500 UX, OpenAPI login **422**, `api:verify`, **51** Users Testcontainers tests; manual checklist pending
 - plan: user login story 5 — validate login input and transient failures (`docs/plans/20260525-190000-user-login-story-5.md`)

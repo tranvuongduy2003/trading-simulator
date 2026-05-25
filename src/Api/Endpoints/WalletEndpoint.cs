@@ -20,5 +20,6 @@ internal sealed class WalletEndpoint : IEndpoint
             .RequireAuthorization()
             .Produces<WalletResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
 }
