@@ -1,14 +1,78 @@
+import { LogOutIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 
 import { paths } from '@/app/paths'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
+import { Spinner } from '@/components/ui/spinner'
+import { useLogout } from '@/features/auth/use-logout'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/auth-store'
 
 const navigationItems = [
   { to: paths.trading, label: 'Trading' },
   { to: paths.portfolio, label: 'Portfolio' },
   { to: paths.orders, label: 'Orders' },
 ] as const
+
+function UserMenu() {
+  const status = useAuthStore((state) => state.status)
+  const username = useAuthStore((state) => state.username)
+  const { logout, isPending } = useLogout()
+
+  if (status !== 'authenticated') {
+    return null
+  }
+
+  const displayName = username ?? 'Account'
+  const initials =
+    displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('') || '?'
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className={cn(
+          'hover:bg-accent/50 focus-visible:ring-ring ml-auto inline-flex h-9 items-center gap-2 rounded-md px-2 text-sm font-medium outline-none focus-visible:ring-2',
+        )}
+        aria-label="User menu"
+        disabled={isPending}
+      >
+        <Avatar size="sm">
+          <AvatarFallback>{initials}</AvatarFallback>
+        </Avatar>
+        <span className="max-w-[10rem] truncate">{displayName}</span>
+        {isPending ? <Spinner className="size-4" /> : null}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-40">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-normal">
+            <span className="text-muted-foreground text-xs">Signed in as</span>
+            <span className="block truncate font-medium">{displayName}</span>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" disabled={isPending} onClick={() => logout()}>
+          <LogOutIcon />
+          Log out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 export function AppLayout() {
   return (
@@ -19,7 +83,7 @@ export function AppLayout() {
       >
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-6 px-4">
           <p className="text-sm font-semibold tracking-tight">Trading Simulator</p>
-          <nav className="flex items-center gap-1">
+          <nav className="flex flex-1 items-center gap-1">
             {navigationItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -37,6 +101,7 @@ export function AppLayout() {
               </NavLink>
             ))}
           </nav>
+          <UserMenu />
         </div>
       </header>
 

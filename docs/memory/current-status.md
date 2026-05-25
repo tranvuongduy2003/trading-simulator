@@ -5,11 +5,18 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
+- User login story 4 **automation complete** on `feature/user-login-story-4` — open PR → `main` (closes #25); manual UI checklist pending operator
 - User login story 3 automation complete on `feature/user-login-story-3` — open PR → `main` (GitHub #24); manual UI checklist pending operator
 - PR for `feature/user-login-story-2` → `main` (GitHub #23 — Story 2 automation complete)
 
 ## Latest Completed
 
+- impl: user login story 4 **Tasks 1–5** — logout API/UI, **5** `LogoutUserTests`, OpenAPI + `api:verify`, `UserLoggedOut` log; **43** Users Testcontainers tests
+- impl: user login story 4 **Task 4** — EC-07 guards in `useSession` + `ProtectedRoute`; `yarn build` green
+- impl: user login story 4 **Task 3** — `useLogout`, header user menu in `AppLayout`; `yarn lint` + `yarn build` green
+- impl: user login story 4 **Task 2** — logout edge-case tests (401 unauthenticated, double logout, Redis key removed); **5** `LogoutUserTests` green
+- impl: user login story 4 **Task 1** — `POST /api/auth/logout`, `RevokeSessionAsync`, `LogoutUserTests` (2 tests green)
+- plan: user login story 4 (`docs/plans/20260525-180000-user-login-story-4.md`) — logout API, revoke session, user menu
 - impl: user login story 3 **Tasks 1–5** (automation) — persistence tests, `SessionStore` hardening, session-expired + cookies UX; **38** Users Testcontainers tests, `api:verify`, `yarn build` green
 - impl: user login story 2 **Tasks 1–4** — invalid-credentials HTTP tests, UI code audit, `api:verify`, 33 Users Testcontainers tests green
 - plan: user login story 3 (`docs/plans/20260525-170000-user-login-story-3.md`) — build tasks done; manual sign-off pending
@@ -23,10 +30,12 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
+- Open PR `feature/user-login-story-4` → `main` (closes #25 when merged)
+- Manual: Story 4 checklist (plan §Manual UI checklist + EC-07 back/two-tab on Aspire)
 - Open PR `feature/user-login-story-3` → `main` (closes #24 when merged)
 - Operator: Story 3 manual UI checklist (6 steps in plan)
 - Open PR `feature/user-login-story-2` → `main` (closes #23 when merged)
-- Epic #21 Stories 4–5 (logout, login validation hardening)
+- Epic #21 Story 5 (login validation hardening, #26)
 
 ## Blockers
 

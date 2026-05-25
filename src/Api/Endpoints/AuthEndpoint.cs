@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using TradingSimulator.Api.Auth;
 using TradingSimulator.Api.Http;
 using TradingSimulator.Api.Mapping;
+using TradingSimulator.Application.Abstractions.Auth;
 using TradingSimulator.Application.Options;
 using TradingSimulator.Application.Users.Commands;
 using TradingSimulator.Contracts.Users;
@@ -11,7 +12,8 @@ namespace TradingSimulator.Api.Endpoints;
 
 internal sealed class AuthEndpoint : IEndpoint
 {
-    public void Map(IEndpointRouteBuilder endpoints) =>
+    public void Map(IEndpointRouteBuilder endpoints)
+    {
         endpoints.MapPost("/api/auth/login", LoginUser)
             .WithName("LoginUser")
             .WithTags("Auth")
@@ -22,6 +24,14 @@ internal sealed class AuthEndpoint : IEndpoint
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+        endpoints.MapPost("/api/auth/logout", LogoutUser)
+            .WithName("LogoutUser")
+            .WithTags("Auth")
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
+    }
 
     private static async Task<IResult> LoginUser(
         LoginUserRequest request,
@@ -45,5 +55,33 @@ internal sealed class AuthEndpoint : IEndpoint
 
         return Results.Ok(
             new LoginUserResponse(loginUser.UserId, loginUser.Username, loginUser.Email));
+    }
+
+    private static async Task<IResult> LogoutUser(
+        HttpContext httpContext,
+        ISender sender,
+        ICurrentUserAccessor currentUserAccessor,
+        IOptions<TradingSessionOptions> sessionOptions)
+    {
+        if (!httpContext.Request.Cookies.TryGetValue(
+                sessionOptions.Value.CookieName,
+                out var sessionIdValue)
+            || !Guid.TryParse(sessionIdValue, out var sessionId)
+            || currentUserAccessor.UserId is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await sender.Send(
+            new LogoutUserCommand(sessionId, currentUserAccessor.UserId.Value.Value));
+
+        if (!result.IsSuccess)
+        {
+            return result.ToHttpResult();
+        }
+
+        SessionCookieWriter.Delete(httpContext, sessionOptions.Value);
+
+        return Results.NoContent();
     }
 }

@@ -10,6 +10,10 @@ export function ProtectedRoute() {
   const authStatus = useAuthStore((state) => state.status)
   const sessionQuery = useSession()
 
+  if (authStatus === 'unauthenticated') {
+    return <Navigate to={paths.login} replace />
+  }
+
   if (authStatus === 'unknown' || sessionQuery.isPending) {
     return (
       <div className="flex min-h-screen flex-col gap-3 p-8">
