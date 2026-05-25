@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -57,10 +58,12 @@ function UserMenu() {
         {isPending ? <Spinner className="size-4" /> : null}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-40">
-        <DropdownMenuLabel className="font-normal">
-          <span className="text-muted-foreground text-xs">Signed in as</span>
-          <span className="block truncate font-medium">{displayName}</span>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-normal">
+            <span className="text-muted-foreground text-xs">Signed in as</span>
+            <span className="block truncate font-medium">{displayName}</span>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" disabled={isPending} onClick={() => logout()}>
           <LogOutIcon />
