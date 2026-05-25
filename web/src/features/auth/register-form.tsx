@@ -16,6 +16,7 @@ import { registerFormSchema, type RegisterFormValues } from '@/types/auth'
 import * as authApi from './api'
 import { clearUserScopedQueries } from './clear-user-queries'
 import { applyRegisterApiError } from './map-register-error'
+import { seedWalletQueryData } from './prefetch-wallet'
 
 export function RegisterForm() {
   const navigate = useNavigate()
@@ -58,6 +59,15 @@ export function RegisterForm() {
         reservedBalance: response.wallet.reservedBalance,
         availableBalance: response.wallet.availableBalance,
       } satisfies authApi.WalletResponse)
+
+      seedWalletQueryData(queryClient, response.userId, {
+        userId: response.userId,
+        username: response.username,
+        currency: response.wallet.currency,
+        totalBalance: response.wallet.totalBalance,
+        reservedBalance: response.wallet.reservedBalance,
+        availableBalance: response.wallet.availableBalance,
+      })
 
       navigate(paths.trading, { replace: true })
     },

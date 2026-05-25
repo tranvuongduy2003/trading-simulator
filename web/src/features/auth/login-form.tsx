@@ -16,6 +16,7 @@ import { loginFormSchema, type LoginFormValues, type LoginLocationState } from '
 
 import * as authApi from './api'
 import { clearUserScopedQueries } from './clear-user-queries'
+import { prefetchWalletQuery } from './prefetch-wallet'
 import {
   applyLoginApiError,
   loginCookiesRequiredMessage,
@@ -57,6 +58,7 @@ export function LoginForm() {
           queryKey: ['auth', 'session'],
           queryFn: ({ signal }) => authApi.getWallet(signal),
         })
+        await prefetchWalletQuery(queryClient, response.userId)
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
           form.setError('root', { message: loginCookiesRequiredMessage })
