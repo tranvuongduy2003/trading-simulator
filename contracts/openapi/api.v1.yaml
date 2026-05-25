@@ -336,6 +336,12 @@ paths:
           description: Unauthorized
         "404":
           description: Not Found
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+          description: Internal Server Error
       tags:
         - Wallet
 tags:

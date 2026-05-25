@@ -15,6 +15,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { useLogout } from '@/features/auth/use-logout'
+import { WalletTopBarChip } from '@/features/trading/components/wallet-top-bar-chip'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth-store'
 
@@ -46,7 +47,7 @@ function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          'hover:bg-accent/50 focus-visible:ring-ring ml-auto inline-flex h-9 items-center gap-2 rounded-md px-2 text-sm font-medium outline-none focus-visible:ring-2',
+          'hover:bg-accent/50 focus-visible:ring-ring inline-flex h-9 items-center gap-2 rounded-md px-2 text-sm font-medium outline-none focus-visible:ring-2',
         )}
         aria-label="User menu"
         disabled={isPending}
@@ -101,7 +102,10 @@ export function AppLayout() {
               </NavLink>
             ))}
           </nav>
-          <UserMenu />
+          <div className="flex items-center gap-2">
+            <WalletTopBarChip />
+            <UserMenu />
+          </div>
         </div>
       </header>
 

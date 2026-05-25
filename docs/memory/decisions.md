@@ -40,6 +40,16 @@ If a decision changes, add a new entry and mark the old one as superseded.
 
 ---
 
+## ADR-004: Top-bar available cash chip (US-03 Story 1)
+
+- Date: 2026-05-25
+- Status: Accepted
+- Context: PRD §8.1 describes a top bar on the trading terminal. Spec §13 Q1 asked whether available virtual cash should appear there before the full layout ships. Product answered **Yes**.
+- Decision: Add a compact **available** cash readout to `AppLayout` header on every authenticated route (Trading, Portfolio, Orders). Reuse the same TanStack Query key `['wallet']` and `GET /api/wallet` as the trading dashboard card via a shared `useWalletQuery` hook. Top bar shows **available only** (not total/reserved breakdown); dashboard card remains the primary detailed surface.
+- Consequences: Wallet fetch may run from layout + page simultaneously; Query dedupes. Chip must not show fabricated zeros on load or API failure. Symbol, last price, and daily change in the top bar remain future work.
+
+---
+
 ## Template
 - Date: YYYY-MM-DD
 - Status: Proposed | Accepted | Superseded

@@ -6,11 +6,11 @@ title: Virtual Cash Balance Display
 slug: virtual-cash-balance
 filename_template: 20260525-201500-virtual-cash-balance.md
 created_at: 2026-05-25T20:15:00+07:00
-updated_at: 2026-05-25T20:15:00+07:00
+updated_at: 2026-05-25T20:45:00+07:00
 status: draft
 owner: product
 tags: [spec, feature, trading-simulator, wallet, cash, balance, portfolio, us-03]
-related_plan: null
+related_plan: docs/plans/20260525-203000-virtual-cash-story-1.md
 related_specs: [docs/specs/20260523-175509-user-registration.md, docs/specs/20260525-103709-user-login.md]
 github_epic_issue: 33
 github_story_issues: [34, 35, 36, 37]
@@ -122,7 +122,8 @@ BR-08: PostgreSQL is authoritative for wallet balances; Redis does not store wal
 ```
 Screen: Main trading view (authenticated)
 - Arrival: User lands after login/register redirect or navigates to /trading (or equivalent). Cash area visible without extra navigation (PRD §7.4 — portfolio/cash reachable within 2 clicks; on-dashboard display satisfies US-03 MVP).
-- Primary display: "Virtual cash" card or account strip showing available balance large (tabular numerals), subtitle "Available to trade".
+- Primary display: "Virtual cash" card on trading view showing available balance large (tabular numerals), subtitle "Available to trade".
+- Top bar (all authenticated routes): compact chip with **available** cash (PRD §8.1, spec §13 Q1 ✅) — label "Cash" + formatted amount; loading skeleton / no fake balance on error.
 - Secondary display: Total and reserved on one line or tooltip-friendly secondary text (FR-6.2).
 - Loading: Skeleton or inline placeholder in the cash card while wallet (and optionally portfolio) queries are pending; do not show $0.00 as if real.
 - Empty: N/A for wallet (every authenticated user has a wallet row). If API returns 404 for wallet (defect), show error state, not empty zero balance.
@@ -231,7 +232,7 @@ EC-08: Portfolio reset (US-04, future) → wallet returns to $100,000 total, $0 
 - Holdings detail, unrealized P&L, total portfolio value (US-20, US-21, US-23) — may appear adjacent on trading view but not part of US-03 acceptance.
 - Portfolio reset UI and behavior (US-04).
 - Real-time SignalR push for wallet-only updates (Phase 2 enhancement).
-- Top-bar compact wallet widget if it duplicates dashboard card (optional polish).
+- Full PRD §8.1 top bar (AAPL symbol, last price, daily change) — Story 1 adds **available cash chip only** per Q1 ✅.
 - Multi-currency, fractional shares, multi-symbol.
 - Global MVP exclusions: message broker, outbox, production CD, horizontal scaling.
 
@@ -239,5 +240,5 @@ EC-08: Portfolio reset (US-04, future) → wallet returns to $100,000 total, $0 
 
 | # | Question | Source | Answer | Status |
 |---|---|---|---|---|
-| 1 | Should available cash also appear in the top bar before the full terminal layout ships? | PRD §8.1 | — | ❓ |
+| 1 | Should available cash also appear in the top bar before the full terminal layout ships? | PRD §8.1 | **Yes** — compact available-cash chip in `AppLayout` on all authenticated routes (Story 1); full terminal top bar (symbol, price) still deferred | ✅ |
 | 2 | After order placement ships, is refetch-on-mutation enough or is SignalR wallet push required for NFR latency? | Tech §9.2 | — | ⏳ Deferred to order epic |

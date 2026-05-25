@@ -10,18 +10,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { VirtualCashCard } from '@/features/trading/components/virtual-cash-card'
+import { useWalletQuery } from '@/features/trading/hooks/use-wallet-query'
 import { authApi } from '@/features/auth'
-import { normalizeWallet } from '@/hooks/use-session'
-import { formatUsd, toNumber } from '@/lib/format'
+import { toNumber } from '@/lib/format'
 
 const AAPL_SYMBOL = 'AAPL'
 
+const PORTFOLIO_LOAD_ERROR_MESSAGE = 'Could not load holdings. Try refreshing.'
+
 export function TradingPage() {
-  const walletQuery = useQuery({
-    queryKey: ['wallet'],
-    queryFn: ({ signal }) => authApi.getWallet(signal),
-    staleTime: 30_000,
-  })
+  const walletQuery = useWalletQuery()
 
   const portfolioQuery = useQuery({
     queryKey: ['portfolio'],
@@ -29,10 +28,6 @@ export function TradingPage() {
     staleTime: 30_000,
   })
 
-  const isLoading = walletQuery.isPending || portfolioQuery.isPending
-  const hasError = walletQuery.isError || portfolioQuery.isError
-
-  const wallet = walletQuery.data ? normalizeWallet(walletQuery.data) : null
   const aaplHolding = portfolioQuery.data?.holdings.find(
     (holding) => holding.symbol === AAPL_SYMBOL,
   )
@@ -47,42 +42,32 @@ export function TradingPage() {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
-        </div>
-      ) : null}
+      <div className="grid gap-4 md:grid-cols-2">
+        <VirtualCashCard
+          isPending={walletQuery.isPending}
+          isError={walletQuery.isError}
+          wallet={walletQuery.isSuccess ? walletQuery.data : null}
+        />
 
-      {hasError ? (
-        <p className="text-destructive text-sm" role="alert">
-          Could not load account data. Try refreshing or sign in again.
-        </p>
-      ) : null}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Holdings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {portfolioQuery.isPending ? (
+              <div className="flex flex-col gap-2" aria-busy="true">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ) : null}
 
-      {wallet ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Virtual cash</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-1">
-              <p className="text-2xl font-semibold tabular-nums">
-                {formatUsd(wallet.availableBalance)}
+            {portfolioQuery.isError ? (
+              <p className="text-muted-foreground text-sm" role="alert">
+                {PORTFOLIO_LOAD_ERROR_MESSAGE}
               </p>
-              <p className="text-muted-foreground text-sm">Available to trade</p>
-              <p className="text-muted-foreground text-xs tabular-nums">
-                Total {formatUsd(wallet.totalBalance)} · Reserved{' '}
-                {formatUsd(wallet.reservedBalance)}
-              </p>
-            </CardContent>
-          </Card>
+            ) : null}
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Holdings</CardTitle>
-            </CardHeader>
-            <CardContent>
+            {portfolioQuery.isSuccess ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -97,10 +82,10 @@ export function TradingPage() {
                   </TableRow>
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
-        </div>
-      ) : null}
+            ) : null}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
