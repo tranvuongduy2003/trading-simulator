@@ -1,10 +1,13 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useWalletQuery } from '@/features/trading/hooks/use-wallet-query'
+import { canDisplayWallet } from '@/features/trading/wallet-display'
 import { formatUsd } from '@/lib/format'
+import { ApiError } from '@/types/api-problem'
 import { useAuthStore } from '@/store/auth-store'
 
 export function WalletTopBarChip() {
   const status = useAuthStore((state) => state.status)
+  const sessionUserId = useAuthStore((state) => state.userId)
   const walletQuery = useWalletQuery()
 
   if (status !== 'authenticated') {
@@ -19,7 +22,10 @@ export function WalletTopBarChip() {
     )
   }
 
-  if (walletQuery.isError) {
+  const walletUnauthorized =
+    walletQuery.isError && walletQuery.error instanceof ApiError && walletQuery.error.status === 401
+
+  if (walletQuery.isError || walletUnauthorized) {
     return (
       <span
         className="text-muted-foreground flex items-center gap-2 text-sm"
@@ -32,8 +38,16 @@ export function WalletTopBarChip() {
   }
 
   const wallet = walletQuery.data
-  if (!wallet) {
-    return null
+  if (!canDisplayWallet(wallet, sessionUserId)) {
+    return (
+      <span
+        className="text-muted-foreground flex items-center gap-2 text-sm"
+        aria-label="Available virtual cash unavailable"
+      >
+        <span className="hidden sm:inline">Cash</span>
+        <span>Unavailable</span>
+      </span>
+    )
   }
 
   const amount = formatUsd(wallet.availableBalance)

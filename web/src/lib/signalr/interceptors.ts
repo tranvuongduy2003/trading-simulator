@@ -17,6 +17,7 @@ export function createSimulationHubQueryBridge(
 ): SimulationHubMessageInterceptor {
   return (message) => {
     if (message.name === 'onBalanceUpdated') {
+      // Prefix matches all user-scoped wallet keys: ['wallet', userId]
       queryClient.invalidateQueries({ queryKey: ['wallet'] })
       queryClient.invalidateQueries({ queryKey: ['portfolio'] })
     }

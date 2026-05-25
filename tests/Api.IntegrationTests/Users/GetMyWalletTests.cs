@@ -22,13 +22,168 @@ public sealed class GetMyWalletTests(IntegrationTestFixture fixture)
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     [Fact]
-    public async Task GetMyWallet_WithoutSession_Returns401()
+    public async Task GetMyWallet_WithoutSession_Returns401_UNAUTHORIZED()
     {
         var client = fixture.Factory.CreateClient();
 
         using var walletResponse = await client.GetAsync("/api/wallet");
 
-        walletResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        await AssertUnauthorizedAsync(walletResponse);
+    }
+
+    [Fact]
+    public async Task GetMyWallet_AfterLogin_UserIdMatchesSession()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var email = $"wallet_login_{suffix}@example.com";
+        const string password = "SecurePass1!";
+        var username = $"wallet_login_{suffix}";
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync(
+            "/api/users",
+            new RegisterUserRequest(username, email, password));
+
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        using var logoutResponse = await client.PostAsync("/api/auth/logout", null);
+        logoutResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        using var loginResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(email, password));
+
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var walletResponse = await client.GetAsync("/api/wallet");
+
+        walletResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var wallet = await walletResponse.Content.ReadFromJsonAsync<WalletResponse>();
+        wallet.Should().NotBeNull();
+        wallet!.UserId.Should().Be(registration!.UserId);
+        wallet.Username.Should().Be(registration.Username);
+    }
+
+    [Fact]
+    public async Task GetMyWallet_AfterSecondUserLogin_ReturnsSecondUserWalletOnly()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var emailA = $"wallet_user_a_{suffix}@example.com";
+        var emailB = $"wallet_user_b_{suffix}@example.com";
+        const string password = "SecurePass1!";
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerAResponse = await client.PostAsJsonAsync(
+            "/api/users",
+            new RegisterUserRequest($"wallet_a_{suffix}", emailA, password));
+
+        registerAResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registrationA = await registerAResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registrationA.Should().NotBeNull();
+
+        await SeedWalletBalancesAsync(
+            registrationA!.UserId,
+            totalBalance: 50_000m,
+            reservedBalance: 0m);
+
+        using var logoutAResponse = await client.PostAsync("/api/auth/logout", null);
+        logoutAResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        using var registerBResponse = await client.PostAsJsonAsync(
+            "/api/users",
+            new RegisterUserRequest($"wallet_b_{suffix}", emailB, password));
+
+        registerBResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registrationB = await registerBResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registrationB.Should().NotBeNull();
+        registrationB!.UserId.Should().NotBe(registrationA.UserId);
+
+        using var walletResponse = await client.GetAsync("/api/wallet");
+
+        walletResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var wallet = await walletResponse.Content.ReadFromJsonAsync<WalletResponse>();
+        wallet.Should().NotBeNull();
+        wallet!.UserId.Should().Be(registrationB.UserId);
+        wallet.Username.Should().Be(registrationB.Username);
+        wallet.TotalBalance.Should().Be(100_000m);
+        wallet.ReservedBalance.Should().Be(0m);
+        wallet.AvailableBalance.Should().Be(100_000m);
+    }
+
+    [Fact]
+    public async Task GetMyWallet_AfterLoginReplacesSession_ReturnsSecondUserWalletOnly()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var emailA = $"wallet_switch_a_{suffix}@example.com";
+        var emailB = $"wallet_switch_b_{suffix}@example.com";
+        const string password = "SecurePass1!";
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerAResponse = await client.PostAsJsonAsync(
+            "/api/users",
+            new RegisterUserRequest($"wallet_switch_a_{suffix}", emailA, password));
+
+        registerAResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registrationA = await registerAResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registrationA.Should().NotBeNull();
+
+        await SeedWalletBalancesAsync(
+            registrationA!.UserId,
+            totalBalance: 50_000m,
+            reservedBalance: 0m);
+
+        using var registerBResponse = await client.PostAsJsonAsync(
+            "/api/users",
+            new RegisterUserRequest($"wallet_switch_b_{suffix}", emailB, password));
+
+        registerBResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registrationB = await registerBResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registrationB.Should().NotBeNull();
+
+        using var loginAResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(emailA, password));
+
+        loginAResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var walletAfterAResponse = await client.GetAsync("/api/wallet");
+
+        walletAfterAResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var walletA = await walletAfterAResponse.Content.ReadFromJsonAsync<WalletResponse>();
+        walletA.Should().NotBeNull();
+        walletA!.UserId.Should().Be(registrationA.UserId);
+        walletA.TotalBalance.Should().Be(50_000m);
+
+        using var loginBAgainResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(emailB, password));
+
+        loginBAgainResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var walletAfterBResponse = await client.GetAsync("/api/wallet");
+
+        walletAfterBResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var walletB = await walletAfterBResponse.Content.ReadFromJsonAsync<WalletResponse>();
+        walletB.Should().NotBeNull();
+        walletB!.UserId.Should().Be(registrationB!.UserId);
+        walletB.TotalBalance.Should().Be(100_000m);
     }
 
     [Fact]
@@ -208,5 +363,20 @@ public sealed class GetMyWalletTests(IntegrationTestFixture fixture)
 
         persisted.TotalBalance.Should().Be(totalBalance);
         persisted.ReservedBalance.Should().Be(reservedBalance);
+    }
+
+    private static async Task AssertUnauthorizedAsync(HttpResponseMessage response)
+    {
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(
+            HttpStatusCode.Unauthorized,
+            $"expected 401 but got {(int)response.StatusCode} with body: {responseBody}");
+
+        response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
+
+        var problem = JsonSerializer.Deserialize<ApiProblemDetails>(responseBody, JsonOptions);
+        problem.Should().NotBeNull();
+        problem!.Status.Should().Be(401);
+        problem.Code.Should().Be("UNAUTHORIZED");
     }
 }

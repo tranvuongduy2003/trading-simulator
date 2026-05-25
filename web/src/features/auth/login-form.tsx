@@ -15,6 +15,7 @@ import { ApiError } from '@/types/api-problem'
 import { loginFormSchema, type LoginFormValues, type LoginLocationState } from '@/types/auth'
 
 import * as authApi from './api'
+import { clearUserScopedQueries } from './clear-user-queries'
 import {
   applyLoginApiError,
   loginCookiesRequiredMessage,
@@ -49,6 +50,8 @@ export function LoginForm() {
         password: values.password,
       }),
     onSuccess: async (response) => {
+      clearUserScopedQueries(queryClient)
+
       try {
         await queryClient.fetchQuery({
           queryKey: ['auth', 'session'],
@@ -68,9 +71,6 @@ export function LoginForm() {
         userId: response.userId,
         username: response.username,
       })
-
-      void queryClient.invalidateQueries({ queryKey: ['wallet'] })
-      void queryClient.invalidateQueries({ queryKey: ['portfolio'] })
 
       const from = (location.state as LoginLocationState | null)?.from
       navigate(typeof from === 'string' ? from : paths.trading, { replace: true })

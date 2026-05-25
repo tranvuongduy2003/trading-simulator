@@ -14,6 +14,7 @@ import { useAuthStore } from '@/store/auth-store'
 import { registerFormSchema, type RegisterFormValues } from '@/types/auth'
 
 import * as authApi from './api'
+import { clearUserScopedQueries } from './clear-user-queries'
 import { applyRegisterApiError } from './map-register-error'
 
 export function RegisterForm() {
@@ -42,6 +43,8 @@ export function RegisterForm() {
         password: values.password,
       }),
     onSuccess: (response) => {
+      clearUserScopedQueries(queryClient)
+
       setSession({
         userId: response.userId,
         username: response.username,
@@ -55,9 +58,6 @@ export function RegisterForm() {
         reservedBalance: response.wallet.reservedBalance,
         availableBalance: response.wallet.availableBalance,
       } satisfies authApi.WalletResponse)
-
-      void queryClient.invalidateQueries({ queryKey: ['wallet'] })
-      void queryClient.invalidateQueries({ queryKey: ['portfolio'] })
 
       navigate(paths.trading, { replace: true })
     },

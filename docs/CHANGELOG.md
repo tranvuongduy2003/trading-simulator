@@ -4,6 +4,8 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- impl: virtual cash story 3 **Tasks 1–5** (automation) — wallet privacy integration tests (8), `clearUserScopedQueries`, user-scoped `useWalletQuery`, `canDisplayWallet` UI guards, `WalletEndpoint` handler 401 `UNAUTHORIZED`; **59** Users Testcontainers + `yarn build`; manual UI checklist pending; PR `feature/virtual-cash-story-3` → `main` (closes #36)
+- plan: virtual cash balance story 3 — session-private wallet (`docs/plans/20260525-230000-virtual-cash-story-3.md`, #36)
 - impl: virtual cash story 2 **Tasks 1–4** (automation) — reserved wallet integration tests (`GetMyWalletTests` 5/5), `VirtualCashCard` breakdown + helper copy, `lint:wallet-integrity` guard, **56** Users Testcontainers tests + `yarn build`; manual UI checklist pending; PR `feature/virtual-cash-story-2` → `main` (closes #35)
 - plan: virtual cash balance story 2 — total vs reserved breakdown (`docs/plans/20260525-220000-virtual-cash-story-2.md`, #35)
 - impl: virtual cash story 1 **Tasks 1–6** (automation) — `GetMyWalletTests` (3), decoupled wallet/portfolio UI, `useWalletQuery`, `VirtualCashCard`, `WalletTopBarChip`, OpenAPI wallet **500**, **54** Users Testcontainers tests + `api:verify` + `yarn build`; manual UI checklist pending; PR `feature/virtual-cash-story-1` → `main` (closes #34)
