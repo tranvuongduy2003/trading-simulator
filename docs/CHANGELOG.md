@@ -4,6 +4,7 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- spec: virtual cash balance US-03 (`docs/specs/20260525-201500-virtual-cash-balance.md`)
 - impl: user login story 5 — `LoginUserCommandValidator`, validation/transient integration tests (8), login form 422/500 UX, OpenAPI login **422**, `api:verify`, **51** Users Testcontainers tests; manual checklist pending
 - plan: user login story 5 — validate login input and transient failures (`docs/plans/20260525-190000-user-login-story-5.md`)
 - impl: user login story 4 — `POST /api/auth/logout`, session revoke (PG + Redis), user menu + `useLogout`, EC-07 guards, **5** `LogoutUserTests`, OpenAPI `LogoutUser`, `api:verify`; **43** Users Testcontainers tests; manual checklist pending
