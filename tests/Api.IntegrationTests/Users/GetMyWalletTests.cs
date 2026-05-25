@@ -32,6 +32,99 @@ public sealed class GetMyWalletTests(IntegrationTestFixture fixture)
     }
 
     [Fact]
+    public async Task GetMyWallet_AfterLogin_ReturnsSeededBalances()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var email = $"wallet_login_seed_{suffix}@example.com";
+        const string password = "SecurePass1!";
+        var username = $"wallet_login_seed_{suffix}";
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync(
+            "/api/users",
+            new RegisterUserRequest(username, email, password));
+
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        using var logoutResponse = await client.PostAsync("/api/auth/logout", null);
+        logoutResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        using var loginResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(email, password));
+
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await SeedWalletBalancesAsync(
+            registration!.UserId,
+            totalBalance: 50_000m,
+            reservedBalance: 10_000m);
+
+        using var walletResponse = await client.GetAsync("/api/wallet");
+
+        walletResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var wallet = await walletResponse.Content.ReadFromJsonAsync<WalletResponse>();
+        wallet.Should().NotBeNull();
+        wallet!.UserId.Should().Be(registration.UserId);
+        wallet.TotalBalance.Should().Be(50_000m);
+        wallet.ReservedBalance.Should().Be(10_000m);
+        wallet.AvailableBalance.Should().Be(40_000m);
+        wallet.AvailableBalance.Should().Be(wallet.TotalBalance - wallet.ReservedBalance);
+    }
+
+    [Fact]
+    public async Task GetMyWallet_SecondFetchAfterDbUpdate_ReturnsLatestBalances()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"wallet_refetch_{suffix}",
+            $"wallet_refetch_{suffix}@example.com",
+            "SecurePass1!");
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync("/api/users", request);
+
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        using var firstWalletResponse = await client.GetAsync("/api/wallet");
+
+        firstWalletResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var firstWallet = await firstWalletResponse.Content.ReadFromJsonAsync<WalletResponse>();
+        firstWallet.Should().NotBeNull();
+        firstWallet!.TotalBalance.Should().Be(100_000m);
+        firstWallet.ReservedBalance.Should().Be(0m);
+        firstWallet.AvailableBalance.Should().Be(100_000m);
+
+        await SeedWalletBalancesAsync(
+            registration!.UserId,
+            totalBalance: 75_000m,
+            reservedBalance: 15_000m);
+
+        using var secondWalletResponse = await client.GetAsync("/api/wallet");
+
+        secondWalletResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var secondWallet = await secondWalletResponse.Content.ReadFromJsonAsync<WalletResponse>();
+        secondWallet.Should().NotBeNull();
+        secondWallet!.TotalBalance.Should().Be(75_000m);
+        secondWallet.ReservedBalance.Should().Be(15_000m);
+        secondWallet.AvailableBalance.Should().Be(60_000m);
+        secondWallet.AvailableBalance.Should().Be(secondWallet.TotalBalance - secondWallet.ReservedBalance);
+    }
+
+    [Fact]
     public async Task GetMyWallet_AfterLogin_UserIdMatchesSession()
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
