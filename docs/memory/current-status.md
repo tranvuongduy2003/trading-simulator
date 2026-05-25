@@ -9,6 +9,7 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- spec: user login US-02 (`docs/specs/20260525-103709-user-login.md`)
 - impl: user registration story 4 (Tasks 1–4) — transient UX, integration tests, OpenAPI **500**, regression (18 Testcontainers tests green)
 - Plan: `docs/plans/20260525-095103-user-registration-story-4.md` (COMPLETE)
 - impl: user registration story 3 (Tasks 1–4) — validation, API contract, client onBlur, OpenAPI polish

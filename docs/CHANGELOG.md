@@ -4,6 +4,7 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- spec: user login US-02 (`docs/specs/20260525-103709-user-login.md`)
 - impl: user registration story 4 Task 4 — regression (18 Testcontainers `Users` tests), plan complete; manual UI checklist pending operator sign-off
 - impl: user registration story 4 Task 3 — `POST /api/users` documents **500** in OpenAPI (`ProducesProblem` + `api:export`)
 - impl: user registration story 4 Task 2 — `RegisterUserTransientFailureTests` (EC-04 retry, EC-09 500, EC-10 Redis, parallel wallet invariant); test factory `CreateFactory` hook
