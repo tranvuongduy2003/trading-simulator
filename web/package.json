@@ -13,6 +13,7 @@
     "prebuild": "yarn api:codegen",
     "predev": "yarn api:codegen",
     "lint": "eslint .",
+    "lint:wallet-integrity": "node scripts/check-wallet-display-integrity.mjs",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

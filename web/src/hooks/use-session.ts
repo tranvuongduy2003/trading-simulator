@@ -69,6 +69,7 @@ export function useSession() {
   return query
 }
 
+/** Maps API wallet fields to numbers; availableBalance is never recomputed from total − reserved. */
 export function normalizeWallet(wallet: WalletResponse) {
   return {
     ...wallet,
