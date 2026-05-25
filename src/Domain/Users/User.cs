@@ -59,4 +59,23 @@ public sealed class User : AggregateRoot<UserId>
 
         return new UserRegistrationResult(user, portfolio);
     }
+
+    public static User FromPersistence(
+        UserId id,
+        Username username,
+        EmailAddress email,
+        PasswordHash passwordHash,
+        Wallet wallet,
+        DateTimeOffset createdAt,
+        DateTimeOffset updatedAt) =>
+        new()
+        {
+            Id = id,
+            Username = username,
+            Email = email,
+            PasswordHash = passwordHash,
+            Wallet = wallet,
+            CreatedAt = createdAt,
+            UpdatedAt = updatedAt,
+        };
 }

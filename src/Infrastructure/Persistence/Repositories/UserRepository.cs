@@ -24,4 +24,14 @@ internal sealed class UserRepository(ApplicationDatabaseContext databaseContext)
 
     public Task<bool> ExistsByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default) =>
         databaseContext.Users.AsNoTracking().AnyAsync(user => user.Email == normalizedEmail, cancellationToken);
+
+    public async Task<User?> GetByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
+    {
+        var record = await databaseContext.Users
+            .AsNoTracking()
+            .Include(user => user.Wallet)
+            .FirstOrDefaultAsync(user => user.Email == normalizedEmail, cancellationToken);
+
+        return record is null ? null : UserPersistenceMapper.ToUser(record);
+    }
 }
