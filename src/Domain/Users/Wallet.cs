@@ -23,4 +23,7 @@ public sealed class Wallet
 
     internal static Wallet CreateInitial(UserId userId, Money initialCash) =>
         new(userId, initialCash, Money.Usd(0m));
+
+    public static Wallet FromPersistence(UserId userId, Money totalBalance, Money reservedBalance) =>
+        new(userId, totalBalance, reservedBalance);
 }

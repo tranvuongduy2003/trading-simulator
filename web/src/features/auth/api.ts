@@ -43,6 +43,12 @@ export type LoginRequest = {
   password: string
 }
 
+export type LoginUserResponse = {
+  userId: string
+  username: string
+  email: string
+}
+
 export type RegisterRequest = {
   username: string
   email: string
@@ -61,7 +67,10 @@ export function getPortfolio(signal?: AbortSignal) {
 }
 
 export function login(request: LoginRequest, signal?: AbortSignal) {
-  return apiClient.post<void>('/api/auth/login', request, { signal })
+  return apiClient.post<LoginUserResponse>('/api/auth/login', request, {
+    signal,
+    suppressErrorToast: true,
+  })
 }
 
 export function register(request: RegisterRequest, signal?: AbortSignal) {

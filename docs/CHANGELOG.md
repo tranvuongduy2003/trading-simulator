@@ -4,6 +4,13 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- impl: user login story 1 Task 6 — OpenAPI `POST /api/auth/login`, `api:verify`, Users regression (28 Testcontainers tests); manual UI checklist pending
+- impl: user login story 1 Task 5 — login form, `map-login-error`, session prefetch, `from` redirect
+- impl: user login story 1 Task 4 — `AuthEndpoint` session cookie + HTTP read-your-writes tests (wallet/portfolio)
+- impl: user login story 1 Task 3 — `LoginUserCommandHandler` (credentials, session + Redis enqueue), MediatR integration tests
+- impl: user login story 1 Task 2 — `GetByEmailAsync`, `IPasswordHasher.Verify`, `User`/`Wallet` `FromPersistence`, integration tests for lookup + verify
+- impl: user login story 1 Task 1 — `POST /api/auth/login` skeleton (contracts, stub **401** `INVALID_CREDENTIALS`, `AuthEndpoint`, `LoginUserTests` smoke)
+- plan: user login story 1 — log in and access portfolio (`docs/plans/20260525-150000-user-login-story-1.md`)
 - spec: user login US-02 (`docs/specs/20260525-103709-user-login.md`)
 - impl: user registration story 4 Task 4 — regression (18 Testcontainers `Users` tests), plan complete; manual UI checklist pending operator sign-off
 - impl: user registration story 4 Task 3 — `POST /api/users` documents **500** in OpenAPI (`ProducesProblem` + `api:export`)

@@ -1,12 +1,14 @@
 export * as authApi from './api'
 export type {
   Holding,
+  LoginUserResponse,
   PortfolioResponse,
   RegisterRequest,
   UserRegistrationResponse,
   WalletResponse,
   WalletSummary,
 } from './api'
+export { LoginForm } from './login-form'
 export { RegisterForm } from './register-form'
 export { authRoutes } from './routes'
 export { LoginPage } from './pages/login-page'

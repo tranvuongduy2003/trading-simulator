@@ -1,3 +1,4 @@
+using TradingSimulator.Domain.Common;
 using TradingSimulator.Domain.Portfolios;
 using TradingSimulator.Domain.Users;
 using TradingSimulator.Infrastructure.Persistence.Entities;
@@ -38,4 +39,22 @@ internal static class UserPersistenceMapper
             UpdatedAt = portfolio.UpdatedAt,
             RowVersion = 1,
         };
+
+    public static User ToUser(UserRecord record)
+    {
+        ArgumentNullException.ThrowIfNull(record.Wallet);
+
+        var userId = UserId.From(record.Id);
+        return User.FromPersistence(
+            userId,
+            Username.Create(record.Username),
+            EmailAddress.Create(record.Email),
+            PasswordHash.Create(record.PasswordHash),
+            Wallet.FromPersistence(
+                userId,
+                Money.Create(record.Wallet.TotalBalance, record.Wallet.Currency),
+                Money.Create(record.Wallet.ReservedBalance, record.Wallet.Currency)),
+            record.CreatedAt,
+            record.UpdatedAt);
+    }
 }
