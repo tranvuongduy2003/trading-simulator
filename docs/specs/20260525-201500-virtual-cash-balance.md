@@ -10,8 +10,8 @@ updated_at: 2026-05-25T20:45:00+07:00
 status: draft
 owner: product
 tags: [spec, feature, trading-simulator, wallet, cash, balance, portfolio, us-03]
-related_plan: docs/plans/20260525-220000-virtual-cash-story-2.md
-related_plans: [docs/plans/20260525-203000-virtual-cash-story-1.md, docs/plans/20260525-220000-virtual-cash-story-2.md]
+related_plan: docs/plans/20260525-230000-virtual-cash-story-3.md
+related_plans: [docs/plans/20260525-203000-virtual-cash-story-1.md, docs/plans/20260525-220000-virtual-cash-story-2.md, docs/plans/20260525-230000-virtual-cash-story-3.md]
 related_specs: [docs/specs/20260523-175509-user-registration.md, docs/specs/20260525-103709-user-login.md]
 github_epic_issue: 33
 github_story_issues: [34, 35, 36, 37]

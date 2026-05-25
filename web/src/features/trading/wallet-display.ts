@@ -15,3 +15,14 @@ export function formatWalletBreakdownLine(totalBalance: number, reservedBalance:
 export function formatReservedHelper(reservedBalance: number): string {
   return `Open buy orders hold ${formatUsd(reservedBalance)}`
 }
+
+export function canDisplayWallet(
+  wallet: { userId: string } | null | undefined,
+  sessionUserId: string | null,
+): wallet is { userId: string } {
+  if (!wallet || !sessionUserId) {
+    return false
+  }
+
+  return wallet.userId === sessionUserId
+}

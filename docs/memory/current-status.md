@@ -12,6 +12,8 @@ Owner: @tranvuongduy2003
 
 
 
+- Virtual cash balance **Story 3** automation complete on `feature/virtual-cash-story-3` — open PR → `main` (closes #36); operator manual UI checklist pending (plan §Manual UI checklist)
+
 - Virtual cash balance **Story 2** automation complete on `feature/virtual-cash-story-2` — open PR → `main` (closes #35); operator manual UI checklist pending (plan §Manual UI checklist)
 
 - Virtual cash balance **Story 1** automation complete on `feature/virtual-cash-story-1` — open PR → `main` (closes #34); operator manual UI checklist pending (plan §Manual UI checklist)
@@ -29,6 +31,10 @@ Owner: @tranvuongduy2003
 ## Latest Completed
 
 
+
+- impl: virtual cash story 3 **Tasks 1–5** (automation) — privacy API tests, cache purge on auth change, user-scoped wallet query, display guards, **8** `GetMyWalletTests` + **59** Users Testcontainers + `yarn build` green
+
+- plan: virtual cash balance story 3 — session-private wallet (`docs/plans/20260525-230000-virtual-cash-story-3.md`, GitHub #36)
 
 - impl: virtual cash story 2 **Tasks 1–4** (automation) — reserved API tests, cash card breakdown UX, display-integrity guard, **56** Users Testcontainers + `yarn build` green
 
@@ -50,6 +56,8 @@ Owner: @tranvuongduy2003
 
 
 
+- Operator: virtual cash story 3 manual UI checklist (plan §Manual UI checklist) on Aspire
+
 - Operator: virtual cash story 2 manual UI checklist (plan §Manual UI checklist) on Aspire
 
 - Operator: virtual cash story 1 manual UI checklist (plan §Manual UI checklist) on Aspire
@@ -65,6 +73,10 @@ Owner: @tranvuongduy2003
 ## Next Up
 
 
+
+- Open PR `feature/virtual-cash-story-3` → `main` (closes #36 when merged)
+
+- Manual: virtual cash story 3 checklist (5 steps in plan)
 
 - Open PR `feature/virtual-cash-story-2` → `main` (closes #35 when merged)
 
@@ -109,6 +121,12 @@ Owner: @tranvuongduy2003
 ## Session Start Checklist
 
 
+
+- [x] Virtual cash story 3 Tasks 1–5 automation on `feature/virtual-cash-story-3`
+
+- [ ] Manual virtual cash story 3 UI checklist (plan §Manual UI checklist)
+
+- [ ] PR `feature/virtual-cash-story-3` opened and CI green
 
 - [x] Virtual cash story 2 Tasks 1–4 automation on `feature/virtual-cash-story-2`
 

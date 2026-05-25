@@ -12,15 +12,31 @@ import {
 } from '@/components/ui/table'
 import { VirtualCashCard } from '@/features/trading/components/virtual-cash-card'
 import { useWalletQuery } from '@/features/trading/hooks/use-wallet-query'
+import { canDisplayWallet } from '@/features/trading/wallet-display'
 import { authApi } from '@/features/auth'
 import { toNumber } from '@/lib/format'
+import { ApiError } from '@/types/api-problem'
+import { useAuthStore } from '@/store/auth-store'
 
 const AAPL_SYMBOL = 'AAPL'
 
 const PORTFOLIO_LOAD_ERROR_MESSAGE = 'Could not load holdings. Try refreshing.'
 
 export function TradingPage() {
+  const sessionUserId = useAuthStore((state) => state.userId)
   const walletQuery = useWalletQuery()
+
+  const walletUnauthorized =
+    walletQuery.isError && walletQuery.error instanceof ApiError && walletQuery.error.status === 401
+
+  const displayWallet =
+    walletQuery.isSuccess &&
+    !walletUnauthorized &&
+    canDisplayWallet(walletQuery.data, sessionUserId)
+      ? walletQuery.data
+      : null
+
+  const showWalletError = walletQuery.isError || (walletQuery.isSuccess && !displayWallet)
 
   const portfolioQuery = useQuery({
     queryKey: ['portfolio'],
@@ -45,8 +61,8 @@ export function TradingPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <VirtualCashCard
           isPending={walletQuery.isPending}
-          isError={walletQuery.isError}
-          wallet={walletQuery.isSuccess ? walletQuery.data : null}
+          isError={showWalletError}
+          wallet={displayWallet}
         />
 
         <Card>
