@@ -3,7 +3,6 @@ using TradingSimulator.Application.Abstractions.Messaging;
 using TradingSimulator.Application.Abstractions.Persistence;
 using TradingSimulator.Application.Common;
 using TradingSimulator.Application.Users;
-using TradingSimulator.Domain.Exceptions;
 using TradingSimulator.Domain.Users;
 
 namespace TradingSimulator.Application.Users.Commands;
@@ -19,18 +18,8 @@ public sealed class LoginUserCommandHandler(
         LoginUserCommand command,
         CancellationToken cancellationToken)
     {
-        EmailAddress email;
-        Password password;
-
-        try
-        {
-            email = EmailAddress.Create(command.Email);
-            password = Password.Create(command.Password);
-        }
-        catch (BusinessRuleValidationException)
-        {
-            return LoginErrors.InvalidCredentials;
-        }
+        var email = EmailAddress.Create(command.Email);
+        var password = Password.ForCredentialVerification(command.Password);
 
         var user = await userRepository.GetByEmailAsync(email.Value, cancellationToken);
         if (user is null || !passwordHasher.Verify(password, user.PasswordHash))

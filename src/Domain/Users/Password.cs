@@ -52,6 +52,18 @@ public sealed class Password : ValueObject
         return new Password(plaintext);
     }
 
+    public static Password ForCredentialVerification(string plaintext)
+    {
+        if (string.IsNullOrEmpty(plaintext))
+        {
+            throw new BusinessRuleValidationException(
+                "PASSWORD_REQUIRED",
+                "Password is required.");
+        }
+
+        return new Password(plaintext);
+    }
+
     protected override IEnumerable<object?> GetEqualityComponents() => [];
 
     private static bool ContainsLetter(string value) =>

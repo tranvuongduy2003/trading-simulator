@@ -37,7 +37,12 @@ export const registerFormSchema = z
 export type RegisterFormValues = z.infer<typeof registerFormSchema>
 
 export const loginFormSchema = z.object({
-  email: z.string().trim().min(1, 'Email is required.'),
+  email: z
+    .string()
+    .trim()
+    .min(1, 'Email is required.')
+    .max(254, 'Email cannot exceed 254 characters.')
+    .email('Email address format is invalid.'),
   password: z.string().min(1, 'Password is required.'),
 })
 

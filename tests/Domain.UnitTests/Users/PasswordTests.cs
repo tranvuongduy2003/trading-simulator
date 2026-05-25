@@ -63,4 +63,22 @@ public sealed class PasswordTests
 
         password.Value.Should().Be("SecurePass1!");
     }
+
+    [Fact]
+    public void Password_ForCredentialVerification_WhenEmpty_Throws()
+    {
+        var act = () => Password.ForCredentialVerification(string.Empty);
+
+        act.Should()
+            .Throw<BusinessRuleValidationException>()
+            .Which.Code.Should().Be("PASSWORD_REQUIRED");
+    }
+
+    [Fact]
+    public void Password_ForCredentialVerification_WhenNonEmpty_SucceedsWithoutStrengthRules()
+    {
+        var password = Password.ForCredentialVerification("x");
+
+        password.Value.Should().Be("x");
+    }
 }
