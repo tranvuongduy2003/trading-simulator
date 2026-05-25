@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRef, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 
 import { paths } from '@/app/paths'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -18,6 +20,7 @@ export function RegisterForm() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const setSession = useAuthStore((state) => state.setSession)
+  const submittingRef = useRef(false)
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
@@ -63,17 +66,38 @@ export function RegisterForm() {
       form.setValue('confirmPassword', '')
       applyRegisterApiError(error, form.setError)
     },
+    onSettled: () => {
+      submittingRef.current = false
+    },
   })
 
-  const onSubmit = form.handleSubmit((values) => {
-    registerMutation.mutate(values)
-  })
+  const rootError = form.formState.errors.root
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (submittingRef.current || registerMutation.isPending) {
+      return
+    }
+
+    void form.handleSubmit((values) => {
+      submittingRef.current = true
+      form.clearErrors('root')
+      registerMutation.mutate(values)
+    })(event)
+  }
 
   return (
     <form className="flex flex-col gap-6" onSubmit={onSubmit} noValidate>
       <p className="text-muted-foreground text-sm">
         Start with $100,000 virtual cash — no real money.
       </p>
+
+      {rootError?.message ? (
+        <Alert variant="destructive">
+          <AlertDescription>{rootError.message}</AlertDescription>
+        </Alert>
+      ) : null}
 
       <FieldGroup>
         <Field data-invalid={!!form.formState.errors.username}>

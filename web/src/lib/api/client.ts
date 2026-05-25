@@ -71,6 +71,7 @@ export class ApiClient {
       method,
       path,
       url: buildApiUrl(path),
+      suppressErrorToast: options.suppressErrorToast,
       init: {
         ...rest,
         method,

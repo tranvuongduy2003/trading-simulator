@@ -1,7 +1,11 @@
-import type { UseFormSetError } from 'react-hook-form'
+import type { FieldPath, UseFormSetError } from 'react-hook-form'
 
 import { ApiError } from '@/types/api-problem'
 import type { RegisterFormValues } from '@/types/auth'
+
+export const registerTransientErrorMessage = 'Something went wrong. Please try again.'
+
+type RegisterFormField = FieldPath<RegisterFormValues> | 'root'
 
 const fieldErrorMessages: Record<string, Partial<Record<keyof RegisterFormValues, string>>> = {
   USERNAME_TAKEN: {
@@ -12,15 +16,25 @@ const fieldErrorMessages: Record<string, Partial<Record<keyof RegisterFormValues
   },
 }
 
+function setRootError(setError: UseFormSetError<RegisterFormValues>, message: string): void {
+  setError('root' as RegisterFormField, { message })
+}
+
 export function applyRegisterApiError(
   error: unknown,
   setError: UseFormSetError<RegisterFormValues>,
 ): void {
   if (!(error instanceof ApiError)) {
+    setRootError(setError, registerTransientErrorMessage)
     return
   }
 
   const code = error.problem.code
+  if (code === 'INTERNAL_ERROR' || error.status >= 500) {
+    setRootError(setError, registerTransientErrorMessage)
+    return
+  }
+
   if (code) {
     const mapped = fieldErrorMessages[code]
     if (mapped) {

@@ -17,6 +17,13 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
 
     public IntegrationTestWebApplicationFactory Factory { get; private set; } = null!;
 
+    public IntegrationTestWebApplicationFactory CreateFactory(
+        Action<IServiceCollection>? configureTestServices = null) =>
+        new(
+            _postgresContainer.GetConnectionString(),
+            _redisContainer.GetConnectionString(),
+            configureTestServices);
+
     public async Task InitializeAsync()
     {
         await Task.WhenAll(
