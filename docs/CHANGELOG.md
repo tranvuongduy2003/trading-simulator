@@ -4,6 +4,8 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- impl: user login story 4 — `POST /api/auth/logout`, session revoke (PG + Redis), user menu + `useLogout`, EC-07 guards, **5** `LogoutUserTests`, OpenAPI `LogoutUser`, `api:verify`; **43** Users Testcontainers tests; manual checklist pending
+- plan: user login story 4 — log out when done (`docs/plans/20260525-180000-user-login-story-4.md`)
 - impl: user login story 3 — `SessionPersistenceTests` (5), `SessionStore` PG validation on resolve, session-expired UX, cookies-disabled guard; **38** Users Testcontainers tests + `api:verify`; manual UI checklist pending
 - plan: user login story 3 — session persists until logout or expiry (`docs/plans/20260525-170000-user-login-story-3.md`)
 - impl: user login story 2 — `LoginUserTestHelpers`, five HTTP enumeration/session tests (15 `LoginUser*`); UI error mapping verified; `api:verify`; **33** Users Testcontainers tests green (excl. `RegisterUserSessionTests`)

@@ -29,4 +29,17 @@ internal static class SessionCookieWriter
                 Path = "/",
             });
     }
+
+    public static void Delete(HttpContext httpContext, TradingSessionOptions sessionOptions)
+    {
+        httpContext.Response.Cookies.Delete(
+            sessionOptions.CookieName,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = httpContext.Request.IsHttps,
+                SameSite = SameSiteMode.Lax,
+                Path = "/",
+            });
+    }
 }

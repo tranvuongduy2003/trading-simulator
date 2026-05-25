@@ -7,6 +7,7 @@ import { ApiError } from '@/types/api-problem'
 import { useAuthStore } from '@/store/auth-store'
 
 export function useSession() {
+  const authStatus = useAuthStore((state) => state.status)
   const setSession = useAuthStore((state) => state.setSession)
   const clearSession = useAuthStore((state) => state.clearSession)
   const setStatus = useAuthStore((state) => state.setStatus)
@@ -16,9 +17,14 @@ export function useSession() {
     queryFn: ({ signal }) => authApi.getWallet(signal),
     retry: false,
     staleTime: 60_000,
+    enabled: authStatus !== 'unauthenticated',
   })
 
   useEffect(() => {
+    if (authStatus === 'unauthenticated') {
+      return
+    }
+
     if (query.isPending) {
       if (useAuthStore.getState().status !== 'unauthenticated') {
         setStatus('unknown')
@@ -36,12 +42,29 @@ export function useSession() {
       return
     }
 
+    if (useAuthStore.getState().status === 'unauthenticated') {
+      return
+    }
+
     const wallet = query.data
+    if (!wallet) {
+      return
+    }
+
     setSession({
       userId: wallet.userId,
       username: wallet.username,
     })
-  }, [clearSession, query.data, query.error, query.isError, query.isPending, setSession, setStatus])
+  }, [
+    authStatus,
+    clearSession,
+    query.data,
+    query.error,
+    query.isError,
+    query.isPending,
+    setSession,
+    setStatus,
+  ])
 
   return query
 }

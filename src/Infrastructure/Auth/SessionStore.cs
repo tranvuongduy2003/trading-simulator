@@ -97,4 +97,34 @@ internal sealed class SessionStore(
                 entry.SessionId);
         }
     }
+
+    public async Task RevokeSessionAsync(
+        Guid sessionId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        var revokedAt = clock.UtcNow;
+
+        await databaseContext.UserSessions
+            .Where(
+                userSession =>
+                    userSession.Id == sessionId
+                    && userSession.UserId == userId
+                    && userSession.RevokedAt == null)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(userSession => userSession.RevokedAt, revokedAt),
+                cancellationToken);
+
+        try
+        {
+            await cacheService.DeleteAsync(SessionKey(sessionId), cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(
+                exception,
+                "Failed to delete session {SessionId} from cache",
+                sessionId);
+        }
+    }
 }

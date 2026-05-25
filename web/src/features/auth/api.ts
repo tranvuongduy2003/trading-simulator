@@ -81,5 +81,8 @@ export function register(request: RegisterRequest, signal?: AbortSignal) {
 }
 
 export function logout(signal?: AbortSignal) {
-  return apiClient.post<void>('/api/auth/logout', undefined, { signal })
+  return apiClient.post<void>('/api/auth/logout', undefined, {
+    signal,
+    suppressErrorToast: true,
+  })
 }
