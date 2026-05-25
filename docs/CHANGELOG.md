@@ -4,6 +4,7 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- spec: portfolio reset US-04 (`docs/specs/20260525-251500-portfolio-reset.md`)
 - impl: virtual cash story 4 **Tasks 1–5** (automation) — login/refetch integration tests (`GetMyWalletTests` 10), `prefetchWalletQuery` + register cache seed, wallet `staleTime: 0` + `refetchOnWindowFocus`, refresh-path comment; **10** `GetMyWalletTests` + `yarn build`; manual UI checklist pending; PR `feature/virtual-cash-story-4` → `main` (closes #37)
 - plan: virtual cash balance story 4 — trust after login and refresh (`docs/plans/20260525-240000-virtual-cash-story-4.md`, #37)
 - impl: virtual cash story 3 **Tasks 1–5** (automation) — wallet privacy integration tests (8), `clearUserScopedQueries`, user-scoped `useWalletQuery`, `canDisplayWallet` UI guards, `WalletEndpoint` handler 401 `UNAUTHORIZED`; **59** Users Testcontainers + `yarn build`; manual UI checklist pending; PR `feature/virtual-cash-story-3` → `main` (closes #36)
