@@ -3,8 +3,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using TradingSimulator.Application.Abstractions.Auth;
+using TradingSimulator.Application.Abstractions.Cache;
 using TradingSimulator.Application.Abstractions.Persistence;
 using TradingSimulator.Infrastructure.Auth;
+using TradingSimulator.Infrastructure.Cache;
 using TradingSimulator.Infrastructure.Persistence;
 using TradingSimulator.Infrastructure.Persistence.Repositories;
 
@@ -14,18 +16,22 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        Action<InfrastructureRegistrationOptions>? configure = null)
     {
+        var options = new InfrastructureRegistrationOptions();
+        configure?.Invoke(options);
+
         var postgresConnectionString = configuration.GetConnectionString("Trading");
         var redisConnectionString = configuration.GetConnectionString("Cache");
 
-        void ConfigureApplicationDatabaseContext(DbContextOptionsBuilder options)
+        void ConfigureApplicationDatabaseContext(DbContextOptionsBuilder contextOptions)
         {
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            contextOptions.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
             if (!string.IsNullOrWhiteSpace(postgresConnectionString))
             {
-                options.UseNpgsql(
+                contextOptions.UseNpgsql(
                     postgresConnectionString,
                     npgsql => npgsql.MigrationsHistoryTable(
                         "__ef_migrations_history",
@@ -38,10 +44,21 @@ public static class DependencyInjection
             ConfigureApplicationDatabaseContext,
             ServiceLifetime.Scoped);
 
-        if (!string.IsNullOrWhiteSpace(redisConnectionString))
+        if (options.RequireSessionCache)
         {
+            if (string.IsNullOrWhiteSpace(redisConnectionString))
+            {
+                throw new InvalidOperationException(
+                    "Connection string 'Cache' is required. Configure Redis for session cache.");
+            }
+
             services.AddSingleton<IConnectionMultiplexer>(_ =>
                 ConnectionMultiplexer.Connect(redisConnectionString));
+            services.AddSingleton<ICacheService, CacheService>();
+        }
+        else
+        {
+            services.AddSingleton<ICacheService, NoOpCacheService>();
         }
 
         services.AddScoped<IApplicationDatabaseContext>(serviceProvider =>
@@ -52,7 +69,6 @@ public static class DependencyInjection
         services.AddScoped<IWalletReadRepository, WalletReadRepository>();
         services.AddScoped<IPortfolioReadRepository, PortfolioReadRepository>();
         services.AddScoped<ISessionStore, SessionStore>();
-        services.AddScoped<ISessionRedisCache, SessionRedisCache>();
         services.AddScoped<IPasswordHasher, IdentityPasswordHasher>();
 
         return services;

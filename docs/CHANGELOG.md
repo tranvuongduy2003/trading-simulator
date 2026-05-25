@@ -4,6 +4,8 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- impl: user login story 3 — `SessionPersistenceTests` (5), `SessionStore` PG validation on resolve, session-expired UX, cookies-disabled guard; **38** Users Testcontainers tests + `api:verify`; manual UI checklist pending
+- plan: user login story 3 — session persists until logout or expiry (`docs/plans/20260525-170000-user-login-story-3.md`)
 - impl: user login story 2 — `LoginUserTestHelpers`, five HTTP enumeration/session tests (15 `LoginUser*`); UI error mapping verified; `api:verify`; **33** Users Testcontainers tests green (excl. `RegisterUserSessionTests`)
 - plan: user login story 2 — reject invalid credentials safely (`docs/plans/20260525-160000-user-login-story-2.md`)
 - impl: user login story 1 Task 6 — OpenAPI `POST /api/auth/login`, `api:verify`, Users regression (28 Testcontainers tests); manual UI checklist pending

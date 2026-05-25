@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 
+import { paths } from '@/app/paths'
 import { router } from '@/app/router'
 import { Toaster } from '@/components/ui/sonner'
 import { useSimulationHub } from '@/hooks/use-simulation-hub'
@@ -32,6 +33,10 @@ function UnauthorizedListener() {
         return
       }
 
+      router.navigate(paths.login, {
+        replace: true,
+        state: { reason: 'session-expired' },
+      })
       clearSession()
       queryClient.clear()
     }

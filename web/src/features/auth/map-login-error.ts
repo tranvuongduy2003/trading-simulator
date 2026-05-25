@@ -7,6 +7,9 @@ export const loginTransientErrorMessage = 'Something went wrong. Please try agai
 
 export const loginInvalidCredentialsMessage = 'Email or password is incorrect.'
 
+export const loginCookiesRequiredMessage =
+  'Cookies are required to stay signed in. Enable cookies for this site and try again.'
+
 export function applyLoginApiError(
   error: unknown,
   setError: UseFormSetError<LoginFormValues>,
