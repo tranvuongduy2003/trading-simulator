@@ -12,6 +12,7 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- spec: virtual cash balance US-03 (`docs/specs/20260525-201500-virtual-cash-balance.md`)
 - impl: user login story 5 **Tasks 1–5** — validation 422, transient tests, login UI errors, OpenAPI **422** on login, `api:verify`, **51** Users Testcontainers tests green
 - impl: user login story 5 **Task 4** — login Zod email rules, `map-login-error` 422 fields, `onBlur` form
 - impl: user login story 5 **Task 3** — `LoginUserTransientFailureTests` (3), `ThrowOnCreateSessionStore`; 23 login integration tests green
