@@ -5,24 +5,26 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
-- User login story 1 — **implementation complete** on `feature/user-login-story-1`; manual UI sign-off + PR next
+- PR for `feature/user-login-story-2` → `main` (GitHub #23 — Story 2 automation complete)
 
 ## Latest Completed
 
+- impl: user login story 2 **Tasks 1–4** — invalid-credentials HTTP tests, UI code audit, `api:verify`, 33 Users Testcontainers tests green
+- plan: user login story 2 (`docs/plans/20260525-160000-user-login-story-2.md`) — automation complete
 - impl: user login story 1 **Task 6** — OpenAPI export/verify, 28 Users integration tests green (register + login)
 - impl: user login story 1 **Tasks 1–5** — API, handler, HTTP tests, login UI
 - plan: user login story 1 (`docs/plans/20260525-150000-user-login-story-1.md`) — all build tasks done
 
 ## In Progress
 
-- Manual Story 1 UI checklist (plan §Manual UI checklist) — operator on Aspire
+- Manual Story 2 UI checklist on Aspire (plan §Task 3) — operator before merge
 - PR for `feature/user-login-story-1` → `main` (not opened yet)
 
 ## Next Up
 
-- Run manual login checklist (7 steps in plan Task 6)
-- Open PR: `feature/user-login-story-1` → `main`
-- Epic #21 Stories 2–5 (invalid credentials UX, session expiry, logout, validation)
+- Open PR `feature/user-login-story-2` → `main` (closes #23 when merged)
+- Operator: Story 2 manual UI checklist (plan §Task 3)
+- Epic #21 Stories 3–5 (session expiry, logout, login validation hardening)
 
 ## Blockers
 
@@ -37,6 +39,8 @@ Owner: @tranvuongduy2003
 
 ## Session Start Checklist
 
-- [x] Login story 1 Tasks 1–6 (automation) on `feature/user-login-story-1`
-- [ ] Manual login UI checklist (Task 6)
+- [x] Login story 2 Tasks 1–4 on `feature/user-login-story-2`
+- [ ] Manual Story 2 UI checklist (Task 3)
 - [ ] PR opened and CI green
+- [x] Login story 1 Tasks 1–6 (automation) on `feature/user-login-story-1`
+- [ ] Manual login UI checklist (Story 1 Task 6)

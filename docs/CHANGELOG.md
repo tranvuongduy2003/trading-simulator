@@ -4,6 +4,8 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- impl: user login story 2 — `LoginUserTestHelpers`, five HTTP enumeration/session tests (15 `LoginUser*`); UI error mapping verified; `api:verify`; **33** Users Testcontainers tests green (excl. `RegisterUserSessionTests`)
+- plan: user login story 2 — reject invalid credentials safely (`docs/plans/20260525-160000-user-login-story-2.md`)
 - impl: user login story 1 Task 6 — OpenAPI `POST /api/auth/login`, `api:verify`, Users regression (28 Testcontainers tests); manual UI checklist pending
 - impl: user login story 1 Task 5 — login form, `map-login-error`, session prefetch, `from` redirect
 - impl: user login story 1 Task 4 — `AuthEndpoint` session cookie + HTTP read-your-writes tests (wallet/portfolio)

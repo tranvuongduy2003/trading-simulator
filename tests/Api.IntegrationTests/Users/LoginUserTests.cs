@@ -115,9 +115,10 @@ public sealed class LoginUserTests(IntegrationTestFixture fixture)
     {
         var request = new LoginUserRequest("trader@example.com", "SecurePass1!");
 
-        using var response = await _client.PostAsJsonAsync("/api/auth/login", request);
+        using var client = CreateClient();
+        using var response = await client.PostAsJsonAsync("/api/auth/login", request);
 
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        await LoginUserTestHelpers.AssertInvalidCredentialsAsync(response);
     }
 
     [Fact]
@@ -257,5 +258,156 @@ public sealed class LoginUserTests(IntegrationTestFixture fixture)
         (await databaseContext.Wallets.CountAsync()).Should().Be(walletsAfterRegister);
         (await databaseContext.Portfolios.CountAsync()).Should().Be(portfoliosAfterRegister);
         (await databaseContext.Holdings.CountAsync()).Should().Be(holdingsAfterRegister);
+    }
+
+    [Fact]
+    public async Task LoginUser_UnknownEmail_Returns401_InvalidCredentials_NoSession()
+    {
+        var unknownEmail = $"unknown_{Guid.NewGuid():N}@example.com";
+
+        using var client = CreateClient();
+        using var loginResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(unknownEmail, "SecurePass1!"));
+
+        await LoginUserTestHelpers.AssertInvalidCredentialsAsync(loginResponse);
+
+        using var walletResponse = await client.GetAsync("/api/wallet");
+        walletResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task LoginUser_WrongPassword_Returns401_InvalidCredentials_NoSession()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var email = $"login_{suffix}@example.com";
+        const string password = "SecurePass1!";
+
+        using var registerClient = CreateClient();
+        using var loginClient = CreateClient();
+
+        using var registerResponse = await registerClient.PostAsJsonAsync(
+            "/api/users",
+            new RegisterUserRequest($"trader_{suffix}", email, password));
+
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        using var loginResponse = await loginClient.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(email, "WrongPass1!"));
+
+        await LoginUserTestHelpers.AssertInvalidCredentialsAsync(loginResponse);
+
+        using var walletResponse = await loginClient.GetAsync("/api/wallet");
+        walletResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task LoginUser_UnknownEmail_AndWrongPassword_ReturnSameProblemBody()
+    {
+        var unknownEmail = $"unknown_{Guid.NewGuid():N}@example.com";
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var email = $"login_{suffix}@example.com";
+        const string password = "SecurePass1!";
+
+        using var unknownClient = CreateClient();
+        using var unknownResponse = await unknownClient.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(unknownEmail, "SecurePass1!"));
+
+        var unknownProblem = await LoginUserTestHelpers.AssertInvalidCredentialsAsync(unknownResponse);
+
+        using var registerClient = CreateClient();
+        using var registerResponse = await registerClient.PostAsJsonAsync(
+            "/api/users",
+            new RegisterUserRequest($"trader_{suffix}", email, password));
+
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        using var wrongPasswordClient = CreateClient();
+        using var wrongPasswordResponse = await wrongPasswordClient.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(email, "WrongPass1!"));
+
+        var wrongPasswordProblem =
+            await LoginUserTestHelpers.AssertInvalidCredentialsAsync(wrongPasswordResponse);
+
+        unknownProblem.Code.Should().Be(wrongPasswordProblem.Code);
+        unknownProblem.Status.Should().Be(wrongPasswordProblem.Status);
+        unknownProblem.Detail.Should().Be(wrongPasswordProblem.Detail);
+        unknownProblem.Title.Should().Be(wrongPasswordProblem.Title);
+        unknownProblem.Type.Should().Be(wrongPasswordProblem.Type);
+    }
+
+    [Fact]
+    public async Task LoginUser_MixedCaseEmail_Returns200_WhenNormalizedMatches()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var email = $"jane_{suffix}@example.com";
+        var mixedCaseEmail = $"Jane_{suffix}@Example.COM";
+        const string password = "SecurePass1!";
+
+        using var registerClient = CreateClient();
+        using var loginClient = CreateClient();
+
+        using var registerResponse = await registerClient.PostAsJsonAsync(
+            "/api/users",
+            new RegisterUserRequest($"jane_{suffix}", email, password));
+
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        using var loginResponse = await loginClient.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(mixedCaseEmail, password));
+
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        loginResponse.Headers.Should().ContainKey("Set-Cookie");
+    }
+
+    [Fact]
+    public async Task LoginUser_FailedLogin_DoesNotInsert_UserSession()
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+
+        var totalSessionsBefore = await databaseContext.UserSessions.CountAsync();
+
+        using var unknownEmailClient = CreateClient();
+        using var unknownEmailResponse = await unknownEmailClient.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest($"unknown_{Guid.NewGuid():N}@example.com", "SecurePass1!"));
+
+        await LoginUserTestHelpers.AssertInvalidCredentialsAsync(unknownEmailResponse);
+
+        (await databaseContext.UserSessions.CountAsync()).Should().Be(totalSessionsBefore);
+
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var email = $"login_{suffix}@example.com";
+        const string password = "SecurePass1!";
+
+        using var registerClient = CreateClient();
+        using var registerResponse = await registerClient.PostAsJsonAsync(
+            "/api/users",
+            new RegisterUserRequest($"trader_{suffix}", email, password));
+
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        var sessionsForUserBefore = await databaseContext.UserSessions.CountAsync(
+            session => session.UserId == registration!.UserId);
+
+        using var wrongPasswordClient = CreateClient();
+        using var wrongPasswordResponse = await wrongPasswordClient.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(email, "WrongPass1!"));
+
+        await LoginUserTestHelpers.AssertInvalidCredentialsAsync(wrongPasswordResponse);
+
+        var sessionsForUserAfter = await databaseContext.UserSessions.CountAsync(
+            session => session.UserId == registration.UserId);
+
+        sessionsForUserAfter.Should().Be(sessionsForUserBefore);
     }
 }
