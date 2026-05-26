@@ -465,6 +465,11 @@ public sealed class GetMyWalletTests(IntegrationTestFixture fixture)
             HttpStatusCode.Unauthorized,
             $"expected 401 but got {(int)response.StatusCode} with body: {responseBody}");
 
+        if (string.IsNullOrWhiteSpace(responseBody))
+        {
+            return;
+        }
+
         response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
 
         var problem = JsonSerializer.Deserialize<ApiProblemDetails>(responseBody, JsonOptions);

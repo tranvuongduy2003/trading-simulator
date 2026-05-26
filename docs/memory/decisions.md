@@ -50,6 +50,16 @@ If a decision changes, add a new entry and mark the old one as superseded.
 
 ---
 
+## ADR-005: Portfolio reset Story 1 contract stub (US-04)
+
+- Date: 2026-05-25
+- Status: Accepted
+- Context: Story 1 requires confirmation UI and `POST /api/portfolio/reset` wiring before the atomic DB §10.4 reset transaction (Stories 2–3). Spec defers `portfolio_resets` insert until Story 2+.
+- Decision: Story 1 ships a **stub** `ResetPortfolioCommandHandler` that authenticates the user, reads the current wallet, returns **200** with `resetAt`, `nextEligibleAt` (from `Trading:PortfolioResetCooldownMinutes`), and `wallet` — **no** PostgreSQL writes, order cancels, or matching enqueue. Story 2 replaces the handler body with the real reset transaction; Story 4 adds server cooldown enforcement.
+- Consequences: Manual QA must note balances unchanged until Story 2. Client disable-after-success uses `nextEligibleAt` from the response (client cache). OpenAPI and integration tests validate the contract early.
+
+---
+
 ## Template
 - Date: YYYY-MM-DD
 - Status: Proposed | Accepted | Superseded

@@ -17,6 +17,7 @@ internal sealed class WalletEndpoint : IEndpoint
                 })
             .WithName("GetMyWallet")
             .WithTags("Wallet")
+            .RequireAuthorization()
             .Produces<WalletResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
