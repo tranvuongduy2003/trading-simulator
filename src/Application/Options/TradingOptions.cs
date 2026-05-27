@@ -5,4 +5,6 @@ public sealed class TradingOptions
     public const string SectionName = "Trading";
 
     public decimal InitialVirtualCash { get; set; } = 100_000m;
+
+    public int PortfolioResetCooldownMinutes { get; set; } = 1440;
 }

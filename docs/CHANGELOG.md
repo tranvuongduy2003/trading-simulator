@@ -4,6 +4,8 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-25
 
+- impl: portfolio reset story 1 **Tasks 1–5** (automation) — `POST /api/portfolio/reset` stub (ADR-005), confirmation dialog, in-flight **409**, client cooldown + toast, **13** `GetMyWallet`/`ResetPortfolio` integration tests, `api:verify`, `yarn build`; `GET /api/wallet` `.RequireAuthorization()`; manual UI checklist pending; branch `feature/portfolio-reset-story-1` (closes #44)
+- plan: portfolio reset story 1 — confirm before reset (`docs/plans/20260525-260000-portfolio-reset-story-1.md`, GitHub #44)
 - spec: portfolio reset US-04 (`docs/specs/20260525-251500-portfolio-reset.md`)
 - impl: virtual cash story 4 **Tasks 1–5** (automation) — login/refetch integration tests (`GetMyWalletTests` 10), `prefetchWalletQuery` + register cache seed, wallet `staleTime: 0` + `refetchOnWindowFocus`, refresh-path comment; **10** `GetMyWalletTests` + `yarn build`; manual UI checklist pending; PR `feature/virtual-cash-story-4` → `main` (closes #37)
 - plan: virtual cash balance story 4 — trust after login and refresh (`docs/plans/20260525-240000-virtual-cash-story-4.md`, #37)

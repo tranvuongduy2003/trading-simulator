@@ -5,10 +5,12 @@ using StackExchange.Redis;
 using TradingSimulator.Application.Abstractions.Auth;
 using TradingSimulator.Application.Abstractions.Cache;
 using TradingSimulator.Application.Abstractions.Persistence;
+using TradingSimulator.Application.Abstractions.Portfolios;
 using TradingSimulator.Infrastructure.Auth;
 using TradingSimulator.Infrastructure.Cache;
 using TradingSimulator.Infrastructure.Persistence;
 using TradingSimulator.Infrastructure.Persistence.Repositories;
+using TradingSimulator.Infrastructure.Portfolios;
 
 namespace TradingSimulator.Infrastructure;
 
@@ -70,6 +72,7 @@ public static class DependencyInjection
         services.AddScoped<IPortfolioReadRepository, PortfolioReadRepository>();
         services.AddScoped<ISessionStore, SessionStore>();
         services.AddScoped<IPasswordHasher, IdentityPasswordHasher>();
+        services.AddSingleton<IResetInFlightGuard, InMemoryResetInFlightGuard>();
 
         return services;
     }

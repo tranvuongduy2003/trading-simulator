@@ -61,6 +61,49 @@ components:
         - username
         - email
       type: object
+    PortfolioResetResponse:
+      properties:
+        nextEligibleAt:
+          format: date-time
+          type: string
+        resetAt:
+          format: date-time
+          type: string
+        wallet:
+          $ref: "#/components/schemas/PortfolioResetWalletSnapshot"
+      required:
+        - resetAt
+        - nextEligibleAt
+        - wallet
+      type: object
+    PortfolioResetWalletSnapshot:
+      properties:
+        availableBalance:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+        currency:
+          type: string
+        reservedBalance:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+        totalBalance:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+      required:
+        - totalBalance
+        - reservedBalance
+        - availableBalance
+        - currency
+      type: object
     PortfolioResponse:
       properties:
         holdings:
@@ -284,6 +327,26 @@ paths:
           description: Unauthorized
         "404":
           description: Not Found
+      tags:
+        - Portfolio
+  /api/portfolio/reset:
+    post:
+      operationId: ResetPortfolio
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioResetResponse"
+          description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
       tags:
         - Portfolio
   /api/users:
