@@ -4,18 +4,26 @@ Track open bugs, risks, and technical debt that may impact planning/build qualit
 
 ## Open
 
+### ISSUE-TEST-FILELOCK-CS2012: Intermittent build artifact lock in consecutive test runs
+- Severity: Low
+- Area: Process | Tests
+- First seen: 2026-05-28
+- Description: Back-to-back `dotnet test` commands can occasionally hit CS2012 file lock errors under `obj/Release/net10.0` before retry succeeds.
+- Workaround: Re-run the same test command; usually succeeds immediately.
+- Suggested fix: Investigate concurrent process/file-handle contention in local environment.
+- Related files: `src/**/obj/Release/net10.0/*.dll`
+
+## Fixed
+
 ### ISSUE-REG-CONCURRENT-500: Concurrent register race may return 500
 - Severity: Low
 - Area: Auth | API
 - First seen: 2026-05-25
-- Description: Two simultaneous `POST /api/users` with the same username can rarely yield **500** `INTERNAL_ERROR` instead of **422** `USERNAME_TAKEN` when both pass exists-check before either commits. DB unique indexes still prevent a second wallet.
-- Expected behavior: At most one account; second request ideally **422**.
-- Actual behavior: Second response may be **422** or **500**; wallet count stays ≤ 1 (covered by `RegisterUser_ParallelSameUsername_AtMostOneWallet`).
-- Workaround: User retries; exists-check returns **422** on retry.
-- Suggested fix (deferred): Postgres unique-violation mapper (Plan B in Story 4 plan).
-- Related files: `RegisterUserCommandHandler.cs`, `RegisterUserTransientFailureTests.cs`, `register-form.tsx`
-
-## Fixed
+- Fixed on: 2026-05-29
+- Description: Two simultaneous `POST /api/users` with the same username could rarely return **500** `INTERNAL_ERROR` for the loser request.
+- Resolution: Added persistence-exception mapping for Postgres unique-violation (`23505`) constraints `ux_users_username` / `ux_users_email` to return **422** (`USERNAME_TAKEN` / `EMAIL_TAKEN`) from command pipeline.
+- Verification: `RegisterUser_ParallelSameUsername_AtMostOneWallet` now requires non-created response status **422** and keeps wallet count invariant (`<= 1`).
+- Related files: `src/Application/Behaviors/UnitOfWorkBehavior.cs`, `src/Infrastructure/Persistence/UnitOfWork.cs`, `tests/Api.IntegrationTests/Users/RegisterUserTransientFailureTests.cs`
 
 ## Template
 ### ISSUE-XXX: Short title

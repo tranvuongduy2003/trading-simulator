@@ -1,6 +1,13 @@
+using System.Globalization;
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using TradingSimulator.Api.Common;
+using TradingSimulator.Contracts.Users;
 using TradingSimulator.Infrastructure.Persistence;
 using TradingSimulator.Infrastructure.Persistence.Entities;
 using TradingSimulator.Testing.Common.Fixtures;
@@ -9,6 +16,12 @@ namespace TradingSimulator.Api.IntegrationTests.Portfolios;
 
 internal static class PortfolioResetTestHelpers
 {
+    public static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    public const short PendingStatus = 0;
+    public const short PartiallyFilledStatus = 1;
+    public const short CancelledStatus = 3;
+
     public static async Task SeedWalletBalancesAsync(
         IntegrationTestFixture fixture,
         Guid userId,
@@ -132,5 +145,52 @@ internal static class PortfolioResetTestHelpers
 
         await databaseContext.SaveChangesAsync(cancellationToken);
         return orderId;
+    }
+
+    public static async Task<Guid> RegisterAndGetUserIdAsync(IntegrationTestFixture fixture, string usernamePrefix)
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"{usernamePrefix}_{suffix}",
+            $"{usernamePrefix}_{suffix}@example.com",
+            "SecurePass1!");
+
+        var sessionClient = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await sessionClient.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>(JsonOptions);
+        registration.Should().NotBeNull();
+        return registration!.UserId;
+    }
+
+    public static async Task AssertUnauthorizedAsync(HttpResponseMessage response)
+    {
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(
+            HttpStatusCode.Unauthorized,
+            $"expected 401 but got {(int)response.StatusCode} with body: {responseBody}");
+
+        if (string.IsNullOrWhiteSpace(responseBody))
+        {
+            return;
+        }
+
+        response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
+
+        var problem = JsonSerializer.Deserialize<ApiProblemDetails>(responseBody, JsonOptions);
+        problem.Should().NotBeNull();
+        problem!.Status.Should().Be(401);
+        problem.Code.Should().Be("UNAUTHORIZED");
+    }
+
+    public static DateTimeOffset ParseNextEligibleAt(ApiProblemDetails problem)
+    {
+        problem.Extensions.Should().ContainKey("nextEligibleAt");
+        var nextEligibleAtRaw = problem.Extensions["nextEligibleAt"]?.ToString();
+        nextEligibleAtRaw.Should().NotBeNullOrWhiteSpace();
+        return DateTimeOffset.Parse(nextEligibleAtRaw!, CultureInfo.InvariantCulture);
     }
 }

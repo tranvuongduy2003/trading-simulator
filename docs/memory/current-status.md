@@ -1,23 +1,31 @@
 # Current Status
 
-Last updated: 2026-05-28
+Last updated: 2026-05-29
 
 Owner: @tranvuongduy2003
 
+## Epic: Account Management (PRD §5.1)
+
+- **Review:** ✅ Closed administratively (follow-up hygiene tasks continue) — [`docs/reviews/20260528-180000-account-management.md`](../reviews/20260528-180000-account-management.md)
+- **Close plan:** [`docs/plans/20260528-194500-account-management-epic-close.md`](../plans/20260528-194500-account-management-epic-close.md) — 6 tasks (operator sign-off, merge, test split, docs, register 422, verification)
+- **Archive:** [`docs/epics/account-management/README.md`](../epics/account-management/README.md) (specs + plans merged; scattered `docs/specs/` / `docs/plans/` removed)
+- **Tests (2026-05-28):** Domain Users **22** passed; Api Users + ResetPortfolio **85** passed
+- **CI update (2026-05-28):** GitHub Actions now runs `Api.IntegrationTests` (Testcontainers on `ubuntu-latest` Docker environment)
+- **Epic status:** `docs/epics/account-management/specs.md` promoted to `status: approved` (all 4 archived specs)
+
 ## Active Focus
 
-- Portfolio reset **Story 5** automation **complete** on `feature/portfolio-reset-story-5` — operator manual UI checklist + PR → `main` (GitHub #48)
-- Portfolio reset **Story 4** automation **complete** on `feature/portfolio-reset-story-4` — operator manual UI checklist + PR → `main` (closes #47)
-- Portfolio reset **Story 3 Tasks 1–5** automation complete on `feature/portfolio-reset-story-3`; manual Aspire checklist handed off to operator (GitHub #46)
-- Portfolio reset **Story 2** Tasks 1–4 automation complete on `feature/portfolio-reset-story-2-local`; manual Aspire checklist remains operator step (GitHub #45)
-- Portfolio reset **Story 1** automation **complete** on `feature/portfolio-reset-story-1` — operator manual UI checklist + PR → `main` (closes #44)
-- Virtual cash balance **Story 4** automation complete on `feature/virtual-cash-story-4` — open PR → `main` (closes #37); operator manual UI checklist pending (plan §Manual UI checklist)
-- Virtual cash balance **Story 3** automation complete on `feature/virtual-cash-story-3` — open PR → `main` (closes #36); operator manual UI checklist pending (plan §Manual UI checklist)
-- Virtual cash balance **Story 2** automation complete on `feature/virtual-cash-story-2` — open PR → `main` (closes #35); operator manual UI checklist pending (plan §Manual UI checklist)
-- Virtual cash balance **Story 1** automation complete on `feature/virtual-cash-story-1` — open PR → `main` (closes #34); operator manual UI checklist pending (plan §Manual UI checklist)
+- Account-management epic close plan marked complete (`feature/account-management-epic-close`)
+- Optional/manual audit remains available: `docs/epics/account-management/OPERATOR-SIGNOFF.md`
 
 ## Latest Completed
 
+- verify: account-management epic close **Task 6** — ran final verification matrix (Domain Users **22**, Api Users + ResetPortfolio **85**, `web api:verify`, `web build`), synced memory/changelog, and promoted close plan status to `approved` (administrative close; manual sign-off still deferred by prior waiver)
+- impl: account-management epic close **Task 5** — mapped Postgres unique-violation (`23505`) for register constraints (`ux_users_username`, `ux_users_email`) to 422 (`USERNAME_TAKEN` / `EMAIL_TAKEN`) in UoW path; tightened parallel register race test to require 422; `RegisterUserTransientFailureTests` green (**4**)
+- docs: account-management epic close **Task 4** — synced `frontend.mdc` wallet query example to ADR-008 (`['wallet', userId]`, `staleTime: 0`) and removed stale RegisterUserSession local-Postgres note from memory docs
+- impl: account-management epic close **Task 3** — split `ResetPortfolioTests.cs` into focused suites (`Auth`, `Eligibility`, `Wallet`, `OrdersHistory`, `Notifications`) with shared `PortfolioResetTestHelpers`; `FullyQualifiedName~ResetPortfolio` green (**23** tests)
+- verify: account-management epic close **Task 2** — confirmed `main` already contains US-03/US-04 story merges (#39–#55); promoted archived specs to `approved`; epic archive README marked closed; regression checks green (Domain Users **22**, Api Users + ResetPortfolio **85**, `web api:verify`, `web build`)
+- docs: Account Management epic close **Task 1** — `OPERATOR-SIGNOFF.md` (95 manual rows + E2E smoke); README links runbook as P1 gate (`feature/account-management-epic-close`)
 - impl: portfolio reset story 5 **Tasks 1–6** (automation) — query invalidation, wallet seed from 200, portfolio/orders/trades hooks, activity tabs, SignalR + logout purge, ADR-008; `ResetPortfolio_PublishesOrderCancellationNotifications` green; `yarn lint`/`build` green; manual Aspire checklist pending (`feature/portfolio-reset-story-5`, #48)
 - impl: portfolio reset story 5 **Task 5** — `PortfolioActivityTabs` on trading page (open orders, order history, trade history, holdings); `yarn lint`/`build` green (`feature/portfolio-reset-story-5`, #48)
 - impl: portfolio reset story 5 **Task 4** — orders/trades API + `useOpenOrdersQuery`, `useOrderHistoryQuery`, `useTradeHistoryQuery` with `portfolioPanelQueryKeys`; `yarn lint`/`build` green (`feature/portfolio-reset-story-5`, #48)
@@ -65,19 +73,8 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
-- Open PR `feature/portfolio-reset-story-5` → `main` (closes #48 when merged)
-- Operator: portfolio reset story 5 manual UI checklist (6 steps in plan §Manual UI checklist) on Aspire
-- Open PR `feature/portfolio-reset-story-4` → `main` (closes #47 when merged)
-- Operator: portfolio reset story 4 manual UI checklist (5 steps in plan §Task 5)
-- Operator: portfolio reset story 3 manual Aspire checklist (Open Orders, Order History, Trade History, Holdings tabs)
-- Manual: portfolio reset story 2 Aspire checklist (plan §Manual UI checklist)
-- Open PR `feature/portfolio-reset-story-1` → `main` (closes #44 when merged)
-- Manual: portfolio reset story 1 checklist (7 steps in plan)
-- Open PR `feature/virtual-cash-story-4` → `main` (closes #37 when merged)
-- Manual: virtual cash story 4 checklist (6 steps in plan)
-- Open PR `feature/virtual-cash-story-3` → `main` (closes #36 when merged)
-- Open PR `feature/virtual-cash-story-2` → `main` (closes #35 when merged)
-- Open PR `feature/virtual-cash-story-1` → `main` (closes #34 when merged)
+- Optional: complete `docs/epics/account-management/OPERATOR-SIGNOFF.md` manual checklist for additional operator evidence
+- If desired: open PR for `feature/account-management-epic-close` to merge finalized hygiene updates
 
 ## Blockers
 
@@ -87,8 +84,7 @@ Owner: @tranvuongduy2003
 
 - MSB3277: EF Core Relational 10.0.7 vs 10.0.8 — warning only.
 - Api integration tests require Docker (Testcontainers).
-- `RegisterUserSessionTests` uses `WebApplicationFactory` without Testcontainers (needs local Postgres on :5432) — excluded from CI-style regression run.
-- Rare concurrent register race may return **500** instead of **422** (EC-03 MVP).
+- Local consecutive test runs can intermittently hit CS2012 file-lock errors; rerun usually succeeds.
 
 ## Session Start Checklist
 

@@ -4,6 +4,17 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-28
 
+- verify: account-management close plan Task 6 — final verification matrix green (Domain Users **22**, Api Users + ResetPortfolio **85**, `web api:verify`, `web build`), memory/changelog synchronized, and close plan promoted to `status: approved` (administrative close with manual operator sign-off still deferred)
+- impl: account-management close plan Task 5 — mapped concurrent register unique-violation race to 422 (`USERNAME_TAKEN` / `EMAIL_TAKEN`) via UoW persistence exception mapping; tightened parallel register integration test (`RegisterUserTransientFailureTests`) to require 422 and preserve wallet-count invariant
+- docs: account-management close plan Task 4 — aligned `.cursor/rules/frontend.mdc` wallet query example with ADR-008 and removed stale RegisterUserSession local-Postgres caveat from memory docs
+- test: account-management close plan Task 3 — split `tests/Api.IntegrationTests/Portfolios/ResetPortfolioTests.cs` into focused suites + shared helpers; `FullyQualifiedName~ResetPortfolio` passed (**23**)
+- docs: account-management epic marked closed in archive README; archived specs promoted `draft` → `approved` (4 specs) as part of close-plan Task 2
+- verify: account-management close plan Task 2 (partial) — confirmed `main` already includes story merges (#39–#55); regression filters green (Domain Users 22, Api Users+ResetPortfolio 85); final close updates blocked pending operator sign-off
+- docs: Account Management operator runbook (`docs/epics/account-management/OPERATOR-SIGNOFF.md`) — consolidated 95 manual UI steps + E2E smoke; epic close plan Task 1 complete on `feature/account-management-epic-close`
+- ci: enable `Api.IntegrationTests` in GitHub Actions (`.github/workflows/ci.yml`) by removing the integration-test exclusion filter from `.NET` test step
+- plan: Account Management epic close and hygiene (`docs/plans/20260528-194500-account-management-epic-close.md`) — operator sign-off, merge hygiene, test split, doc sync, register 422 race
+- epic-archived: Account Management (`docs/epics/account-management/`; 4 specs + 18 plans merged, sources deleted)
+- review: Account Management (`docs/reviews/20260528-180000-account-management.md`) — 🟡 close with follow-ups; Domain 22 + Api 85 tests green
 - impl: portfolio reset story 5 **Tasks 1–6** (automation) — TanStack Query panel invalidation + wallet seed from reset 200, user-scoped portfolio/orders/trades hooks, `PortfolioActivityTabs`, SignalR `trades` invalidation, logout cache purge, ADR-008; `yarn lint`/`build` green; manual UI checklist pending; branch `feature/portfolio-reset-story-5` (closes #48)
 - plan: portfolio reset story 5 — consistent data everywhere after reset (`docs/plans/20260528-003204-portfolio-reset-story-5.md`, GitHub #48)
 - impl: portfolio reset story 4 **Tasks 1–5** (automation) — server cooldown via `portfolio_resets`, `GET /api/portfolio/reset/eligibility`, `RESET_COOLDOWN_ACTIVE` + `nextEligibleAt`, TanStack Query menu disable, cooldown dialog copy, **22** `ResetPortfolioTests` + `api:verify` + `yarn build`; manual UI checklist pending; branch `feature/portfolio-reset-story-4` (closes #47)

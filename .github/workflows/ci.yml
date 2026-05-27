@@ -41,8 +41,8 @@ jobs:
       - name: Verify OpenAPI contract matches API
         run: yarn --cwd web api:verify
 
-      - name: Test .NET (unit tests only)
-        run: dotnet test TradingSimulator.slnx --no-build -c Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "FullyQualifiedName!~TradingSimulator.Api.IntegrationTests"
+      - name: Test .NET (unit + integration tests)
+        run: dotnet test TradingSimulator.slnx --no-build -c Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
 
       - name: Lint frontend
         run: yarn --cwd web lint
