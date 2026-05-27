@@ -203,6 +203,19 @@ components:
         - totalCount
         - items
       type: object
+    PortfolioResetEligibilityResponse:
+      properties:
+        isEligible:
+          type: boolean
+        nextEligibleAt:
+          format: date-time
+          type:
+            - "null"
+            - string
+      required:
+        - isEligible
+        - nextEligibleAt
+      type: object
     PortfolioResetResponse:
       properties:
         nextEligibleAt:
@@ -596,8 +609,28 @@ paths:
           description: Not Found
         "409":
           description: Conflict
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+          description: Unprocessable Entity
         "500":
           description: Internal Server Error
+      tags:
+        - Portfolio
+  /api/portfolio/reset/eligibility:
+    get:
+      operationId: GetPortfolioResetEligibility
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioResetEligibilityResponse"
+          description: OK
+        "401":
+          description: Unauthorized
       tags:
         - Portfolio
   /api/trades:

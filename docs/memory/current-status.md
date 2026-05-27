@@ -1,11 +1,12 @@
 # Current Status
 
-Last updated: 2026-05-27
+Last updated: 2026-05-28
 
 Owner: @tranvuongduy2003
 
 ## Active Focus
 
+- Portfolio reset **Story 4** automation **complete** on `feature/portfolio-reset-story-4` — operator manual UI checklist + PR → `main` (closes #47)
 - Portfolio reset **Story 3 Tasks 1–5** automation complete on `feature/portfolio-reset-story-3`; manual Aspire checklist handed off to operator (GitHub #46)
 - Portfolio reset **Story 2** Tasks 1–4 automation complete on `feature/portfolio-reset-story-2-local`; manual Aspire checklist remains operator step (GitHub #45)
 - Portfolio reset **Story 1** automation **complete** on `feature/portfolio-reset-story-1` — operator manual UI checklist + PR → `main` (closes #44)
@@ -16,6 +17,12 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- impl: portfolio reset story 4 **Tasks 1–5** (automation) — eligibility API + cooldown enforcement + frontend query/messaging + 22 integration tests; `yarn lint`/`build` green; manual UI checklist in plan §Task 5 (`feature/portfolio-reset-story-4`, #47)
+- impl: portfolio reset story 4 **Task 4** — first-reset, cooldown no-mutation, 25h success, latest-reset-row tests; all 22 `ResetPortfolioTests` green (`feature/portfolio-reset-story-4`, #47)
+- impl: portfolio reset story 4 **Task 3** — `getResetEligibility` + query-backed `useResetEligibility`, `api:codegen`, `yarn lint`/`build` green, `GetResetEligibility_RequiresAuthentication` test (`feature/portfolio-reset-story-4`, #47)
+- impl: portfolio reset story 4 **Task 2** — cooldown enforced in `ResetPortfolioCommandHandler`, `Error.Extensions` + RFC 7807 `nextEligibleAt`, 2 integration tests; build green (`feature/portfolio-reset-story-4`, #47)
+- impl: portfolio reset story 4 **Task 1** — `IPortfolioResetReadRepository`, eligibility query/handler, `GET /api/portfolio/reset/eligibility`, OpenAPI + 2 integration tests; build green (`feature/portfolio-reset-story-4`, #47)
+- plan: portfolio reset story 4 — respect the 24-hour cooldown (`docs/plans/20260527-231500-portfolio-reset-story-4.md`, GitHub #47)
 - plan: portfolio reset story 3 — cancel open orders and clear activity history (`docs/plans/20260527-214600-portfolio-reset-story-3.md`, GitHub #46)
 - impl: portfolio reset story 3 **Task 1** — added `/api/orders/open`, `/api/orders/history`, `/api/trades` read slice with reset cutoff filtering + integration tests; targeted tests + solution build green (`feature/portfolio-reset-story-3`)
 - impl: portfolio reset story 3 **Task 2** — reset transaction now cancels current-user open orders and keeps reset invariants with integration coverage for cancellation scope + reservation-safe outcomes; targeted tests + solution build green (`feature/portfolio-reset-story-3`)
@@ -40,6 +47,7 @@ Owner: @tranvuongduy2003
 
 ## In Progress
 
+- Operator: portfolio reset story 4 manual UI checklist (plan §Task 5 Manual UI checklist) on Aspire
 - Operator: portfolio reset story 1 manual UI checklist (plan §Manual UI checklist) on Aspire
 - Operator: virtual cash story 4 manual UI checklist (plan §Manual UI checklist) on Aspire
 - Operator: virtual cash story 3 manual UI checklist (plan §Manual UI checklist) on Aspire
@@ -48,6 +56,8 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
+- Open PR `feature/portfolio-reset-story-4` → `main` (closes #47 when merged)
+- Operator: portfolio reset story 4 manual UI checklist (5 steps in plan §Task 5)
 - Operator: portfolio reset story 3 manual Aspire checklist (Open Orders, Order History, Trade History, Holdings tabs)
 - Manual: portfolio reset story 2 Aspire checklist (plan §Manual UI checklist)
 - Open PR `feature/portfolio-reset-story-1` → `main` (closes #44 when merged)

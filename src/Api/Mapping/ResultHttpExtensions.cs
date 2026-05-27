@@ -47,6 +47,14 @@ public static class ResultHttpExtensions
             problem.Extensions["errors"] = error.ValidationErrors;
         }
 
+        if (error.Extensions is not null)
+        {
+            foreach (var (key, value) in error.Extensions)
+            {
+                problem.Extensions[key] = value;
+            }
+        }
+
         return Results.Problem(problem);
     }
 }
