@@ -4,6 +4,8 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-28
 
+- impl: portfolio reset story 5 **Tasks 1–6** (automation) — TanStack Query panel invalidation + wallet seed from reset 200, user-scoped portfolio/orders/trades hooks, `PortfolioActivityTabs`, SignalR `trades` invalidation, logout cache purge, ADR-008; `yarn lint`/`build` green; manual UI checklist pending; branch `feature/portfolio-reset-story-5` (closes #48)
+- plan: portfolio reset story 5 — consistent data everywhere after reset (`docs/plans/20260528-003204-portfolio-reset-story-5.md`, GitHub #48)
 - impl: portfolio reset story 4 **Tasks 1–5** (automation) — server cooldown via `portfolio_resets`, `GET /api/portfolio/reset/eligibility`, `RESET_COOLDOWN_ACTIVE` + `nextEligibleAt`, TanStack Query menu disable, cooldown dialog copy, **22** `ResetPortfolioTests` + `api:verify` + `yarn build`; manual UI checklist pending; branch `feature/portfolio-reset-story-4` (closes #47)
 
 ## 2026-05-27

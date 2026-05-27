@@ -17,14 +17,16 @@ export function createSimulationHubQueryBridge(
 ): SimulationHubMessageInterceptor {
   return (message) => {
     if (message.name === 'onBalanceUpdated') {
-      // Prefix matches all user-scoped wallet keys: ['wallet', userId]
+      // Prefix matches all user-scoped panel keys (wallet, portfolio, trades).
       queryClient.invalidateQueries({ queryKey: ['wallet'] })
       queryClient.invalidateQueries({ queryKey: ['portfolio'] })
+      queryClient.invalidateQueries({ queryKey: ['trades'] })
     }
 
     if (message.name === 'onOrderFillNotified' || message.name === 'onOrderCancellationNotified') {
       queryClient.invalidateQueries({ queryKey: ['orders', 'open'] })
       queryClient.invalidateQueries({ queryKey: ['orders', 'history'] })
+      queryClient.invalidateQueries({ queryKey: ['trades'] })
     }
 
     if (message.name === 'onOrderBookUpdated') {

@@ -6,6 +6,7 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
+- Portfolio reset **Story 5** automation **complete** on `feature/portfolio-reset-story-5` — operator manual UI checklist + PR → `main` (GitHub #48)
 - Portfolio reset **Story 4** automation **complete** on `feature/portfolio-reset-story-4` — operator manual UI checklist + PR → `main` (closes #47)
 - Portfolio reset **Story 3 Tasks 1–5** automation complete on `feature/portfolio-reset-story-3`; manual Aspire checklist handed off to operator (GitHub #46)
 - Portfolio reset **Story 2** Tasks 1–4 automation complete on `feature/portfolio-reset-story-2-local`; manual Aspire checklist remains operator step (GitHub #45)
@@ -17,6 +18,13 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- impl: portfolio reset story 5 **Tasks 1–6** (automation) — query invalidation, wallet seed from 200, portfolio/orders/trades hooks, activity tabs, SignalR + logout purge, ADR-008; `ResetPortfolio_PublishesOrderCancellationNotifications` green; `yarn lint`/`build` green; manual Aspire checklist pending (`feature/portfolio-reset-story-5`, #48)
+- impl: portfolio reset story 5 **Task 5** — `PortfolioActivityTabs` on trading page (open orders, order history, trade history, holdings); `yarn lint`/`build` green (`feature/portfolio-reset-story-5`, #48)
+- impl: portfolio reset story 5 **Task 4** — orders/trades API + `useOpenOrdersQuery`, `useOrderHistoryQuery`, `useTradeHistoryQuery` with `portfolioPanelQueryKeys`; `yarn lint`/`build` green (`feature/portfolio-reset-story-5`, #48)
+- impl: portfolio reset story 5 **Task 3** — `usePortfolioQuery` with `['portfolio', userId]`, `staleTime: 0`, `refetchOnWindowFocus`; `trading-page` migrated; `yarn lint`/`build` green (`feature/portfolio-reset-story-5`, #48)
+- impl: portfolio reset story 5 **Task 2** — seed wallet from reset 200 via `seedWalletQueryData`, then `invalidatePortfolioPanels`; updated success toast; `yarn lint`/`build` green (`feature/portfolio-reset-story-5`, #48)
+- impl: portfolio reset story 5 **Task 1** — `portfolioPanelQueryKeys`, `invalidatePortfolioPanels`, wired in `useResetPortfolio` onSuccess; `yarn lint`/`build` green (`feature/portfolio-reset-story-5`, #48)
+- plan: portfolio reset story 5 — consistent data everywhere after reset (`docs/plans/20260528-003204-portfolio-reset-story-5.md`, #48)
 - impl: portfolio reset story 4 **Tasks 1–5** (automation) — eligibility API + cooldown enforcement + frontend query/messaging + 22 integration tests; `yarn lint`/`build` green; manual UI checklist in plan §Task 5 (`feature/portfolio-reset-story-4`, #47)
 - impl: portfolio reset story 4 **Task 4** — first-reset, cooldown no-mutation, 25h success, latest-reset-row tests; all 22 `ResetPortfolioTests` green (`feature/portfolio-reset-story-4`, #47)
 - impl: portfolio reset story 4 **Task 3** — `getResetEligibility` + query-backed `useResetEligibility`, `api:codegen`, `yarn lint`/`build` green, `GetResetEligibility_RequiresAuthentication` test (`feature/portfolio-reset-story-4`, #47)
@@ -47,6 +55,7 @@ Owner: @tranvuongduy2003
 
 ## In Progress
 
+- Operator: portfolio reset story 5 manual UI checklist (plan §Manual UI checklist) on Aspire
 - Operator: portfolio reset story 4 manual UI checklist (plan §Task 5 Manual UI checklist) on Aspire
 - Operator: portfolio reset story 1 manual UI checklist (plan §Manual UI checklist) on Aspire
 - Operator: virtual cash story 4 manual UI checklist (plan §Manual UI checklist) on Aspire
@@ -56,6 +65,8 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
+- Open PR `feature/portfolio-reset-story-5` → `main` (closes #48 when merged)
+- Operator: portfolio reset story 5 manual UI checklist (6 steps in plan §Manual UI checklist) on Aspire
 - Open PR `feature/portfolio-reset-story-4` → `main` (closes #47 when merged)
 - Operator: portfolio reset story 4 manual UI checklist (5 steps in plan §Task 5)
 - Operator: portfolio reset story 3 manual Aspire checklist (Open Orders, Order History, Trade History, Holdings tabs)
