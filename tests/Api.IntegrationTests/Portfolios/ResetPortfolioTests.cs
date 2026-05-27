@@ -25,10 +25,15 @@ public sealed class ResetPortfolioTests(IntegrationTestFixture fixture)
     public async Task ResetPortfolio_WithoutSession_Returns401_UNAUTHORIZED()
     {
         var client = fixture.Factory.CreateClient();
+        var userId = await RegisterAndGetUserIdAsync();
+        var beforeCount = await PortfolioResetTestHelpers.CountPortfolioResetsAsync(fixture, userId);
 
         using var response = await client.PostAsync("/api/portfolio/reset", null);
 
         await AssertUnauthorizedAsync(response);
+
+        var afterCount = await PortfolioResetTestHelpers.CountPortfolioResetsAsync(fixture, userId);
+        afterCount.Should().Be(beforeCount);
     }
 
     [Fact]
@@ -46,6 +51,14 @@ public sealed class ResetPortfolioTests(IntegrationTestFixture fixture)
         using var registerResponse = await client.PostAsJsonAsync("/api/users", request);
 
         registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            registration!.UserId,
+            totalBalance: 42_000m,
+            reservedBalance: 5_000m);
 
         using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
 
@@ -66,6 +79,14 @@ public sealed class ResetPortfolioTests(IntegrationTestFixture fixture)
         body.Wallet.AvailableBalance.Should().Be(100_000m);
         body.Wallet.AvailableBalance.Should().Be(
             body.Wallet.TotalBalance - body.Wallet.ReservedBalance);
+
+        using var walletResponse = await client.GetAsync("/api/wallet");
+        walletResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var wallet = await walletResponse.Content.ReadFromJsonAsync<WalletResponse>(JsonOptions);
+        wallet.Should().NotBeNull();
+        wallet!.TotalBalance.Should().Be(100_000m);
+        wallet.ReservedBalance.Should().Be(0m);
+        wallet.AvailableBalance.Should().Be(100_000m);
     }
 
     [Fact]
@@ -108,10 +129,268 @@ public sealed class ResetPortfolioTests(IntegrationTestFixture fixture)
         problem.Code.Should().Be("RESET_IN_PROGRESS");
     }
 
+    [Fact]
+    public async Task ResetPortfolio_AfterDepletedWallet_Returns100k_OnGetWallet()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"reset_wallet_{suffix}",
+            $"reset_wallet_{suffix}@example.com",
+            "SecurePass1!");
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            registration!.UserId,
+            totalBalance: 42_000m,
+            reservedBalance: 5_000m);
+        await PortfolioResetTestHelpers.SeedHoldingAsync(
+            fixture,
+            registration.UserId,
+            symbol: "AAPL",
+            quantity: 50,
+            averagePrice: 150m);
+
+        using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var resetBody = await resetResponse.Content.ReadFromJsonAsync<PortfolioResetResponse>(JsonOptions);
+        resetBody.Should().NotBeNull();
+        resetBody!.Wallet.TotalBalance.Should().Be(100_000m);
+        resetBody.Wallet.ReservedBalance.Should().Be(0m);
+        resetBody.Wallet.AvailableBalance.Should().Be(100_000m);
+
+        using var walletResponse = await client.GetAsync("/api/wallet");
+        walletResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var walletBody = await walletResponse.Content.ReadFromJsonAsync<WalletResponse>(JsonOptions);
+        walletBody.Should().NotBeNull();
+        walletBody!.TotalBalance.Should().Be(100_000m);
+        walletBody.ReservedBalance.Should().Be(0m);
+        walletBody.AvailableBalance.Should().Be(100_000m);
+    }
+
+    [Fact]
+    public async Task ResetPortfolio_ClearsHoldings_OnGetPortfolio()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"reset_holdings_{suffix}",
+            $"reset_holdings_{suffix}@example.com",
+            "SecurePass1!");
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            registration!.UserId,
+            totalBalance: 42_000m,
+            reservedBalance: 5_000m);
+        await PortfolioResetTestHelpers.SeedHoldingAsync(
+            fixture,
+            registration.UserId,
+            symbol: "AAPL",
+            quantity: 50,
+            averagePrice: 150m);
+
+        using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var portfolioResponse = await client.GetAsync("/api/portfolio");
+        portfolioResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var portfolioBody = await portfolioResponse.Content.ReadFromJsonAsync<PortfolioResponse>(JsonOptions);
+        portfolioBody.Should().NotBeNull();
+        portfolioBody!.Holdings.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ResetPortfolio_InsertsPortfolioResetsRow()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"reset_audit_{suffix}",
+            $"reset_audit_{suffix}@example.com",
+            "SecurePass1!");
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            registration!.UserId,
+            totalBalance: 42_000m,
+            reservedBalance: 5_000m);
+        await PortfolioResetTestHelpers.SeedHoldingAsync(
+            fixture,
+            registration.UserId,
+            symbol: "AAPL",
+            quantity: 50,
+            averagePrice: 150m);
+
+        var beforeCount = await PortfolioResetTestHelpers.CountPortfolioResetsAsync(fixture, registration.UserId);
+
+        using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var afterCount = await PortfolioResetTestHelpers.CountPortfolioResetsAsync(fixture, registration.UserId);
+        afterCount.Should().Be(beforeCount + 1);
+    }
+
+    [Fact]
+    public async Task ResetPortfolio_WhenWriteFails_PreResetStateUnchanged()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"reset_rollback_{suffix}",
+            $"reset_rollback_{suffix}@example.com",
+            "SecurePass1!");
+
+        var sessionClient = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await sessionClient.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            registration!.UserId,
+            totalBalance: 42_000m,
+            reservedBalance: 5_000m);
+        await PortfolioResetTestHelpers.SeedHoldingAsync(
+            fixture,
+            registration.UserId,
+            symbol: "AAPL",
+            quantity: 50,
+            averagePrice: 150m);
+
+        var beforeCount = await PortfolioResetTestHelpers.CountPortfolioResetsAsync(fixture, registration.UserId);
+
+        await using var throwFactory = fixture.CreateFactory(ConfigureThrowOnPortfolioResetWriteRepository);
+        var failingClient = throwFactory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var loginResponse = await failingClient.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(request.Email, request.Password));
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var resetResponse = await failingClient.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+
+        using var walletResponse = await sessionClient.GetAsync("/api/wallet");
+        walletResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var walletBody = await walletResponse.Content.ReadFromJsonAsync<WalletResponse>(JsonOptions);
+        walletBody.Should().NotBeNull();
+        walletBody!.TotalBalance.Should().Be(42_000m);
+        walletBody.ReservedBalance.Should().Be(5_000m);
+        walletBody.AvailableBalance.Should().Be(37_000m);
+
+        using var portfolioResponse = await sessionClient.GetAsync("/api/portfolio");
+        portfolioResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var portfolioBody = await portfolioResponse.Content.ReadFromJsonAsync<PortfolioResponse>(JsonOptions);
+        portfolioBody.Should().NotBeNull();
+        portfolioBody!.Holdings.Should().ContainSingle();
+        portfolioBody.Holdings[0].Symbol.Should().Be("AAPL");
+        portfolioBody.Holdings[0].TotalQuantity.Should().Be(50);
+
+        var afterCount = await PortfolioResetTestHelpers.CountPortfolioResetsAsync(fixture, registration.UserId);
+        afterCount.Should().Be(beforeCount);
+    }
+
+    [Fact]
+    public async Task ResetPortfolio_WithZeroHoldings_StillRestoresCash()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"reset_zero_holdings_{suffix}",
+            $"reset_zero_holdings_{suffix}@example.com",
+            "SecurePass1!");
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            registration!.UserId,
+            totalBalance: 500m,
+            reservedBalance: 0m);
+
+        using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var resetBody = await resetResponse.Content.ReadFromJsonAsync<PortfolioResetResponse>(JsonOptions);
+        resetBody.Should().NotBeNull();
+        resetBody!.Wallet.TotalBalance.Should().Be(100_000m);
+        resetBody.Wallet.ReservedBalance.Should().Be(0m);
+        resetBody.Wallet.AvailableBalance.Should().Be(100_000m);
+
+        using var portfolioResponse = await client.GetAsync("/api/portfolio");
+        portfolioResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var portfolioBody = await portfolioResponse.Content.ReadFromJsonAsync<PortfolioResponse>(JsonOptions);
+        portfolioBody.Should().NotBeNull();
+        portfolioBody!.Holdings.Should().BeEmpty();
+    }
+
     private static void ConfigureDelayingWalletReadRepository(IServiceCollection services)
     {
         services.RemoveAll<IWalletReadRepository>();
         services.AddScoped<IWalletReadRepository, DelayingWalletReadRepository>();
+    }
+
+    private static void ConfigureThrowOnPortfolioResetWriteRepository(IServiceCollection services)
+    {
+        services.RemoveAll<IPortfolioResetWriteRepository>();
+        services.AddScoped<IPortfolioResetWriteRepository, ThrowOnPortfolioResetWriteRepository>();
+    }
+
+    private async Task<Guid> RegisterAndGetUserIdAsync()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"reset_unauth_{suffix}",
+            $"reset_unauth_{suffix}@example.com",
+            "SecurePass1!");
+
+        var sessionClient = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await sessionClient.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+        return registration!.UserId;
     }
 
     private static async Task AssertUnauthorizedAsync(HttpResponseMessage response)

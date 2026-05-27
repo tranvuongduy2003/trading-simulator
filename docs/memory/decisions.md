@@ -60,6 +60,17 @@ If a decision changes, add a new entry and mark the old one as superseded.
 
 ---
 
+## ADR-006: Portfolio reset Story 2 persists wallet and holdings slice
+
+- Date: 2026-05-27
+- Status: Accepted
+- Context: Story 1 intentionally shipped a reset contract stub to unlock UI flow and API shape early. Story 2 requires real PostgreSQL persistence for the wallet and holdings portion of FR-1.4 while Story 3+ still owns open-order cancellation, matching-engine synchronization, and history cutover.
+- Decision: `ResetPortfolioCommandHandler` now executes a real write path through `IPortfolioResetWriteRepository` inside the existing command unit-of-work transaction. The repository resets wallet balances to `Trading:InitialVirtualCash`, clears holdings for the user portfolio, and appends a `portfolio_resets` audit row with `reason = user_initiated`. Task-level integration tests assert read-your-writes and rollback guarantees for failure paths.
+- Consequences: Story 1 stub behavior is superseded for wallet/holdings/audit writes. Users can see immediate wallet and holdings reset in API reads, while known inconsistency with open orders remains intentionally deferred to Story 3. This keeps scope aligned to planned incremental delivery without introducing partial transaction behavior for completed Story 2 slice.
+- Supersedes: ADR-005 (partially; only the "no PostgreSQL writes" portion for reset)
+
+---
+
 ## Template
 - Date: YYYY-MM-DD
 - Status: Proposed | Accepted | Superseded
