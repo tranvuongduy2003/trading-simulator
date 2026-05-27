@@ -1,15 +1,16 @@
 using System.Net;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using TradingSimulator.Api.IntegrationTests.Integration;
+using TradingSimulator.Testing.Common.Fixtures;
 
 namespace TradingSimulator.Api.IntegrationTests.Users;
 
-public class RegisterUserSessionTests : IClassFixture<WebApplicationFactory<Program>>
+[Collection(IntegrationTestCollection.Name)]
+public sealed class RegisterUserSessionTests(IntegrationTestFixture fixture)
 {
-    private readonly HttpClient _client;
-
-    public RegisterUserSessionTests(WebApplicationFactory<Program> factory) =>
-        _client = factory.CreateClient();
+    private readonly HttpClient _client = fixture.Factory.CreateClient(
+        new WebApplicationFactoryClientOptions { HandleCookies = true });
 
     [Fact]
     public async Task GetWallet_WithoutSession_ReturnsUnauthorized()

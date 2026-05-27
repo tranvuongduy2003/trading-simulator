@@ -2,6 +2,10 @@
 
 All notable project and process changes are tracked here.
 
+## 2026-05-27
+
+- plan: portfolio reset story 2 — restore starting cash and empty holdings (`docs/plans/20260527-210000-portfolio-reset-story-2.md`, GitHub #45)
+
 ## 2026-05-25
 
 - impl: portfolio reset story 1 **Tasks 1–5** (automation) — `POST /api/portfolio/reset` stub (ADR-005), confirmation dialog, in-flight **409**, client cooldown + toast, **13** `GetMyWallet`/`ResetPortfolio` integration tests, `api:verify`, `yarn build`; `GET /api/wallet` `.RequireAuthorization()`; manual UI checklist pending; branch `feature/portfolio-reset-story-1` (closes #44)

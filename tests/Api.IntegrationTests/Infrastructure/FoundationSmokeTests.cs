@@ -1,15 +1,16 @@
 using System.Net;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using TradingSimulator.Api.IntegrationTests.Integration;
+using TradingSimulator.Testing.Common.Fixtures;
 
 namespace TradingSimulator.Api.IntegrationTests.Infrastructure;
 
-public class FoundationSmokeTests : IClassFixture<WebApplicationFactory<Program>>
+[Collection(IntegrationTestCollection.Name)]
+public sealed class FoundationSmokeTests(IntegrationTestFixture fixture)
 {
-    private readonly HttpClient _client;
-
-    public FoundationSmokeTests(WebApplicationFactory<Program> factory) =>
-        _client = factory.CreateClient();
+    private readonly HttpClient _client = fixture.Factory.CreateClient(
+        new WebApplicationFactoryClientOptions { HandleCookies = true });
 
     [Fact]
     public async Task HealthEndpoint_ReturnsOk()

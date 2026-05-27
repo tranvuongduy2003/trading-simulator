@@ -1,11 +1,12 @@
 # Current Status
 
-Last updated: 2026-05-25
+Last updated: 2026-05-27
 
 Owner: @tranvuongduy2003
 
 ## Active Focus
 
+- Portfolio reset **Story 2** Tasks 1–4 automation complete on `feature/portfolio-reset-story-2-local`; manual Aspire checklist remains operator step (GitHub #45)
 - Portfolio reset **Story 1** automation **complete** on `feature/portfolio-reset-story-1` — operator manual UI checklist + PR → `main` (closes #44)
 - Virtual cash balance **Story 4** automation complete on `feature/virtual-cash-story-4` — open PR → `main` (closes #37); operator manual UI checklist pending (plan §Manual UI checklist)
 - Virtual cash balance **Story 3** automation complete on `feature/virtual-cash-story-3` — open PR → `main` (closes #36); operator manual UI checklist pending (plan §Manual UI checklist)
@@ -15,6 +16,10 @@ Owner: @tranvuongduy2003
 ## Latest Completed
 
 - impl: portfolio reset story 1 **Tasks 1–5** (automation) — POST stub, dialog, 409 guard, eligibility UX, ADR-005, **13** wallet/reset integration tests + `api:verify` + `yarn build`; manual UI checklist pending; branch `feature/portfolio-reset-story-1`
+- impl: portfolio reset story 2 **Task 1** — reset handler now uses write repository port, DI wired, build green (`feature/portfolio-reset-story-2-local`)
+- impl: portfolio reset story 2 **Task 2** — repository now persists wallet reset + holdings delete + portfolio reset audit; added reset integration scenarios and helper; reset test subset + solution build green (`feature/portfolio-reset-story-2-local`)
+- impl: portfolio reset story 2 **Task 3** — added forced-failure write-repository fake and rollback/unauthorized no-write integration coverage; reset test subset + solution build green (`feature/portfolio-reset-story-2-local`)
+- impl: portfolio reset story 2 **Task 4** — ADR addendum recorded (ADR-006), contract-shape test aligned to seeded state, EC-02 zero-holdings test added; reset test subset + solution build green (`feature/portfolio-reset-story-2-local`)
 - impl: portfolio reset story 1 **Task 4** — success toast, sessionStorage cooldown, disabled menu (`feature/portfolio-reset-story-1`)
 - impl: portfolio reset story 1 **Task 3** — in-flight guard 409, error mapping, loading UX (`feature/portfolio-reset-story-1`)
 - impl: portfolio reset story 1 **Task 2** — five consequence bullets, dismiss without POST (`feature/portfolio-reset-story-1`)
@@ -36,6 +41,7 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
+- Manual: portfolio reset story 2 Aspire checklist (plan §Manual UI checklist)
 - Open PR `feature/portfolio-reset-story-1` → `main` (closes #44 when merged)
 - Manual: portfolio reset story 1 checklist (7 steps in plan)
 - Open PR `feature/virtual-cash-story-4` → `main` (closes #37 when merged)

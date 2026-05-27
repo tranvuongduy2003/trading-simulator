@@ -69,6 +69,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IWalletReadRepository, WalletReadRepository>();
+        services.AddScoped<IPortfolioResetWriteRepository, PortfolioResetWriteRepository>();
         services.AddScoped<IPortfolioReadRepository, PortfolioReadRepository>();
         services.AddScoped<ISessionStore, SessionStore>();
         services.AddScoped<IPasswordHasher, IdentityPasswordHasher>();
