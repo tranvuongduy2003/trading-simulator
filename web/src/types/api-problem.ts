@@ -7,6 +7,7 @@ export const apiProblemSchema = z.object({
   detail: z.string().optional(),
   code: z.string().optional(),
   errors: z.record(z.string(), z.array(z.string())).optional(),
+  nextEligibleAt: z.string().optional(),
 })
 
 export type ApiProblem = z.infer<typeof apiProblemSchema>

@@ -13,6 +13,17 @@ export type PortfolioResetResponse = {
   wallet: PortfolioResetWalletSnapshot
 }
 
+export type PortfolioResetEligibilityResponse = {
+  isEligible: boolean
+  nextEligibleAt: string | null
+}
+
+export function getResetEligibility(signal?: AbortSignal) {
+  return apiClient.get<PortfolioResetEligibilityResponse>('/api/portfolio/reset/eligibility', {
+    signal,
+  })
+}
+
 export function resetPortfolio() {
   return apiClient.post<PortfolioResetResponse>('/api/portfolio/reset', undefined, {
     credentials: 'include',

@@ -2,8 +2,13 @@
 
 All notable project and process changes are tracked here.
 
+## 2026-05-28
+
+- impl: portfolio reset story 4 **Tasks 1–5** (automation) — server cooldown via `portfolio_resets`, `GET /api/portfolio/reset/eligibility`, `RESET_COOLDOWN_ACTIVE` + `nextEligibleAt`, TanStack Query menu disable, cooldown dialog copy, **22** `ResetPortfolioTests` + `api:verify` + `yarn build`; manual UI checklist pending; branch `feature/portfolio-reset-story-4` (closes #47)
+
 ## 2026-05-27
 
+- plan: portfolio reset story 4 - respect the 24-hour cooldown (`docs/plans/20260527-231500-portfolio-reset-story-4.md`, GitHub #47)
 - impl: portfolio reset story 3 **Tasks 1–5** (automation) — added `/api/orders/open`, `/api/orders/history`, `/api/trades` with reset-cutoff filtering; reset transaction now cancels open orders + reservation-safe reset; realtime cancel/book/balance notifications on reset; deterministic Story 3 edge/regression integration suite (20 tests in reset/order/trade slices) green; ADR-007 recorded; manual Aspire checklist handed off to operator; branch `feature/portfolio-reset-story-3` (story #46)
 - plan: portfolio reset story 3 - cancel open orders and clear activity history (`docs/plans/20260527-214600-portfolio-reset-story-3.md`, GitHub #46)
 - plan: portfolio reset story 2 — restore starting cash and empty holdings (`docs/plans/20260527-210000-portfolio-reset-story-2.md`, GitHub #45)

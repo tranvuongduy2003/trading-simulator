@@ -1,18 +1,20 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 
+import { ApiError } from '@/types/api-problem'
 import { useAuthStore } from '@/store/auth-store'
 
 import * as portfolioResetApi from './api'
-import { mapResetPortfolioError } from './map-reset-error'
-import { saveNextEligibleAt } from './reset-eligibility'
+import { mapResetPortfolioError, readNextEligibleAtFromProblem } from './map-reset-error'
+import { portfolioResetEligibilityQueryKey, saveNextEligibleAt } from './reset-eligibility'
 
 const resetSuccessTitle = 'Portfolio reset'
 const resetSuccessDescription =
   "You're starting fresh with $100,000. Wallet balances update now; holdings and open orders will follow in a later release."
 
 export function useResetPortfolio() {
+  const queryClient = useQueryClient()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const clearError = useCallback(() => {
@@ -34,9 +36,20 @@ export function useResetPortfolio() {
         description: resetSuccessDescription,
       })
 
+      void queryClient.invalidateQueries({ queryKey: portfolioResetEligibilityQueryKey })
+
       // Story 5: invalidate ['wallet'], ['portfolio'], ['orders'], ['trades'] here.
     },
     onError: (error) => {
+      if (error instanceof ApiError && error.problem.code === 'RESET_COOLDOWN_ACTIVE') {
+        const userId = useAuthStore.getState().userId
+        const nextEligibleAt = readNextEligibleAtFromProblem(error.problem)
+        if (userId && nextEligibleAt) {
+          saveNextEligibleAt(userId, nextEligibleAt.toISOString())
+          void queryClient.invalidateQueries({ queryKey: portfolioResetEligibilityQueryKey })
+        }
+      }
+
       setErrorMessage(mapResetPortfolioError(error))
     },
   })

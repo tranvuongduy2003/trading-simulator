@@ -74,6 +74,26 @@ internal static class PortfolioResetTestHelpers
             .CountAsync(portfolioReset => portfolioReset.UserId == userId, cancellationToken);
     }
 
+    public static async Task SeedPortfolioResetAsync(
+        IntegrationTestFixture fixture,
+        Guid userId,
+        DateTimeOffset resetAt,
+        CancellationToken cancellationToken = default)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+
+        await databaseContext.PortfolioResets.AddAsync(
+            new PortfolioResetRecord
+            {
+                UserId = userId,
+                ResetAt = resetAt,
+            },
+            cancellationToken);
+
+        await databaseContext.SaveChangesAsync(cancellationToken);
+    }
+
     public static async Task<Guid> SeedOpenOrderAsync(
         IntegrationTestFixture fixture,
         Guid userId,

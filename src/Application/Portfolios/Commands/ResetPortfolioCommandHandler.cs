@@ -14,6 +14,7 @@ namespace TradingSimulator.Application.Portfolios.Commands;
 
 public sealed class ResetPortfolioCommandHandler(
     ICurrentUserAccessor currentUserAccessor,
+    IPortfolioResetReadRepository portfolioResetReadRepository,
     IPortfolioResetWriteRepository portfolioResetWriteRepository,
     IRealtimeNotificationPublisher realtimeNotificationPublisher,
     IResetInFlightGuard resetInFlightGuard,
@@ -29,6 +30,21 @@ public sealed class ResetPortfolioCommandHandler(
         if (userId is null)
         {
             return Error.Unauthorized("UNAUTHORIZED", "Authentication is required.");
+        }
+
+        var latestResetAt = await portfolioResetReadRepository.GetLatestResetAtByUserIdAsync(
+            userId.Value,
+            cancellationToken);
+
+        if (latestResetAt is not null)
+        {
+            var nextEligibleAt = latestResetAt.Value.AddMinutes(
+                tradingOptions.Value.PortfolioResetCooldownMinutes);
+
+            if (clock.UtcNow < nextEligibleAt)
+            {
+                return PortfolioResetErrors.CooldownActive(nextEligibleAt);
+            }
         }
 
         if (!resetInFlightGuard.TryBegin(userId.Value))
