@@ -61,6 +61,148 @@ components:
         - username
         - email
       type: object
+    OpenOrderDto:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        filledQuantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        orderId:
+          format: uuid
+          type: string
+        originalQuantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        price:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - "null"
+            - number
+            - string
+        remainingQuantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        side:
+          type: string
+        status:
+          type: string
+        symbol:
+          type: string
+        type:
+          type: string
+      required:
+        - orderId
+        - symbol
+        - side
+        - type
+        - price
+        - originalQuantity
+        - filledQuantity
+        - remainingQuantity
+        - status
+        - createdAt
+      type: object
+    OrderHistoryItemDto:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        filledQuantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        orderId:
+          format: uuid
+          type: string
+        originalQuantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        price:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - "null"
+            - number
+            - string
+        remainingQuantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        side:
+          type: string
+        status:
+          type: string
+        symbol:
+          type: string
+        terminatedAt:
+          format: date-time
+          type:
+            - "null"
+            - string
+        type:
+          type: string
+      required:
+        - orderId
+        - symbol
+        - side
+        - type
+        - price
+        - originalQuantity
+        - filledQuantity
+        - remainingQuantity
+        - status
+        - createdAt
+        - terminatedAt
+      type: object
+    OrderHistoryResponse:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/OrderHistoryItemDto"
+          type: array
+        pageNumber:
+          format: int32
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        pageSize:
+          format: int32
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        totalCount:
+          format: int32
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+      required:
+        - pageNumber
+        - pageSize
+        - totalCount
+        - items
+      type: object
     PortfolioResetResponse:
       properties:
         nextEligibleAt:
@@ -159,6 +301,68 @@ components:
         - username
         - email
         - password
+      type: object
+    TradeHistoryItemDto:
+      properties:
+        executedAt:
+          format: date-time
+          type: string
+        price:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+        quantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        side:
+          type: string
+        symbol:
+          type: string
+        tradeId:
+          format: uuid
+          type: string
+      required:
+        - tradeId
+        - symbol
+        - side
+        - price
+        - quantity
+        - executedAt
+      type: object
+    TradeHistoryResponse:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/TradeHistoryItemDto"
+          type: array
+        pageNumber:
+          format: int32
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        pageSize:
+          format: int32
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        totalCount:
+          format: int32
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+      required:
+        - pageNumber
+        - pageSize
+        - totalCount
+        - items
       type: object
     UserRegistrationResponse:
       properties:
@@ -313,6 +517,53 @@ paths:
           description: OK
       tags:
         - Health
+  /api/orders/history:
+    get:
+      operationId: GetMyOrderHistory
+      parameters:
+        - in: query
+          name: pageNumber
+          schema:
+            format: int32
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+        - in: query
+          name: pageSize
+          schema:
+            format: int32
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderHistoryResponse"
+          description: OK
+        "401":
+          description: Unauthorized
+      tags:
+        - Orders
+  /api/orders/open:
+    get:
+      operationId: GetMyOpenOrders
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/OpenOrderDto"
+                type: array
+          description: OK
+        "401":
+          description: Unauthorized
+      tags:
+        - Orders
   /api/portfolio:
     get:
       operationId: GetMyPortfolio
@@ -349,6 +600,37 @@ paths:
           description: Internal Server Error
       tags:
         - Portfolio
+  /api/trades:
+    get:
+      operationId: GetMyTradeHistory
+      parameters:
+        - in: query
+          name: pageNumber
+          schema:
+            format: int32
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+        - in: query
+          name: pageSize
+          schema:
+            format: int32
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradeHistoryResponse"
+          description: OK
+        "401":
+          description: Unauthorized
+      tags:
+        - Trades
   /api/users:
     post:
       operationId: RegisterUser
@@ -410,6 +692,8 @@ paths:
 tags:
   - name: Health
   - name: Auth
+  - name: Orders
   - name: Portfolio
+  - name: Trades
   - name: Users
   - name: Wallet
