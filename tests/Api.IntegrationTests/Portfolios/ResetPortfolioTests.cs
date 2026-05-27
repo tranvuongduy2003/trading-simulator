@@ -3,11 +3,13 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using TradingSimulator.Api.Common;
 using TradingSimulator.Api.IntegrationTests.Portfolios.Fakes;
 using TradingSimulator.Application.Abstractions.Persistence;
+using TradingSimulator.Application.Abstractions.Realtime;
 using TradingSimulator.Contracts.Portfolio;
 using TradingSimulator.Contracts.Users;
 using TradingSimulator.Infrastructure.Persistence;
@@ -20,6 +22,9 @@ namespace TradingSimulator.Api.IntegrationTests.Portfolios;
 public sealed class ResetPortfolioTests(IntegrationTestFixture fixture)
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private const short PendingStatus = 0;
+    private const short PartiallyFilledStatus = 1;
+    private const short CancelledStatus = 3;
 
     [Fact]
     public async Task ResetPortfolio_WithoutSession_Returns401_UNAUTHORIZED()
@@ -98,7 +103,7 @@ public sealed class ResetPortfolioTests(IntegrationTestFixture fixture)
             $"reset_inflight_{suffix}@example.com",
             "SecurePass1!");
 
-        await using var factory = fixture.CreateFactory(ConfigureDelayingWalletReadRepository);
+        await using var factory = fixture.CreateFactory(ConfigureDelayingPortfolioResetWriteRepository);
         var client = factory.CreateClient(
             new WebApplicationFactoryClientOptions { HandleCookies = true });
 
@@ -362,16 +367,418 @@ public sealed class ResetPortfolioTests(IntegrationTestFixture fixture)
         portfolioBody!.Holdings.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task ResetPortfolio_WithoutOpenOrdersAndHistory_Succeeds()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"reset_no_data_{suffix}",
+            $"reset_no_data_{suffix}@example.com",
+            "SecurePass1!");
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            registration!.UserId,
+            totalBalance: 55_000m,
+            reservedBalance: 0m);
+
+        using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var openOrdersResponse = await client.GetAsync("/api/orders/open");
+        openOrdersResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var openOrders = await openOrdersResponse.Content.ReadFromJsonAsync<List<TradingSimulator.Contracts.Orders.OpenOrderDto>>();
+        openOrders.Should().NotBeNull();
+        openOrders!.Should().BeEmpty();
+
+        using var orderHistoryResponse = await client.GetAsync("/api/orders/history");
+        orderHistoryResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var orderHistory = await orderHistoryResponse.Content.ReadFromJsonAsync<TradingSimulator.Contracts.Orders.OrderHistoryResponse>();
+        orderHistory.Should().NotBeNull();
+        orderHistory!.Items.Should().BeEmpty();
+
+        using var tradeHistoryResponse = await client.GetAsync("/api/trades");
+        tradeHistoryResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var tradeHistory = await tradeHistoryResponse.Content.ReadFromJsonAsync<TradingSimulator.Contracts.Trades.TradeHistoryResponse>();
+        tradeHistory.Should().NotBeNull();
+        tradeHistory!.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ResetPortfolio_WhenUserHasOpenOrders_CancelsPendingAndPartiallyFilled()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"reset_cancel_{suffix}",
+            $"reset_cancel_{suffix}@example.com",
+            "SecurePass1!");
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            registration!.UserId,
+            totalBalance: 100_000m,
+            reservedBalance: 3_300m);
+        await PortfolioResetTestHelpers.SeedHoldingAsync(
+            fixture,
+            registration.UserId,
+            symbol: "AAPL",
+            quantity: 30,
+            averagePrice: 150m,
+            reservedQuantity: 4);
+
+        var pendingOrderId = await PortfolioResetTestHelpers.SeedOpenOrderAsync(
+            fixture,
+            registration.UserId,
+            side: 0,
+            type: 0,
+            price: 200m,
+            originalQuantity: 10,
+            filledQuantity: 0,
+            status: PendingStatus);
+        var partialOrderId = await PortfolioResetTestHelpers.SeedOpenOrderAsync(
+            fixture,
+            registration.UserId,
+            side: 1,
+            type: 0,
+            price: 150m,
+            originalQuantity: 6,
+            filledQuantity: 2,
+            status: PartiallyFilledStatus);
+
+        using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+        var cancelledOrders = await databaseContext.Orders
+            .Where(orderRecord => orderRecord.Id == pendingOrderId || orderRecord.Id == partialOrderId)
+            .ToListAsync();
+
+        cancelledOrders.Should().HaveCount(2);
+        cancelledOrders.Should().OnlyContain(orderRecord => orderRecord.Status == CancelledStatus);
+        cancelledOrders.Should().OnlyContain(orderRecord => orderRecord.TerminatedAt.HasValue);
+    }
+
+    [Fact]
+    public async Task ResetPortfolio_CancelsOnlyCurrentUserOpenOrders()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var userARequest = new RegisterUserRequest(
+            $"reset_scope_a_{suffix}",
+            $"reset_scope_a_{suffix}@example.com",
+            "SecurePass1!");
+        var userBRequest = new RegisterUserRequest(
+            $"reset_scope_b_{suffix}",
+            $"reset_scope_b_{suffix}@example.com",
+            "SecurePass1!");
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var userARegisterResponse = await client.PostAsJsonAsync("/api/users", userARequest);
+        userARegisterResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var userA = await userARegisterResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        userA.Should().NotBeNull();
+
+        using var userBRegisterResponse = await client.PostAsJsonAsync("/api/users", userBRequest);
+        userBRegisterResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var userB = await userBRegisterResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        userB.Should().NotBeNull();
+
+        var userAOrderId = await PortfolioResetTestHelpers.SeedOpenOrderAsync(
+            fixture,
+            userA!.UserId,
+            side: 0,
+            type: 0,
+            price: 100m,
+            originalQuantity: 5,
+            filledQuantity: 0,
+            status: PendingStatus);
+        var userBOrderId = await PortfolioResetTestHelpers.SeedOpenOrderAsync(
+            fixture,
+            userB!.UserId,
+            side: 1,
+            type: 0,
+            price: 101m,
+            originalQuantity: 7,
+            filledQuantity: 0,
+            status: PendingStatus);
+
+        using var loginResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(userARequest.Email, userARequest.Password));
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+        var userAOrder = await databaseContext.Orders.SingleAsync(orderRecord => orderRecord.Id == userAOrderId);
+        var userBOrder = await databaseContext.Orders.SingleAsync(orderRecord => orderRecord.Id == userBOrderId);
+
+        userAOrder.Status.Should().Be(CancelledStatus);
+        userAOrder.TerminatedAt.Should().NotBeNull();
+        userBOrder.Status.Should().Be(PendingStatus);
+        userBOrder.TerminatedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ResetPortfolio_ReleasesReservationsBeforeWalletReset()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"reset_release_{suffix}",
+            $"reset_release_{suffix}@example.com",
+            "SecurePass1!");
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            registration!.UserId,
+            totalBalance: 80_000m,
+            reservedBalance: 2_000m);
+        await PortfolioResetTestHelpers.SeedHoldingAsync(
+            fixture,
+            registration.UserId,
+            symbol: "AAPL",
+            quantity: 40,
+            averagePrice: 150m,
+            reservedQuantity: 10);
+
+        await PortfolioResetTestHelpers.SeedOpenOrderAsync(
+            fixture,
+            registration.UserId,
+            side: 0,
+            type: 0,
+            price: 200m,
+            originalQuantity: 10,
+            filledQuantity: 0,
+            status: PendingStatus);
+        await PortfolioResetTestHelpers.SeedOpenOrderAsync(
+            fixture,
+            registration.UserId,
+            side: 1,
+            type: 0,
+            price: 150m,
+            originalQuantity: 10,
+            filledQuantity: 0,
+            status: PendingStatus);
+
+        using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var walletResponse = await client.GetAsync("/api/wallet");
+        walletResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var wallet = await walletResponse.Content.ReadFromJsonAsync<WalletResponse>(JsonOptions);
+        wallet.Should().NotBeNull();
+        wallet!.TotalBalance.Should().Be(100_000m);
+        wallet.ReservedBalance.Should().Be(0m);
+        wallet.AvailableBalance.Should().Be(100_000m);
+
+        using var portfolioResponse = await client.GetAsync("/api/portfolio");
+        portfolioResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var portfolio = await portfolioResponse.Content.ReadFromJsonAsync<PortfolioResponse>(JsonOptions);
+        portfolio.Should().NotBeNull();
+        portfolio!.Holdings.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ResetPortfolio_PublishesOrderCancellationNotifications()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var request = new RegisterUserRequest(
+            $"reset_notify_{suffix}",
+            $"reset_notify_{suffix}@example.com",
+            "SecurePass1!");
+
+        await using var factory = fixture.CreateFactory(ConfigureCapturingRealtimeNotificationPublisher);
+        var client = factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var registerResponse = await client.PostAsJsonAsync("/api/users", request);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var registration = await registerResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        registration.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            registration!.UserId,
+            totalBalance: 100_000m,
+            reservedBalance: 2_000m);
+        await PortfolioResetTestHelpers.SeedOpenOrderAsync(
+            fixture,
+            registration.UserId,
+            side: 0,
+            type: 0,
+            price: 200m,
+            originalQuantity: 10,
+            filledQuantity: 0,
+            status: PendingStatus);
+        await PortfolioResetTestHelpers.SeedOpenOrderAsync(
+            fixture,
+            registration.UserId,
+            side: 1,
+            type: 0,
+            price: 201m,
+            originalQuantity: 7,
+            filledQuantity: 2,
+            status: PartiallyFilledStatus);
+
+        using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var capturingPublisher = factory.Services.GetRequiredService<CapturingRealtimeNotificationPublisher>();
+        capturingPublisher.CancellationNotifications.Should().HaveCount(2);
+        capturingPublisher.CancellationNotifications
+            .Should()
+            .OnlyContain(notification => notification.UserIdentifier == registration.UserId);
+        capturingPublisher.OrderBookUpdates.Should().ContainSingle();
+        capturingPublisher.OrderBookUpdates[0].Symbol.Should().Be("AAPL");
+        capturingPublisher.BalanceUpdates.Should().ContainSingle();
+        capturingPublisher.BalanceUpdates[0].Message.AvailableCash.Should().Be(100_000m);
+    }
+
+    [Fact]
+    public async Task ResetPortfolio_WithPartiallyFilledOrder_HistoryHiddenForCurrentUser()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var buyerRequest = new RegisterUserRequest(
+            $"reset_partial_buyer_{suffix}",
+            $"reset_partial_buyer_{suffix}@example.com",
+            "SecurePass1!");
+        var sellerRequest = new RegisterUserRequest(
+            $"reset_partial_seller_{suffix}",
+            $"reset_partial_seller_{suffix}@example.com",
+            "SecurePass1!");
+
+        var client = fixture.Factory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+
+        using var buyerRegisterResponse = await client.PostAsJsonAsync("/api/users", buyerRequest);
+        buyerRegisterResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var buyer = await buyerRegisterResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        buyer.Should().NotBeNull();
+
+        using var sellerRegisterResponse = await client.PostAsJsonAsync("/api/users", sellerRequest);
+        sellerRegisterResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var seller = await sellerRegisterResponse.Content.ReadFromJsonAsync<UserRegistrationResponse>();
+        seller.Should().NotBeNull();
+
+        await PortfolioResetTestHelpers.SeedWalletBalancesAsync(
+            fixture,
+            buyer!.UserId,
+            totalBalance: 100_000m,
+            reservedBalance: 750m);
+
+        var now = DateTimeOffset.UtcNow.AddMinutes(-2);
+        var buyerOrderId = await PortfolioResetTestHelpers.SeedOpenOrderAsync(
+            fixture,
+            buyer.UserId,
+            side: 0,
+            type: 0,
+            price: 150m,
+            originalQuantity: 10,
+            filledQuantity: 5,
+            status: PartiallyFilledStatus);
+        var sellerOrderId = await PortfolioResetTestHelpers.SeedOpenOrderAsync(
+            fixture,
+            seller!.UserId,
+            side: 1,
+            type: 0,
+            price: 150m,
+            originalQuantity: 5,
+            filledQuantity: 5,
+            status: PartiallyFilledStatus);
+
+        await using (var scope = fixture.Factory.Services.CreateAsyncScope())
+        {
+            var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+            await databaseContext.Trades.AddAsync(
+                new TradingSimulator.Infrastructure.Persistence.Entities.TradeRecord
+                {
+                    ExternalId = Guid.NewGuid(),
+                    Symbol = "AAPL",
+                    BuyOrderId = buyerOrderId,
+                    SellOrderId = sellerOrderId,
+                    BuyerUserId = buyer.UserId,
+                    SellerUserId = seller.UserId,
+                    Price = 150m,
+                    Quantity = 5,
+                    ExecutedAt = now,
+                });
+            await databaseContext.SaveChangesAsync();
+        }
+
+        using var loginResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(buyerRequest.Email, buyerRequest.Password));
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var resetResponse = await client.PostAsync("/api/portfolio/reset", null);
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var orderHistoryResponse = await client.GetAsync("/api/orders/history");
+        orderHistoryResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var orderHistory = await orderHistoryResponse.Content.ReadFromJsonAsync<TradingSimulator.Contracts.Orders.OrderHistoryResponse>();
+        orderHistory.Should().NotBeNull();
+        orderHistory!.Items.Should().BeEmpty();
+
+        using var tradeHistoryResponse = await client.GetAsync("/api/trades");
+        tradeHistoryResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var tradeHistory = await tradeHistoryResponse.Content.ReadFromJsonAsync<TradingSimulator.Contracts.Trades.TradeHistoryResponse>();
+        tradeHistory.Should().NotBeNull();
+        tradeHistory!.Items.Should().BeEmpty();
+    }
+
     private static void ConfigureDelayingWalletReadRepository(IServiceCollection services)
     {
         services.RemoveAll<IWalletReadRepository>();
         services.AddScoped<IWalletReadRepository, DelayingWalletReadRepository>();
     }
 
+    private static void ConfigureDelayingPortfolioResetWriteRepository(IServiceCollection services)
+    {
+        services.RemoveAll<IPortfolioResetWriteRepository>();
+        services.AddScoped<IPortfolioResetWriteRepository, DelayingPortfolioResetWriteRepository>();
+    }
+
     private static void ConfigureThrowOnPortfolioResetWriteRepository(IServiceCollection services)
     {
         services.RemoveAll<IPortfolioResetWriteRepository>();
         services.AddScoped<IPortfolioResetWriteRepository, ThrowOnPortfolioResetWriteRepository>();
+    }
+
+    private static void ConfigureCapturingRealtimeNotificationPublisher(IServiceCollection services)
+    {
+        services.RemoveAll<IRealtimeNotificationPublisher>();
+        services.AddSingleton<CapturingRealtimeNotificationPublisher>();
+        services.AddSingleton<IRealtimeNotificationPublisher>(serviceProvider =>
+            serviceProvider.GetRequiredService<CapturingRealtimeNotificationPublisher>());
     }
 
     private async Task<Guid> RegisterAndGetUserIdAsync()
