@@ -13,6 +13,7 @@ namespace TradingSimulator.Application.Portfolios.Commands;
 public sealed class ResetPortfolioCommandHandler(
     ICurrentUserAccessor currentUserAccessor,
     IWalletReadRepository walletReadRepository,
+    IPortfolioRepository portfolioRepository,
     IResetInFlightGuard resetInFlightGuard,
     IClock clock,
     IOptions<TradingOptions> tradingOptions)
@@ -43,16 +44,24 @@ public sealed class ResetPortfolioCommandHandler(
 
             var resetAt = clock.UtcNow;
             var nextEligibleAt = resetAt.AddMinutes(tradingOptions.Value.PortfolioResetCooldownMinutes);
-            var availableBalance = wallet.TotalBalance - wallet.ReservedBalance;
+            var resetWallet = await portfolioRepository.ResetForUserAsync(
+                userId.Value,
+                tradingOptions.Value.InitialVirtualCash,
+                resetAt,
+                cancellationToken);
+            if (resetWallet is null)
+            {
+                return PortfolioResetErrors.WalletNotFound;
+            }
 
             return new PortfolioResetResponse(
                 resetAt,
                 nextEligibleAt,
                 new PortfolioResetWalletSnapshot(
-                    wallet.TotalBalance,
-                    wallet.ReservedBalance,
-                    availableBalance,
-                    wallet.Currency));
+                    resetWallet.TotalBalance,
+                    resetWallet.ReservedBalance,
+                    resetWallet.AvailableBalance,
+                    resetWallet.Currency));
         }
         finally
         {

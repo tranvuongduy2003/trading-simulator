@@ -68,6 +68,7 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDatabaseContextFactory, ApplicationDatabaseContextFactory>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPortfolioRepository, PortfolioRepository>();
         services.AddScoped<IWalletReadRepository, WalletReadRepository>();
         services.AddScoped<IPortfolioReadRepository, PortfolioReadRepository>();
         services.AddScoped<ISessionStore, SessionStore>();

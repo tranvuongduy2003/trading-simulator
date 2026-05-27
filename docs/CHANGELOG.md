@@ -2,6 +2,15 @@
 
 All notable project and process changes are tracked here.
 
+## 2026-05-27
+
+- plan: portfolio reset story 2 - restore starting cash and empty holdings (`docs/plans/20260527-193700-portfolio-reset-story-2.md`, issue #45)
+- impl: portfolio reset story 2 Task 1 — reset integration scaffolding (`ResetPortfolio_WithoutSession_Returns401_NoResetRow`, depleted-wallet and holdings-clear Story 2 scenarios) with targeted `ResetPortfolioTests` run isolating holdings clear as remaining red gap on `feature/portfolio-reset-story-2`
+- impl: portfolio reset story 2 Task 2 — transactional reset persistence (`IPortfolioRepository.ResetForUserAsync`) now resets wallet to initial cash, clears holdings, inserts `portfolio_resets` row, and returns reset snapshot; targeted `ResetPortfolioTests` 5/5 green on `feature/portfolio-reset-story-2`
+- impl: portfolio reset story 2 Task 3 — read-your-writes verification test names aligned to plan and assertions tightened: reset response wallet snapshot matches immediate `GET /api/wallet`, and `GET /api/portfolio` returns empty holdings after reset
+- impl: portfolio reset story 2 Task 4 — rollback proof via deterministic failing repository (`FailingPortfolioRepository`): `POST /api/portfolio/reset` returns 500 and integration assertions confirm wallet/holdings remain unchanged after failure (`ResetPortfolioTests` 6/6 green)
+- impl: portfolio reset story 2 Task 5 — closure verification and guardrails: `ResetPortfolioTests` 6/6 green, `Domain.UnitTests` 27/27 green regression, `yarn --cwd web api:verify` green, and Story 3/4 deferrals reaffirmed in plan
+
 ## 2026-05-25
 
 - impl: portfolio reset story 1 **Tasks 1–5** (automation) — `POST /api/portfolio/reset` stub (ADR-005), confirmation dialog, in-flight **409**, client cooldown + toast, **13** `GetMyWallet`/`ResetPortfolio` integration tests, `api:verify`, `yarn build`; `GET /api/wallet` `.RequireAuthorization()`; manual UI checklist pending; branch `feature/portfolio-reset-story-1` (closes #44)
