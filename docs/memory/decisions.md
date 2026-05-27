@@ -82,6 +82,17 @@ If a decision changes, add a new entry and mark the old one as superseded.
 
 ---
 
+## ADR-008: Post-reset client cache strategy (US-04 Story 5)
+
+- Date: 2026-05-28
+- Status: Accepted
+- Context: After `POST /api/portfolio/reset` succeeds, every portfolio-related surface (wallet chip, virtual cash card, holdings, open orders, order history, trade history) must show post-reset figures within ~2 s without logout. Server reset work and SignalR notifications already exist from Stories 2–3; the gap was TanStack Query cache coordination on the web client.
+- Decision: On reset success, (1) persist cooldown from the 200 body, (2) **seed** `['wallet', userId]` from the authoritative `wallet` snapshot in the response via `seedWalletQueryData`, then (3) **invalidate** all panel query prefixes (`wallet`, `portfolio`, `orders/open`, `orders/history`, `trades`) through `invalidatePortfolioPanels`. Panel hooks use `staleTime: 0` and `refetchOnWindowFocus: true` (aligned with virtual cash Story 4) so multi-tab stale data recovers on focus. SignalR `BalanceUpdated` and `OrderCancellationNotified` invalidate the same prefixes as a secondary path; POST success always invalidates even if hub delivery fails. Never hardcode `$100,000` in JSX — display comes from API/cache; if `GET /api/wallet` refetch fails after seeding, show the existing wallet error state.
+- Consequences: Read-your-writes for cash is immediate from the 200 body; other panels rely on refetch after invalidation. Only wallet is seeded today (reset response does not include portfolio/orders). Logout clears `orders` and `trades` cache prefixes alongside wallet/portfolio. Future: optional `setQueryData` for other panels if the reset response grows.
+- Supersedes: None
+
+---
+
 ## Template
 - Date: YYYY-MM-DD
 - Status: Proposed | Accepted | Superseded
