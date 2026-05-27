@@ -25,4 +25,9 @@ public sealed record PortfolioResetWriteModel(
     decimal TotalBalance,
     decimal ReservedBalance,
     decimal AvailableBalance,
-    string Currency);
+    string Currency,
+    IReadOnlyList<PortfolioResetCancelledOrderWriteModel> CancelledOrders);
+
+public sealed record PortfolioResetCancelledOrderWriteModel(
+    Guid OrderId,
+    string Symbol);

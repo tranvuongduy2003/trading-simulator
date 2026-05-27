@@ -3,16 +3,19 @@ using TradingSimulator.Application.Abstractions.Auth;
 using TradingSimulator.Application.Abstractions.Messaging;
 using TradingSimulator.Application.Abstractions.Persistence;
 using TradingSimulator.Application.Abstractions.Portfolios;
+using TradingSimulator.Application.Abstractions.Realtime;
 using TradingSimulator.Application.Abstractions.Services;
 using TradingSimulator.Application.Common;
 using TradingSimulator.Application.Options;
 using TradingSimulator.Contracts.Portfolio;
+using TradingSimulator.Contracts.Realtime;
 
 namespace TradingSimulator.Application.Portfolios.Commands;
 
 public sealed class ResetPortfolioCommandHandler(
     ICurrentUserAccessor currentUserAccessor,
     IPortfolioResetWriteRepository portfolioResetWriteRepository,
+    IRealtimeNotificationPublisher realtimeNotificationPublisher,
     IResetInFlightGuard resetInFlightGuard,
     IClock clock,
     IOptions<TradingOptions> tradingOptions)
@@ -48,6 +51,32 @@ public sealed class ResetPortfolioCommandHandler(
             }
 
             var nextEligibleAt = resetAt.AddMinutes(tradingOptions.Value.PortfolioResetCooldownMinutes);
+
+            foreach (var cancelledOrder in wallet.CancelledOrders)
+            {
+                await realtimeNotificationPublisher.NotifyOrderCancellationAsync(
+                    userId.Value.Value,
+                    new OrderCancellationNotificationMessage(cancelledOrder.OrderId, cancelledOrder.Symbol, resetAt),
+                    cancellationToken);
+            }
+
+            foreach (var symbol in wallet.CancelledOrders.Select(cancelledOrder => cancelledOrder.Symbol).Distinct())
+            {
+                await realtimeNotificationPublisher.PublishOrderBookUpdatedAsync(
+                    symbol,
+                    new OrderBookUpdatedMessage(symbol, [], [], resetAt),
+                    cancellationToken);
+            }
+
+            await realtimeNotificationPublisher.NotifyBalanceUpdatedAsync(
+                userId.Value.Value,
+                new BalanceUpdatedMessage(
+                    userId.Value.Value,
+                    wallet.TotalBalance,
+                    wallet.ReservedBalance,
+                    wallet.AvailableBalance,
+                    resetAt),
+                cancellationToken);
 
             return new PortfolioResetResponse(
                 resetAt,

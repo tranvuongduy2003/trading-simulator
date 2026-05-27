@@ -6,6 +6,7 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
+- Portfolio reset **Story 3 Tasks 1–5** automation complete on `feature/portfolio-reset-story-3`; manual Aspire checklist handed off to operator (GitHub #46)
 - Portfolio reset **Story 2** Tasks 1–4 automation complete on `feature/portfolio-reset-story-2-local`; manual Aspire checklist remains operator step (GitHub #45)
 - Portfolio reset **Story 1** automation **complete** on `feature/portfolio-reset-story-1` — operator manual UI checklist + PR → `main` (closes #44)
 - Virtual cash balance **Story 4** automation complete on `feature/virtual-cash-story-4` — open PR → `main` (closes #37); operator manual UI checklist pending (plan §Manual UI checklist)
@@ -15,6 +16,12 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- plan: portfolio reset story 3 — cancel open orders and clear activity history (`docs/plans/20260527-214600-portfolio-reset-story-3.md`, GitHub #46)
+- impl: portfolio reset story 3 **Task 1** — added `/api/orders/open`, `/api/orders/history`, `/api/trades` read slice with reset cutoff filtering + integration tests; targeted tests + solution build green (`feature/portfolio-reset-story-3`)
+- impl: portfolio reset story 3 **Task 2** — reset transaction now cancels current-user open orders and keeps reset invariants with integration coverage for cancellation scope + reservation-safe outcomes; targeted tests + solution build green (`feature/portfolio-reset-story-3`)
+- impl: portfolio reset story 3 **Task 3** — reset command now publishes cancellation + market book refresh + balance realtime notifications, with integration verification via capturing publisher fake; targeted tests + solution build green (`feature/portfolio-reset-story-3`)
+- impl: portfolio reset story 3 **Task 4** — added deterministic edge-case integration coverage for no-data reset, partially-filled history hidden after reset, and counterparty history visibility; targeted tests + solution build green (`feature/portfolio-reset-story-3`)
+- impl: portfolio reset story 3 **Task 5** — ADR-007 added for read-cutoff history strategy; focused reset/order/trade integration regression green (20 tests); manual Aspire checklist explicitly handed off (`feature/portfolio-reset-story-3`)
 - impl: portfolio reset story 1 **Tasks 1–5** (automation) — POST stub, dialog, 409 guard, eligibility UX, ADR-005, **13** wallet/reset integration tests + `api:verify` + `yarn build`; manual UI checklist pending; branch `feature/portfolio-reset-story-1`
 - impl: portfolio reset story 2 **Task 1** — reset handler now uses write repository port, DI wired, build green (`feature/portfolio-reset-story-2-local`)
 - impl: portfolio reset story 2 **Task 2** — repository now persists wallet reset + holdings delete + portfolio reset audit; added reset integration scenarios and helper; reset test subset + solution build green (`feature/portfolio-reset-story-2-local`)
@@ -41,6 +48,7 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
+- Operator: portfolio reset story 3 manual Aspire checklist (Open Orders, Order History, Trade History, Holdings tabs)
 - Manual: portfolio reset story 2 Aspire checklist (plan §Manual UI checklist)
 - Open PR `feature/portfolio-reset-story-1` → `main` (closes #44 when merged)
 - Manual: portfolio reset story 1 checklist (7 steps in plan)

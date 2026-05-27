@@ -71,6 +71,17 @@ If a decision changes, add a new entry and mark the old one as superseded.
 
 ---
 
+## ADR-007: Portfolio reset history clearing uses read cutoff
+
+- Date: 2026-05-27
+- Status: Accepted
+- Context: Story 3 requires the user's order/trade history to appear cleared after reset while preserving immutable market records and foreign-key integrity in `trades`/`orders`.
+- Decision: Keep `orders` and `trades` rows intact and apply a per-user read cutoff using the latest `portfolio_resets.reset_at` timestamp in `GetMyOrderHistory`, `GetMyTradeHistory`, and reset-sensitive open-order reads. Reset writes remain fully transactional (cancel opens, release reservations, reset wallet/holdings, insert reset audit row), and visibility semantics are enforced on read models.
+- Consequences: No destructive data deletion is required for history clearing; market/audit integrity is preserved, and another user's history remains visible to them. Query handlers/repositories must consistently apply cutoff logic and keep pagination defaults aligned with PRD requirements.
+- Supersedes: None
+
+---
+
 ## Template
 - Date: YYYY-MM-DD
 - Status: Proposed | Accepted | Superseded

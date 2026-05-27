@@ -36,6 +36,7 @@ internal static class PortfolioResetTestHelpers
         string symbol,
         long quantity,
         decimal averagePrice,
+        long reservedQuantity = 0,
         CancellationToken cancellationToken = default)
     {
         await using var scope = fixture.Factory.Services.CreateAsyncScope();
@@ -53,7 +54,7 @@ internal static class PortfolioResetTestHelpers
                 PortfolioId = portfolioId,
                 Symbol = symbol,
                 TotalQuantity = quantity,
-                ReservedQuantity = 0,
+                ReservedQuantity = reservedQuantity,
                 AveragePrice = averagePrice,
                 UpdatedAt = DateTimeOffset.UtcNow,
             },
@@ -71,5 +72,45 @@ internal static class PortfolioResetTestHelpers
         var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
         return await databaseContext.PortfolioResets
             .CountAsync(portfolioReset => portfolioReset.UserId == userId, cancellationToken);
+    }
+
+    public static async Task<Guid> SeedOpenOrderAsync(
+        IntegrationTestFixture fixture,
+        Guid userId,
+        short side,
+        short type,
+        decimal? price,
+        long originalQuantity,
+        long filledQuantity,
+        short status,
+        string symbol = "AAPL",
+        CancellationToken cancellationToken = default)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+
+        var now = DateTimeOffset.UtcNow;
+        var orderId = Guid.NewGuid();
+
+        await databaseContext.Orders.AddAsync(
+            new OrderRecord
+            {
+                Id = orderId,
+                UserId = userId,
+                Symbol = symbol,
+                Side = side,
+                Type = type,
+                Price = price,
+                OriginalQuantity = originalQuantity,
+                FilledQuantity = filledQuantity,
+                Status = status,
+                IsSimulated = false,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            cancellationToken);
+
+        await databaseContext.SaveChangesAsync(cancellationToken);
+        return orderId;
     }
 }
