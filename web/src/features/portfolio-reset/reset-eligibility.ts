@@ -48,7 +48,10 @@ export function isResetAllowed(userId: string | null, now: number = Date.now()):
   return now >= nextEligibleAt.getTime()
 }
 
-export function formatResetUnavailableHint(userId: string | null, now: number = Date.now()): string | null {
+export function formatResetUnavailableHint(
+  userId: string | null,
+  now: number = Date.now(),
+): string | null {
   const nextEligibleAt = getNextEligibleAt(userId)
   if (!nextEligibleAt || now >= nextEligibleAt.getTime()) {
     return null

@@ -35,8 +35,12 @@ function UserMenu() {
   const userId = useAuthStore((state) => state.userId)
   const username = useAuthStore((state) => state.username)
   const { logout, isPending: isLogoutPending } = useLogout()
-  const { resetPortfolio, isPending: isResetPending, errorMessage, clearError } =
-    useResetPortfolio()
+  const {
+    resetPortfolio,
+    isPending: isResetPending,
+    errorMessage,
+    clearError,
+  } = useResetPortfolio()
   const { isResetAllowed, disabledHint } = useResetEligibility(userId)
 
   const isPending = isLogoutPending || isResetPending
@@ -57,68 +61,68 @@ function UserMenu() {
 
   return (
     <>
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        className={cn(
-          'hover:bg-accent/50 focus-visible:ring-ring inline-flex h-9 items-center gap-2 rounded-md px-2 text-sm font-medium outline-none focus-visible:ring-2',
-        )}
-        aria-label="User menu"
-        disabled={isPending}
-      >
-        <Avatar size="sm">
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
-        <span className="max-w-[10rem] truncate">{displayName}</span>
-        {isPending ? <Spinner className="size-4" /> : null}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-40">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="font-normal">
-            <span className="text-muted-foreground text-xs">Signed in as</span>
-            <span className="block truncate font-medium">{displayName}</span>
-          </DropdownMenuLabel>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          disabled={isResetMenuDisabled}
-          title={disabledHint ?? undefined}
-          onSelect={() => {
-            if (!isResetAllowed) {
-              return
-            }
-
-            clearError()
-            setResetDialogOpen(true)
-          }}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className={cn(
+            'hover:bg-accent/50 focus-visible:ring-ring inline-flex h-9 items-center gap-2 rounded-md px-2 text-sm font-medium outline-none focus-visible:ring-2',
+          )}
+          aria-label="User menu"
+          disabled={isPending}
         >
-          <RotateCcwIcon />
-          Reset portfolio
-        </DropdownMenuItem>
-        <DropdownMenuItem variant="destructive" disabled={isPending} onClick={() => logout()}>
-          <LogOutIcon />
-          Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-    <ResetPortfolioDialog
-      open={resetDialogOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          clearError()
-        }
+          <Avatar size="sm">
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <span className="max-w-[10rem] truncate">{displayName}</span>
+          {isPending ? <Spinner className="size-4" /> : null}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-40">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="font-normal">
+              <span className="text-muted-foreground text-xs">Signed in as</span>
+              <span className="block truncate font-medium">{displayName}</span>
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={isResetMenuDisabled}
+            title={disabledHint ?? undefined}
+            onSelect={() => {
+              if (!isResetAllowed) {
+                return
+              }
 
-        setResetDialogOpen(open)
-      }}
-      isPending={isResetPending}
-      errorMessage={errorMessage}
-      onConfirm={() => {
-        resetPortfolio(undefined, {
-          onSuccess: () => {
-            setResetDialogOpen(false)
-          },
-        })
-      }}
-    />
+              clearError()
+              setResetDialogOpen(true)
+            }}
+          >
+            <RotateCcwIcon />
+            Reset portfolio
+          </DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" disabled={isPending} onClick={() => logout()}>
+            <LogOutIcon />
+            Log out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <ResetPortfolioDialog
+        open={resetDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            clearError()
+          }
+
+          setResetDialogOpen(open)
+        }}
+        isPending={isResetPending}
+        errorMessage={errorMessage}
+        onConfirm={() => {
+          resetPortfolio(undefined, {
+            onSuccess: () => {
+              setResetDialogOpen(false)
+            },
+          })
+        }}
+      />
     </>
   )
 }
