@@ -1,10 +1,17 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using TradingSimulator.Application.Abstractions.Persistence;
+using TradingSimulator.Application.Common;
+using TradingSimulator.Application.Users.Commands;
 
 namespace TradingSimulator.Infrastructure.Persistence;
 
 internal sealed class UnitOfWork(ApplicationDatabaseContext databaseContext) : IUnitOfWork
 {
+    private const string UniqueViolationSqlState = "23505";
+    private const string UsernameUniqueConstraint = "ux_users_username";
+    private const string EmailUniqueConstraint = "ux_users_email";
+
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
         databaseContext.SaveChangesAsync(cancellationToken);
 
@@ -16,4 +23,33 @@ internal sealed class UnitOfWork(ApplicationDatabaseContext databaseContext) : I
 
     public bool IsConcurrencyConflict(Exception exception) =>
         exception is DbUpdateConcurrencyException;
+
+    public bool TryMapPersistenceException(Exception exception, out Error? error)
+    {
+        error = null;
+
+        if (exception is not DbUpdateException dbUpdateException)
+        {
+            return false;
+        }
+
+        if (dbUpdateException.InnerException is not PostgresException postgresException)
+        {
+            return false;
+        }
+
+        if (postgresException.SqlState != UniqueViolationSqlState)
+        {
+            return false;
+        }
+
+        error = postgresException.ConstraintName switch
+        {
+            UsernameUniqueConstraint => RegistrationErrors.UsernameTaken,
+            EmailUniqueConstraint => RegistrationErrors.EmailTaken,
+            _ => null
+        };
+
+        return error is not null;
+    }
 }

@@ -10,6 +10,7 @@ using TradingSimulator.Api.IntegrationTests.Integration;
 using TradingSimulator.Api.IntegrationTests.Users.Fakes;
 using TradingSimulator.Application.Abstractions.Cache;
 using TradingSimulator.Application.Abstractions.Persistence;
+using TradingSimulator.Application.Users.Commands;
 using TradingSimulator.Contracts.Users;
 using TradingSimulator.Infrastructure.Persistence;
 using TradingSimulator.Testing.Common.Fixtures;
@@ -144,9 +145,13 @@ public sealed class RegisterUserTransientFailureTests(IntegrationTestFixture fix
             nonCreated.Should().ContainSingle();
 
             var secondStatus = nonCreated[0].StatusCode;
-            secondStatus.Should().BeOneOf(
-                HttpStatusCode.UnprocessableEntity,
-                HttpStatusCode.InternalServerError);
+            secondStatus.Should().Be(HttpStatusCode.UnprocessableEntity);
+
+            var problem = await nonCreated[0].Content.ReadFromJsonAsync<ApiProblemDetails>();
+            problem.Should().NotBeNull();
+            problem!.Code.Should().BeOneOf(
+                RegistrationErrors.UsernameTakenCode,
+                RegistrationErrors.EmailTakenCode);
         }
         finally
         {

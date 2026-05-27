@@ -59,6 +59,11 @@ public sealed class UnitOfWorkBehavior<TRequest, TResponse>(
                     backoff);
                 await Task.Delay(backoff, cancellationToken);
             }
+            catch (Exception ex) when (unitOfWork.TryMapPersistenceException(ex, out var error))
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return ResultFactory.CreateFailure<TResponse>(error!);
+            }
             catch
             {
                 await transaction.RollbackAsync(cancellationToken);

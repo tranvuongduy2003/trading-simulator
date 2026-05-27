@@ -39,9 +39,9 @@ React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, **TanStack Query**, **Zustan
 
 ```tsx
 const walletQuery = useQuery({
-  queryKey: ['wallet'],
+  queryKey: ['wallet', userId],
   queryFn: ({ signal }) => api.wallet.get({ signal }),
-  staleTime: 30_000,
+  staleTime: 0,
 });
 ```
 
