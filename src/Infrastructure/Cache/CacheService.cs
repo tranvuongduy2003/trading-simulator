@@ -25,6 +25,23 @@ internal sealed class CacheService(
         }
     }
 
+    public async Task<string?> GetStringAsync(string key, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var value = await connectionMultiplexer
+                .GetDatabase()
+                .StringGetAsync(key);
+
+            return value.HasValue ? value.ToString() : null;
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Cache get failed for {Key}", key);
+            return null;
+        }
+    }
+
     public async Task SetAsync(
         string key,
         string value,

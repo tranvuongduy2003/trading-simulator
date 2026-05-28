@@ -4,6 +4,8 @@ public interface ICacheService
 {
     Task<bool> KeyExistsAsync(string key, CancellationToken cancellationToken = default);
 
+    Task<string?> GetStringAsync(string key, CancellationToken cancellationToken = default);
+
     Task SetAsync(
         string key,
         string value,

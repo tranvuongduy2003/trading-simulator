@@ -1,3 +1,6 @@
+import { TopOfBookStrip } from '@/features/market/components/top-of-book-strip'
+import { useOrderBookQuery } from '@/features/market/hooks/use-order-book-query'
+import { deriveTopOfBook } from '@/features/market/top-of-book-display'
 import { PortfolioActivityTabs } from '@/features/trading/components/portfolio-activity-tabs'
 import { VirtualCashCard } from '@/features/trading/components/virtual-cash-card'
 import { useWalletQuery } from '@/features/trading/hooks/use-wallet-query'
@@ -8,6 +11,7 @@ import { useAuthStore } from '@/store/auth-store'
 export function TradingPage() {
   const sessionUserId = useAuthStore((state) => state.userId)
   const walletQuery = useWalletQuery()
+  const orderBookQuery = useOrderBookQuery()
 
   const walletUnauthorized =
     walletQuery.isError && walletQuery.error instanceof ApiError && walletQuery.error.status === 401
@@ -21,6 +25,8 @@ export function TradingPage() {
 
   const showWalletError = walletQuery.isError || (walletQuery.isSuccess && !displayWallet)
 
+  const topOfBookDisplay = orderBookQuery.isSuccess ? deriveTopOfBook(orderBookQuery.data) : null
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
@@ -30,7 +36,16 @@ export function TradingPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:max-w-md">
+      <div className="grid gap-4 md:max-w-2xl">
+        <TopOfBookStrip
+          isPending={orderBookQuery.isPending}
+          isError={orderBookQuery.isError}
+          display={topOfBookDisplay}
+          onRetry={() => {
+            void orderBookQuery.refetch()
+          }}
+        />
+
         <VirtualCashCard
           isPending={walletQuery.isPending}
           isError={showWalletError}

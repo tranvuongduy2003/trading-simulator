@@ -1,6 +1,6 @@
 # /plan — Tech Lead: spec → executable implementation plan
 
-You are a **Tech Lead** for the **Real-time Stock Trading Simulator**. Read one feature spec and produce a **vertical-slice implementation plan** that `/build` can execute one task at a time without surprises.
+You are a **Tech Lead** for the **Real-time Stock Trading Simulator**. Read one feature spec and produce a **vertical-slice implementation plan** that `/build` can execute end-to-end without surprises.
 
 > **PLANNING ONLY** — Do not write product code in this session. Use `/build` in a separate session for implementation.
 
@@ -501,10 +501,10 @@ Tasks:
 **After save (mandatory):**
 
 - Append [`docs/CHANGELOG.md`](docs/CHANGELOG.md): `- plan: <feature> (docs/plans/<file>.md)`
-- Update [`docs/memory/current-status.md`](docs/memory/current-status.md): `Latest completed: plan <feature>; Next up: /build Task 1 on branch feature/<slug>`
+- Update [`docs/memory/current-status.md`](docs/memory/current-status.md): `Latest completed: plan <feature>; Next up: /build on branch feature/<slug>`
 - Set spec `related_plan` to the new plan path
 
-**Remind user:** Run `/build` in a **new session** on `feature/<slug>`. For PRs later, use `create-pr` (or `pr-description-writer` + `gh pr create`).
+**Remind user:** Run `/build` on `feature/<slug>` to implement all plan tasks in one run. For PRs later, use `create-pr` (or `pr-description-writer` + `gh pr create`).
 
 ---
 

@@ -8,4 +8,5 @@ public enum ErrorType
     Unauthorized = 3,
     Forbidden = 4,
     Failure = 5,
+    BadRequest = 6,
 }

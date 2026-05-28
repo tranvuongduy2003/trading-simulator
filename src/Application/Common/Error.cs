@@ -33,6 +33,9 @@ public sealed record Error
         IReadOnlyDictionary<string, string[]> validationErrors) =>
         new(ValidationFailedCode, message, ErrorType.Validation, validationErrors, null);
 
+    public static Error BadRequest(string code, string message) =>
+        new(code, message, ErrorType.BadRequest, null, null);
+
     public static Error Validation(string code, string message) =>
         new(code, message, ErrorType.Validation, null, null);
 
