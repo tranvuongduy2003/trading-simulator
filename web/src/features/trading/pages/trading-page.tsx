@@ -36,7 +36,7 @@ export function TradingPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:max-w-2xl">
+      <div className="grid gap-4 md:max-w-3xl">
         <TopOfBookStrip
           isPending={orderBookQuery.isPending}
           isError={orderBookQuery.isError}

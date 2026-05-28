@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-29 (US-05 Story 1 implementation)
+Last updated: 2026-05-29 (US-05 Story 3 implementation)
 
 Owner: @tranvuongduy2003
 
@@ -15,11 +15,13 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
-- US-05 Story 1: best bid/ask — **implementation complete** on `feature/best-bid-ask-story-1` (GitHub #58); manual UI checklist pending operator
-- Open PR / merge Story 1 when ready
+- US-05 Story 3: spread and mid-price — **implementation complete** on `feature/best-bid-ask-story-3` (GitHub #60); manual UI checklist pending operator
+- PR `feature/best-bid-ask-story-3` → `main` when ready (closes #60)
 
 ## Latest Completed
 
+- impl: US-05 Story 3 — spread/mid metrics + strip UI (`feature/best-bid-ask-story-3`, #60); `yarn lint` + `yarn build` green
+- plan: US-05 Story 3 — spread and mid (`docs/plans/20260529-220000-best-bid-ask-story-3.md`, #60)
 - impl: US-05 Story 1 — market order book snapshot API + top-of-book strip (`feature/best-bid-ask-story-1`, #58); Api integration **96** passed; `web api:verify` + `yarn build` green
 - plan: Best bid and ask Story 1 — initial snapshot (`docs/plans/20260529-120000-best-bid-ask-story-1.md`, #58)
 - spec: Best bid and ask display US-05 (`docs/specs/20260529-010501-best-bid-ask.md`)
@@ -27,12 +29,12 @@ Owner: @tranvuongduy2003
 
 ## In Progress
 
-- Operator: US-05 Story 1 manual UI checklist (plan §Manual UI checklist) on Aspire
+- Operator: US-05 Story 3 manual UI checklist (plan §Manual UI checklist) on Aspire
 - Operator: portfolio reset story 5 manual UI checklist (plan §Manual UI checklist) on Aspire
 
 ## Next Up
 
-- PR `feature/best-bid-ask-story-1` → `main` (closes #58)
+- PR `feature/best-bid-ask-story-3` → `main` (closes #60)
 - US-05 Story 2 (#59) — SignalR live top-of-book updates
 
 ## Blockers

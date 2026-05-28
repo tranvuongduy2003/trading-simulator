@@ -4,6 +4,8 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-29
 
+- impl: US-05 Story 3 — client-side spread/mid on top-of-book strip (`feature/best-bid-ask-story-3`, GitHub #60)
+- plan: US-05 Story 3 — spread and mid-price beside touch (`docs/plans/20260529-220000-best-bid-ask-story-3.md`, GitHub #60)
 - impl: US-05 Story 1 — `GET /api/market/orderbook`, Redis read + PostgreSQL fallback, `TopOfBookStrip` on trading page, **5** `GetOrderBookSnapshotTests`, OpenAPI export; branch `feature/best-bid-ask-story-1` (GitHub #58)
 - plan: Best bid and ask Story 1 — initial snapshot (`docs/plans/20260529-120000-best-bid-ask-story-1.md`, GitHub #58)
 - spec: Best bid and ask display (US-05) (`docs/specs/20260529-010501-best-bid-ask.md`)
