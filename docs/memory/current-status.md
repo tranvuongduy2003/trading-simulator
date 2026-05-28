@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-29
+Last updated: 2026-05-29 (US-05 spec)
 
 Owner: @tranvuongduy2003
 
@@ -20,6 +20,7 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- spec: Best bid and ask display US-05 (`docs/specs/20260529-010501-best-bid-ask.md`)
 - verify: account-management epic close **Task 6** — ran final verification matrix (Domain Users **22**, Api Users + ResetPortfolio **85**, `web api:verify`, `web build`), synced memory/changelog, and promoted close plan status to `approved` (administrative close; manual sign-off still deferred by prior waiver)
 - impl: account-management epic close **Task 5** — mapped Postgres unique-violation (`23505`) for register constraints (`ux_users_username`, `ux_users_email`) to 422 (`USERNAME_TAKEN` / `EMAIL_TAKEN`) in UoW path; tightened parallel register race test to require 422; `RegisterUserTransientFailureTests` green (**4**)
 - docs: account-management epic close **Task 4** — synced `frontend.mdc` wallet query example to ADR-008 (`['wallet', userId]`, `staleTime: 0`) and removed stale RegisterUserSession local-Postgres note from memory docs
