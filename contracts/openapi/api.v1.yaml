@@ -114,6 +114,52 @@ components:
         - status
         - createdAt
       type: object
+    OrderBookLevelResponse:
+      properties:
+        orderCount:
+          format: int32
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+        price:
+          format: double
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+        quantity:
+          format: int64
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+      required:
+        - price
+        - quantity
+        - orderCount
+      type: object
+    OrderBookSnapshotResponse:
+      properties:
+        asks:
+          items:
+            $ref: "#/components/schemas/OrderBookLevelResponse"
+          type: array
+        bids:
+          items:
+            $ref: "#/components/schemas/OrderBookLevelResponse"
+          type: array
+        symbol:
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - symbol
+        - bids
+        - asks
+        - updatedAt
+      type: object
     OrderHistoryItemDto:
       properties:
         createdAt:
@@ -530,6 +576,42 @@ paths:
           description: OK
       tags:
         - Health
+  /api/market/orderbook:
+    get:
+      operationId: GetOrderBookSnapshot
+      parameters:
+        - in: query
+          name: symbol
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: depth
+          schema:
+            format: int32
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBookSnapshotResponse"
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+          description: Internal Server Error
+      tags:
+        - Market
   /api/orders/history:
     get:
       operationId: GetMyOrderHistory
@@ -725,6 +807,7 @@ paths:
 tags:
   - name: Health
   - name: Auth
+  - name: Market
   - name: Orders
   - name: Portfolio
   - name: Trades

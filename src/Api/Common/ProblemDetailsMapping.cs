@@ -9,6 +9,7 @@ internal static class ProblemDetailsMapping
     public static int ToStatusCode(ErrorType type) =>
         type switch
         {
+            ErrorType.BadRequest => StatusCodes.Status400BadRequest,
             ErrorType.Validation => StatusCodes.Status422UnprocessableEntity,
             ErrorType.NotFound => StatusCodes.Status404NotFound,
             ErrorType.Conflict => StatusCodes.Status409Conflict,
