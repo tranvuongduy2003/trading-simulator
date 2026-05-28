@@ -2,6 +2,10 @@
 
 All notable project and process changes are tracked here.
 
+## 2026-05-29
+
+- spec: Best bid and ask display (US-05) (`docs/specs/20260529-010501-best-bid-ask.md`)
+
 ## 2026-05-28
 
 - verify: account-management close plan Task 6 — final verification matrix green (Domain Users **22**, Api Users + ResetPortfolio **85**, `web api:verify`, `web build`), memory/changelog synchronized, and close plan promoted to `status: approved` (administrative close with manual operator sign-off still deferred)
