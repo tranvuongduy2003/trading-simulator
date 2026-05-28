@@ -32,10 +32,24 @@ export function useSimulationHub() {
     const removeBridge = simulationHubClient.addMessageInterceptor(
       createSimulationHubQueryBridge(queryClient),
     )
+    const removeLifecycle = simulationHubClient.addLifecycleInterceptor(async (event) => {
+      if (event.type !== 'reconnected') {
+        return
+      }
+
+      try {
+        await simulationHubClient.subscribeToMarket(env.defaultSymbol)
+        await simulationHubClient.subscribeToUserNotifications()
+        await queryClient.invalidateQueries({ queryKey: ['market', 'orderbook', 'AAPL'] })
+      } catch (error) {
+        console.error('Simulation hub reconnect resubscribe failed', error)
+      }
+    })
 
     return () => {
       removeDebug()
       removeBridge()
+      removeLifecycle()
     }
   }, [queryClient])
 

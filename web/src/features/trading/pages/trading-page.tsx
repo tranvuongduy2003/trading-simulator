@@ -1,4 +1,5 @@
 import { TopOfBookStrip } from '@/features/market/components/top-of-book-strip'
+import { useMarketConnectionStatus } from '@/features/market/hooks/use-market-connection-status'
 import { useOrderBookQuery } from '@/features/market/hooks/use-order-book-query'
 import { deriveTopOfBook } from '@/features/market/top-of-book-display'
 import { PortfolioActivityTabs } from '@/features/trading/components/portfolio-activity-tabs'
@@ -12,6 +13,7 @@ export function TradingPage() {
   const sessionUserId = useAuthStore((state) => state.userId)
   const walletQuery = useWalletQuery()
   const orderBookQuery = useOrderBookQuery()
+  const showReconnectingBadge = useMarketConnectionStatus()
 
   const walletUnauthorized =
     walletQuery.isError && walletQuery.error instanceof ApiError && walletQuery.error.status === 401
@@ -41,6 +43,7 @@ export function TradingPage() {
           isPending={orderBookQuery.isPending}
           isError={orderBookQuery.isError}
           display={topOfBookDisplay}
+          showReconnectingBadge={showReconnectingBadge}
           onRetry={() => {
             void orderBookQuery.refetch()
           }}

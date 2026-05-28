@@ -1,6 +1,11 @@
 import type { QueryClient } from '@tanstack/react-query'
 
+import { mapOrderBookUpdatedToSnapshot } from '@/features/market/order-book-from-realtime'
+import type { OrderBookUpdatedMessage } from '@/types/realtime'
+
 import type { SimulationHubMessageInterceptor } from './types'
+
+const orderBookQueryKey = ['market', 'orderbook', 'AAPL'] as const
 
 /** Logs inbound hub messages during local development. */
 export const simulationHubDebugInterceptor: SimulationHubMessageInterceptor = (message) => {
@@ -30,7 +35,8 @@ export function createSimulationHubQueryBridge(
     }
 
     if (message.name === 'onOrderBookUpdated') {
-      queryClient.invalidateQueries({ queryKey: ['market', 'orderbook'] })
+      const snapshot = mapOrderBookUpdatedToSnapshot(message.payload as OrderBookUpdatedMessage)
+      queryClient.setQueryData(orderBookQueryKey, snapshot)
     }
   }
 }

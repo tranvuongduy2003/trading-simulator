@@ -4,8 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using TradingSimulator.Application.Abstractions.Auth;
 using TradingSimulator.Application.Abstractions.Cache;
+using TradingSimulator.Application.Abstractions.Market;
 using TradingSimulator.Application.Abstractions.Persistence;
 using TradingSimulator.Application.Abstractions.Portfolios;
+using TradingSimulator.Application.Market;
 using TradingSimulator.Infrastructure.Auth;
 using TradingSimulator.Infrastructure.Cache;
 using TradingSimulator.Infrastructure.Persistence;
@@ -71,6 +73,7 @@ public static class DependencyInjection
         services.AddScoped<IWalletReadRepository, WalletReadRepository>();
         services.AddScoped<IOrderReadRepository, OrderReadRepository>();
         services.AddScoped<IOrderBookSnapshotReadRepository, OrderBookSnapshotReadRepository>();
+        services.AddScoped<IOrderBookMarketDataNotifier, OrderBookMarketDataNotifier>();
         services.AddScoped<ITradeReadRepository, TradeReadRepository>();
         services.AddScoped<IPortfolioResetReadRepository, PortfolioResetReadRepository>();
         services.AddScoped<IPortfolioResetWriteRepository, PortfolioResetWriteRepository>();

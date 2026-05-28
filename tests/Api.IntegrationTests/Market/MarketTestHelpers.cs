@@ -1,12 +1,20 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Text.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using TradingSimulator.Api.Common;
 using TradingSimulator.Api.IntegrationTests.Portfolios;
+using TradingSimulator.Application.Abstractions.Cache;
 using TradingSimulator.Contracts.Users;
+using TradingSimulator.Infrastructure.Persistence;
 using TradingSimulator.Testing.Common.Fixtures;
+using TradingSimulator.Testing.Common.Integration;
+using ClientHubConnection = Microsoft.AspNetCore.SignalR.Client.HubConnection;
 
 namespace TradingSimulator.Api.IntegrationTests.Market;
 
@@ -98,4 +106,95 @@ internal static class MarketTestHelpers
         problem!.Status.Should().Be(400);
         problem.Code.Should().Be("INVALID_SYMBOL");
     }
+
+    public static async Task<ClientHubConnection> CreateConnectedSimulationHubAsync(
+        IntegrationTestWebApplicationFactory factory,
+        HttpClient authenticatedClient,
+        CancellationToken cancellationToken = default)
+    {
+        var hubUri = new Uri(authenticatedClient.BaseAddress!, "/hubs/simulation");
+        var connection = new HubConnectionBuilder()
+            .WithUrl(hubUri, httpConnectionOptions =>
+            {
+                httpConnectionOptions.HttpMessageHandlerFactory = _ => factory.Server.CreateHandler();
+                var cookieContainer = ExtractCookieContainer(authenticatedClient);
+                if (cookieContainer is not null)
+                {
+                    httpConnectionOptions.Cookies = cookieContainer;
+                }
+            })
+            .Build();
+
+        await connection.StartAsync(cancellationToken);
+        return connection;
+    }
+
+    public static async Task ClearUserMarketStateAsync(
+        IntegrationTestFixture fixture,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+        await databaseContext.Orders
+            .Where(orderRecord => orderRecord.UserId == userId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
+        await cacheService.DeleteAsync("orderbook:AAPL:snapshot", cancellationToken);
+    }
+
+    public static async Task WaitUntilAsync(
+        Func<bool> condition,
+        TimeSpan timeout,
+        TimeSpan pollInterval)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (DateTime.UtcNow < deadline)
+        {
+            if (condition())
+            {
+                return;
+            }
+
+            await Task.Delay(pollInterval);
+        }
+
+        throw new TimeoutException("Condition was not met before the timeout elapsed.");
+    }
+
+    private static CookieContainer? ExtractCookieContainer(HttpClient httpClient)
+    {
+        if (!TryGetHandler(httpClient, out var handler))
+        {
+            return null;
+        }
+
+        return FindCookieContainer(handler);
+    }
+
+    private static bool TryGetHandler(HttpClient httpClient, out HttpMessageHandler handler)
+    {
+        var field = typeof(HttpMessageInvoker).GetField(
+            "_handler",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        if (field?.GetValue(httpClient) is HttpMessageHandler resolvedHandler)
+        {
+            handler = resolvedHandler;
+            return true;
+        }
+
+        handler = null!;
+        return false;
+    }
+
+    private static CookieContainer? FindCookieContainer(HttpMessageHandler? handler) =>
+        handler switch
+        {
+            HttpClientHandler httpClientHandler => httpClientHandler.CookieContainer,
+            SocketsHttpHandler socketsHttpHandler => socketsHttpHandler.CookieContainer,
+            DelegatingHandler delegatingHandler => FindCookieContainer(delegatingHandler.InnerHandler),
+            _ => null,
+        };
 }
