@@ -15,12 +15,7 @@ type TopOfBookStripProps = {
   onRetry?: () => void
 }
 
-export function TopOfBookStrip({
-  isPending,
-  isError,
-  display,
-  onRetry,
-}: TopOfBookStripProps) {
+export function TopOfBookStrip({ isPending, isError, display, onRetry }: TopOfBookStripProps) {
   const symbolLabel = display?.symbol ?? 'AAPL'
 
   return (

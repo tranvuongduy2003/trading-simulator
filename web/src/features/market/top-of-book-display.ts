@@ -20,12 +20,8 @@ export function deriveTopOfBook(snapshot: OrderBookSnapshotResponse): TopOfBookD
 
   return {
     symbol: snapshot.symbol,
-    bestBid: bestBidLevel
-      ? { price: bestBidLevel.price, quantity: bestBidLevel.quantity }
-      : null,
-    bestAsk: bestAskLevel
-      ? { price: bestAskLevel.price, quantity: bestAskLevel.quantity }
-      : null,
+    bestBid: bestBidLevel ? { price: bestBidLevel.price, quantity: bestBidLevel.quantity } : null,
+    bestAsk: bestAskLevel ? { price: bestAskLevel.price, quantity: bestAskLevel.quantity } : null,
   }
 }
 

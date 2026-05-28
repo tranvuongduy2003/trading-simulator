@@ -25,8 +25,7 @@ export function TradingPage() {
 
   const showWalletError = walletQuery.isError || (walletQuery.isSuccess && !displayWallet)
 
-  const topOfBookDisplay =
-    orderBookQuery.isSuccess ? deriveTopOfBook(orderBookQuery.data) : null
+  const topOfBookDisplay = orderBookQuery.isSuccess ? deriveTopOfBook(orderBookQuery.data) : null
 
   return (
     <div className="flex flex-col gap-6">
