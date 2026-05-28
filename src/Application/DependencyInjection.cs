@@ -2,7 +2,9 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using TradingSimulator.Application.Abstractions.Auth;
+using TradingSimulator.Application.Abstractions.Realtime;
 using TradingSimulator.Application.Abstractions.Services;
+using TradingSimulator.Application.Market.Realtime;
 using TradingSimulator.Application.Behaviors;
 using TradingSimulator.Application.Options;
 using TradingSimulator.Application.Services;
@@ -30,6 +32,7 @@ public static partial class DependencyInjection
 
         services.AddSingleton<IClock, SystemClock>();
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+        services.AddScoped<IOrderBookRealtimeProjection, OrderBookRealtimeProjection>();
 
         services.AddOptions<ConcurrencyOptions>()
             .BindConfiguration(ConcurrencyOptions.SectionName);

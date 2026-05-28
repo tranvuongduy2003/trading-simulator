@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useSyncExternalStore } from 'react'
 
+import { useMarketConnectionState } from '@/hooks/use-market-connection-state'
 import { env } from '@/lib/env'
 import {
   createSimulationHubQueryBridge,
@@ -32,10 +33,21 @@ export function useSimulationHub() {
     const removeBridge = simulationHubClient.addMessageInterceptor(
       createSimulationHubQueryBridge(queryClient),
     )
+    const removeLifecycle = simulationHubClient.addLifecycleInterceptor(async (event) => {
+      if (event.type === 'reconnected') {
+        try {
+          await simulationHubClient.subscribeToMarket(env.defaultSymbol)
+          await queryClient.refetchQueries({ queryKey: ['market', 'orderbook', env.defaultSymbol] })
+        } catch (error) {
+          console.error('Simulation hub resubscribe after reconnect failed', error)
+        }
+      }
+    })
 
     return () => {
       removeDebug()
       removeBridge()
+      removeLifecycle()
     }
   }, [queryClient])
 
@@ -73,4 +85,8 @@ export function useSimulationHub() {
     connectionState,
     client: simulationHubClient,
   }
+}
+
+export function useSimulationHubReconnecting() {
+  return useMarketConnectionState()
 }

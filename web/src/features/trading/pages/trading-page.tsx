@@ -1,6 +1,7 @@
 import { TopOfBookStrip } from '@/features/market/components/top-of-book-strip'
 import { useOrderBookQuery } from '@/features/market/hooks/use-order-book-query'
 import { deriveTopOfBook } from '@/features/market/top-of-book-display'
+import { useSimulationHubReconnecting } from '@/hooks/use-simulation-hub'
 import { PortfolioActivityTabs } from '@/features/trading/components/portfolio-activity-tabs'
 import { VirtualCashCard } from '@/features/trading/components/virtual-cash-card'
 import { useWalletQuery } from '@/features/trading/hooks/use-wallet-query'
@@ -12,6 +13,7 @@ export function TradingPage() {
   const sessionUserId = useAuthStore((state) => state.userId)
   const walletQuery = useWalletQuery()
   const orderBookQuery = useOrderBookQuery()
+  const { showReconnecting } = useSimulationHubReconnecting()
 
   const walletUnauthorized =
     walletQuery.isError && walletQuery.error instanceof ApiError && walletQuery.error.status === 401
@@ -41,6 +43,7 @@ export function TradingPage() {
           isPending={orderBookQuery.isPending}
           isError={orderBookQuery.isError}
           display={topOfBookDisplay}
+          showReconnecting={showReconnecting}
           onRetry={() => {
             void orderBookQuery.refetch()
           }}

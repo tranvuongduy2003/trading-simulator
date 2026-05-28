@@ -4,6 +4,7 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-29
 
+- plan: Best bid and ask Story 2 — real-time SignalR updates (`docs/plans/20260529-203000-best-bid-ask-story-2.md`, GitHub #59)
 - impl: US-05 Story 1 — `GET /api/market/orderbook`, Redis read + PostgreSQL fallback, `TopOfBookStrip` on trading page, **5** `GetOrderBookSnapshotTests`, OpenAPI export; branch `feature/best-bid-ask-story-1` (GitHub #58)
 - plan: Best bid and ask Story 1 — initial snapshot (`docs/plans/20260529-120000-best-bid-ask-story-1.md`, GitHub #58)
 - spec: Best bid and ask display (US-05) (`docs/specs/20260529-010501-best-bid-ask.md`)

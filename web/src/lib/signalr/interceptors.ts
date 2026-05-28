@@ -1,5 +1,10 @@
 import type { QueryClient } from '@tanstack/react-query'
 
+import { env } from '@/lib/env'
+
+import { mapOrderBookUpdatedToSnapshot } from './order-book-cache'
+import type { OrderBookUpdatedMessage } from '@/types/realtime'
+
 import type { SimulationHubMessageInterceptor } from './types'
 
 /** Logs inbound hub messages during local development. */
@@ -30,7 +35,13 @@ export function createSimulationHubQueryBridge(
     }
 
     if (message.name === 'onOrderBookUpdated') {
-      queryClient.invalidateQueries({ queryKey: ['market', 'orderbook'] })
+      const orderBookMessage = message.payload as OrderBookUpdatedMessage
+      if (orderBookMessage.symbol.toUpperCase() === env.defaultSymbol.toUpperCase()) {
+        queryClient.setQueryData(
+          ['market', 'orderbook', env.defaultSymbol],
+          mapOrderBookUpdatedToSnapshot(orderBookMessage),
+        )
+      }
     }
   }
 }

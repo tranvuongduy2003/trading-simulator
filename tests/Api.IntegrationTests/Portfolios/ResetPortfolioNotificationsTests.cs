@@ -103,6 +103,7 @@ public sealed class ResetPortfolioNotificationsTests(IntegrationTestFixture fixt
             .OnlyContain(notification => notification.UserIdentifier == registration.UserId);
         capturingPublisher.OrderBookUpdates.Should().ContainSingle();
         capturingPublisher.OrderBookUpdates[0].Symbol.Should().Be("AAPL");
+        capturingPublisher.OrderBookUpdates[0].Message.UpdatedAt.Should().NotBe(default);
         capturingPublisher.BalanceUpdates.Should().ContainSingle();
         capturingPublisher.BalanceUpdates[0].Message.AvailableCash.Should().Be(100_000m);
     }

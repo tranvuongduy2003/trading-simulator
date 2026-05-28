@@ -12,18 +12,32 @@ type TopOfBookStripProps = {
   isPending: boolean
   isError: boolean
   display: TopOfBookDisplay | null
+  showReconnecting?: boolean
   onRetry?: () => void
 }
 
-export function TopOfBookStrip({ isPending, isError, display, onRetry }: TopOfBookStripProps) {
+export function TopOfBookStrip({
+  isPending,
+  isError,
+  display,
+  showReconnecting = false,
+  onRetry,
+}: TopOfBookStripProps) {
   const symbolLabel = display?.symbol ?? 'AAPL'
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">
-          Top of book <span className="text-muted-foreground font-normal">({symbolLabel})</span>
-        </CardTitle>
+        <div className="flex flex-wrap items-center gap-2">
+          <CardTitle className="text-base">
+            Top of book <span className="text-muted-foreground font-normal">({symbolLabel})</span>
+          </CardTitle>
+          {showReconnecting ? (
+            <span className="text-muted-foreground text-xs" aria-live="polite">
+              Reconnecting…
+            </span>
+          ) : null}
+        </div>
       </CardHeader>
       <CardContent>
         {isPending ? (

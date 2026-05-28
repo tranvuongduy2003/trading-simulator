@@ -16,6 +16,7 @@ public sealed class ResetPortfolioCommandHandler(
     ICurrentUserAccessor currentUserAccessor,
     IPortfolioResetReadRepository portfolioResetReadRepository,
     IPortfolioResetWriteRepository portfolioResetWriteRepository,
+    IOrderBookRealtimeProjection orderBookRealtimeProjection,
     IRealtimeNotificationPublisher realtimeNotificationPublisher,
     IResetInFlightGuard resetInFlightGuard,
     IClock clock,
@@ -78,10 +79,7 @@ public sealed class ResetPortfolioCommandHandler(
 
             foreach (var symbol in wallet.CancelledOrders.Select(cancelledOrder => cancelledOrder.Symbol).Distinct())
             {
-                await realtimeNotificationPublisher.PublishOrderBookUpdatedAsync(
-                    symbol,
-                    new OrderBookUpdatedMessage(symbol, [], [], resetAt),
-                    cancellationToken);
+                await orderBookRealtimeProjection.PublishForSymbolAsync(symbol, cancellationToken);
             }
 
             await realtimeNotificationPublisher.NotifyBalanceUpdatedAsync(
