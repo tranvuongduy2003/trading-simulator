@@ -6,4 +6,4 @@ public sealed record OrderBookUpdatedMessage(
     IReadOnlyList<OrderBookLevelMessage> Asks,
     DateTimeOffset UpdatedAt);
 
-public sealed record OrderBookLevelMessage(decimal Price, decimal Quantity);
+public sealed record OrderBookLevelMessage(decimal Price, decimal Quantity, int OrderCount);

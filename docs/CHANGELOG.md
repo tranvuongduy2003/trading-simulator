@@ -4,6 +4,8 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-30
 
+- impl: US-06 Story 2 — real-time depth updates, hub `orderCount`, depth reconnect badge, SignalR integration tests (`feature/live-order-book-depth-story-2`, GitHub #71)
+- plan: US-06 Story 2 — real-time depth table updates (`docs/plans/20260530-210000-live-order-book-depth-story-2.md`, GitHub #71)
 - impl: US-06 Story 1 — order book depth table on trading view (`feature/live-order-book-depth-story-1`, GitHub #70)
 - spec: Live order book depth US-06 (`docs/specs/20260530-002008-live-order-book-depth.md`)
 - plan: US-05 Story 4 — empty and one-sided book UX (`docs/plans/20260530-010000-best-bid-ask-story-4.md`, GitHub #61)

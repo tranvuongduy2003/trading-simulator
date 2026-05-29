@@ -40,5 +40,5 @@ public sealed class OrderBookMarketDataNotifier(
     }
 
     private static OrderBookLevelMessage MapLevel(OrderBookLevelReadModel level) =>
-        new(level.Price, level.Quantity);
+        new(level.Price, level.Quantity, level.OrderCount);
 }
