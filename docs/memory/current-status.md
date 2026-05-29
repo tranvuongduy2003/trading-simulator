@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-30 (US-05 Story 4 impl)
+Last updated: 2026-05-30 (US-06 spec)
 
 Owner: @tranvuongduy2003
 
@@ -15,6 +15,7 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
+- US-06: live order book depth — **spec draft** (`docs/specs/20260530-002008-live-order-book-depth.md`); `/plan` next
 - US-05 Story 4: empty / one-sided book — **implementation complete** on `feature/best-bid-ask-story-4` (#61); manual UI checklist + integration tests (Docker) pending operator/CI
 - US-05 Story 3: spread and mid-price — **implementation complete** on `feature/best-bid-ask-story-3` (#60); manual UI checklist pending operator
 - US-05 Story 2: real-time top-of-book — **implementation complete** on `feature/best-bid-ask-story-2` (GitHub #59); manual UI checklist pending operator
@@ -22,6 +23,7 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- spec: Live order book depth US-06 (`docs/specs/20260530-002008-live-order-book-depth.md`)
 - impl: US-05 Story 4 — liquidity state, empty strip copy, logout orderbook cache purge, bid/ask-only integration tests (`feature/best-bid-ask-story-4`, #61); `yarn lint` + `yarn build` green
 - plan: US-05 Story 4 — empty and one-sided book (`docs/plans/20260530-010000-best-bid-ask-story-4.md`, #61)
 - impl: US-05 Story 3 — spread/mid derivation + strip UI (`feature/best-bid-ask-story-3`, #60); Api integration **97** passed; `yarn lint` + `yarn build` green
@@ -43,6 +45,7 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
+- `/plan` for US-06 live order book depth (4 stories)
 - PR `feature/best-bid-ask-story-4` → `main` (closes #61)
 - PR `feature/best-bid-ask-story-3` → `main` (closes #60)
 - PR `feature/best-bid-ask-story-2` → `main` (closes #59)
