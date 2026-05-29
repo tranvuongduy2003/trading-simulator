@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-30 (US-06 spec)
+Last updated: 2026-05-30 (US-06 Story 1 implementation)
 
 Owner: @tranvuongduy2003
 
@@ -15,7 +15,7 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
-- US-06: live order book depth — **spec draft** (`docs/specs/20260530-002008-live-order-book-depth.md`); `/plan` next
+- US-06 Story 1: order book depth table — **implementation complete** on `feature/live-order-book-depth-story-1` (#70); integration tests compile; Docker + manual UI checklist pending operator
 - US-05 Story 4: empty / one-sided book — **implementation complete** on `feature/best-bid-ask-story-4` (#61); manual UI checklist + integration tests (Docker) pending operator/CI
 - US-05 Story 3: spread and mid-price — **implementation complete** on `feature/best-bid-ask-story-3` (#60); manual UI checklist pending operator
 - US-05 Story 2: real-time top-of-book — **implementation complete** on `feature/best-bid-ask-story-2` (GitHub #59); manual UI checklist pending operator
@@ -23,6 +23,7 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- impl: US-06 Story 1 — depth panel, `depth=10` client param, multi-level/aggregation integration tests (`feature/live-order-book-depth-story-1`, #70); `yarn lint` + `yarn build` + `api:verify` green
 - spec: Live order book depth US-06 (`docs/specs/20260530-002008-live-order-book-depth.md`)
 - impl: US-05 Story 4 — liquidity state, empty strip copy, logout orderbook cache purge, bid/ask-only integration tests (`feature/best-bid-ask-story-4`, #61); `yarn lint` + `yarn build` green
 - plan: US-05 Story 4 — empty and one-sided book (`docs/plans/20260530-010000-best-bid-ask-story-4.md`, #61)
@@ -37,6 +38,8 @@ Owner: @tranvuongduy2003
 
 ## In Progress
 
+- Operator: US-06 Story 1 manual UI checklist (plan §Manual UI checklist) on Aspire
+- Operator: US-06 Story 1 integration tests with Docker (local Docker unavailable during build)
 - Operator: US-05 Story 4 manual UI checklist (plan §Manual UI checklist) on Aspire
 - Operator: US-05 Story 3 manual UI checklist (plan §Manual UI checklist) on Aspire
 - Operator: US-05 Story 2 manual UI checklist (plan §Manual UI checklist) on Aspire
@@ -45,7 +48,8 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
-- `/plan` for US-06 live order book depth (4 stories)
+- PR `feature/live-order-book-depth-story-1` → `main` (closes #70)
+- `/plan` for US-06 Stories 2–4 (#71–#73) when ready
 - PR `feature/best-bid-ask-story-4` → `main` (closes #61)
 - PR `feature/best-bid-ask-story-3` → `main` (closes #60)
 - PR `feature/best-bid-ask-story-2` → `main` (closes #59)

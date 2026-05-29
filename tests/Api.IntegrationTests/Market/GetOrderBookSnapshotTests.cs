@@ -28,6 +28,8 @@ public sealed class GetOrderBookSnapshotTests(IntegrationTestFixture fixture)
     {
         var (_, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_empty");
 
+        await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
+
         using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -100,8 +102,10 @@ public sealed class GetOrderBookSnapshotTests(IntegrationTestFixture fixture)
     {
         var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_seeded");
 
+        await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
         await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.25m, 100);
         await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 150.50m, 50);
+        await MarketTestHelpers.ClearOrderBookSnapshotCacheAsync(fixture);
 
         using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL");
 
@@ -126,6 +130,7 @@ public sealed class GetOrderBookSnapshotTests(IntegrationTestFixture fixture)
     {
         var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_redis");
 
+        await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
         await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 149.00m, 10);
         await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 151.00m, 10);
 
@@ -155,5 +160,113 @@ public sealed class GetOrderBookSnapshotTests(IntegrationTestFixture fixture)
         snapshot!.UpdatedAt.Should().Be(cachedSnapshot.UpdatedAt);
         snapshot.Bids[0].Price.Should().Be(150.25m);
         snapshot.Asks[0].Price.Should().Be(150.50m);
+    }
+
+    [Fact]
+    public async Task GetOrderBookSnapshot_WithMultipleBidAndAskLevels_ReturnsSortedTopTen()
+    {
+        var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_multi_level");
+
+        await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
+        await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.10m, 100);
+        await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.15m, 200);
+        await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.20m, 300);
+        await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 150.30m, 150);
+        await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 150.35m, 250);
+        await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 150.40m, 350);
+        await MarketTestHelpers.ClearOrderBookSnapshotCacheAsync(fixture);
+
+        using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL&depth=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var snapshot = await response.Content.ReadFromJsonAsync<OrderBookSnapshotResponse>(
+            MarketTestHelpers.JsonOptions);
+        snapshot.Should().NotBeNull();
+        snapshot!.Bids.Should().HaveCount(3);
+        snapshot.Bids.Select(level => level.Price).Should().Equal(150.20m, 150.15m, 150.10m);
+        snapshot.Asks.Should().HaveCount(3);
+        snapshot.Asks.Select(level => level.Price).Should().Equal(150.30m, 150.35m, 150.40m);
+    }
+
+    [Fact]
+    public async Task GetOrderBookSnapshot_AggregatesOrdersAtSamePrice()
+    {
+        var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_aggregate");
+
+        await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
+        await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.25m, 100);
+        await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.25m, 200);
+        await MarketTestHelpers.ClearOrderBookSnapshotCacheAsync(fixture);
+
+        using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL&depth=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var snapshot = await response.Content.ReadFromJsonAsync<OrderBookSnapshotResponse>(
+            MarketTestHelpers.JsonOptions);
+        snapshot.Should().NotBeNull();
+        snapshot!.Bids.Should().ContainSingle();
+        snapshot.Bids[0].Price.Should().Be(150.25m);
+        snapshot.Bids[0].Quantity.Should().Be(300);
+        snapshot.Bids[0].OrderCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task GetOrderBookSnapshot_WithDepthTen_CapsLevelsAtTenPerSide()
+    {
+        var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_depth_cap");
+
+        await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
+
+        for (var index = 0; index < 11; index++)
+        {
+            var price = 150.00m + (index + 1) * 0.01m;
+            await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, price, 10);
+        }
+
+        await MarketTestHelpers.ClearOrderBookSnapshotCacheAsync(fixture);
+
+        using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL&depth=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var snapshot = await response.Content.ReadFromJsonAsync<OrderBookSnapshotResponse>(
+            MarketTestHelpers.JsonOptions);
+        snapshot.Should().NotBeNull();
+        snapshot!.Bids.Should().HaveCount(10);
+        snapshot.Bids[0].Price.Should().Be(150.11m);
+        snapshot.Bids[9].Price.Should().Be(150.02m);
+    }
+
+    [Fact]
+    public async Task GetOrderBookSnapshot_FirstLevelsMatchTopOfBookSemantics()
+    {
+        var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_top_of_book");
+
+        await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
+        await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.10m, 100);
+        await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.25m, 200);
+        await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 150.30m, 150);
+        await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 150.45m, 250);
+        await MarketTestHelpers.ClearOrderBookSnapshotCacheAsync(fixture);
+
+        using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL&depth=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var snapshot = await response.Content.ReadFromJsonAsync<OrderBookSnapshotResponse>(
+            MarketTestHelpers.JsonOptions);
+        snapshot.Should().NotBeNull();
+        snapshot!.Bids.Should().HaveCountGreaterThanOrEqualTo(2);
+        snapshot.Asks.Should().HaveCountGreaterThanOrEqualTo(2);
+
+        snapshot.Bids[0].Price.Should().Be(150.25m);
+        snapshot.Bids[0].Quantity.Should().Be(200);
+        snapshot.Asks[0].Price.Should().Be(150.30m);
+        snapshot.Asks[0].Quantity.Should().Be(150);
+
+        snapshot.Bids.Select(level => level.Price).Should().BeInDescendingOrder();
+        snapshot.Asks.Select(level => level.Price).Should().BeInAscendingOrder();
     }
 }

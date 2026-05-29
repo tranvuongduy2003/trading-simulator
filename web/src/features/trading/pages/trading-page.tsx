@@ -1,3 +1,4 @@
+import { OrderBookDepthPanel } from '@/features/market/components/order-book-depth-panel'
 import { TopOfBookStrip } from '@/features/market/components/top-of-book-strip'
 import { useMarketConnectionStatus } from '@/features/market/hooks/use-market-connection-status'
 import { useOrderBookQuery } from '@/features/market/hooks/use-order-book-query'
@@ -44,6 +45,15 @@ export function TradingPage() {
           isError={orderBookQuery.isError}
           display={topOfBookDisplay}
           showReconnectingBadge={showReconnectingBadge}
+          onRetry={() => {
+            void orderBookQuery.refetch()
+          }}
+        />
+
+        <OrderBookDepthPanel
+          isPending={orderBookQuery.isPending}
+          isError={orderBookQuery.isError}
+          snapshot={orderBookQuery.isSuccess ? orderBookQuery.data : null}
           onRetry={() => {
             void orderBookQuery.refetch()
           }}

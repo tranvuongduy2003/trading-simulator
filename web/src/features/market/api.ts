@@ -14,7 +14,7 @@ export type OrderBookSnapshotResponse = {
 }
 
 export function getOrderBook(symbol: string, signal?: AbortSignal) {
-  const search = new URLSearchParams({ symbol })
+  const search = new URLSearchParams({ symbol, depth: '10' })
   return apiClient.get<OrderBookSnapshotResponse>(`/api/market/orderbook?${search.toString()}`, {
     signal,
     suppressErrorToast: true,
