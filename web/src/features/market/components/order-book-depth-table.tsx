@@ -16,11 +16,13 @@ import {
 type OrderBookDepthTableProps = {
   side: 'bid' | 'ask'
   levels: OrderBookLevelResponse[]
+  emptyMessage?: string | null
 }
 
-export function OrderBookDepthTable({ side, levels }: OrderBookDepthTableProps) {
+export function OrderBookDepthTable({ side, levels, emptyMessage }: OrderBookDepthTableProps) {
   const sideLabel = side === 'bid' ? 'Bids' : 'Asks'
   const priceClassName = side === 'bid' ? 'text-bid tabular-nums' : 'text-ask tabular-nums'
+  const showEmptyState = levels.length === 0 && emptyMessage
 
   return (
     <div className="flex flex-col gap-2">
@@ -36,17 +38,27 @@ export function OrderBookDepthTable({ side, levels }: OrderBookDepthTableProps) 
           </TableRow>
         </TableHeader>
         <TableBody>
-          {levels.map((level) => (
-            <TableRow key={`${side}-${level.price}`}>
-              <TableCell className={priceClassName}>{formatDepthPrice(level)}</TableCell>
-              <TableCell className="text-right tabular-nums">
-                {formatDepthQuantity(level.quantity)}
-              </TableCell>
-              <TableCell className="text-right tabular-nums">
-                {formatDepthOrderCount(level.orderCount)}
+          {showEmptyState ? (
+            <TableRow>
+              <TableCell colSpan={3}>
+                <p className="text-muted-foreground text-sm" aria-live="polite">
+                  {emptyMessage}
+                </p>
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            levels.map((level) => (
+              <TableRow key={`${side}-${level.price}`}>
+                <TableCell className={priceClassName}>{formatDepthPrice(level)}</TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {formatDepthQuantity(level.quantity)}
+                </TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {formatDepthOrderCount(level.orderCount)}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

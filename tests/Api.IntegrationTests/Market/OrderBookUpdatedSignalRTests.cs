@@ -267,4 +267,101 @@ public sealed class OrderBookUpdatedSignalRTests(IntegrationTestFixture fixture)
             await MarketTestHelpers.ClearUserMarketStateAsync(fixture, userId);
         }
     }
+
+    [Fact]
+    public async Task OrderBookUpdated_EmptyPayload_ClearsBothSides()
+    {
+        var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_hub_empty");
+
+        try
+        {
+            await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
+            await MarketTestHelpers.ClearOrderBookSnapshotCacheAsync(fixture);
+
+            await using var hubConnection = await MarketTestHelpers.CreateConnectedSimulationHubAsync(
+                fixture.Factory,
+                client);
+
+            var receivedMessages = new ConcurrentBag<OrderBookUpdatedMessage>();
+            hubConnection.On<OrderBookUpdatedMessage>(
+                nameof(ISimulationHubClient.OrderBookUpdated),
+                message => receivedMessages.Add(message));
+
+            await hubConnection.InvokeAsync("SubscribeToMarket", "AAPL");
+            await MarketTestHelpers.NotifyOrderBookChangedAsync(fixture);
+
+            OrderBookUpdatedMessage message = null!;
+            await MarketTestHelpers.WaitUntilAsync(
+                () =>
+                {
+                    message = receivedMessages
+                        .OrderByDescending(receivedMessage => receivedMessage.UpdatedAt)
+                        .FirstOrDefault()!;
+
+                    return message is not null;
+                },
+                TimeSpan.FromSeconds(2),
+                TimeSpan.FromMilliseconds(50));
+
+            message.Bids.Should().BeEmpty();
+            message.Asks.Should().BeEmpty();
+
+            var httpSnapshot = await MarketTestHelpers.GetOrderBookSnapshotAsync(client);
+            httpSnapshot.Bids.Should().BeEmpty();
+            httpSnapshot.Asks.Should().BeEmpty();
+        }
+        finally
+        {
+            await MarketTestHelpers.ClearUserMarketStateAsync(fixture, userId);
+        }
+    }
+
+    [Fact]
+    public async Task OrderBookUpdated_BidOnlyPayload_EmptyAsks()
+    {
+        var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_hub_bid_only");
+
+        try
+        {
+            await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
+            await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.25m, 100);
+            await MarketTestHelpers.ClearOrderBookSnapshotCacheAsync(fixture);
+
+            await using var hubConnection = await MarketTestHelpers.CreateConnectedSimulationHubAsync(
+                fixture.Factory,
+                client);
+
+            var receivedMessages = new ConcurrentBag<OrderBookUpdatedMessage>();
+            hubConnection.On<OrderBookUpdatedMessage>(
+                nameof(ISimulationHubClient.OrderBookUpdated),
+                message => receivedMessages.Add(message));
+
+            await hubConnection.InvokeAsync("SubscribeToMarket", "AAPL");
+            await MarketTestHelpers.NotifyOrderBookChangedAsync(fixture);
+
+            OrderBookUpdatedMessage message = null!;
+            await MarketTestHelpers.WaitUntilAsync(
+                () =>
+                {
+                    message = receivedMessages
+                        .OrderByDescending(receivedMessage => receivedMessage.UpdatedAt)
+                        .FirstOrDefault(receivedMessage => receivedMessage.Bids.Count > 0)!;
+
+                    return message is not null;
+                },
+                TimeSpan.FromSeconds(2),
+                TimeSpan.FromMilliseconds(50));
+
+            message.Bids.Should().NotBeEmpty();
+            message.Asks.Should().BeEmpty();
+
+            var httpSnapshot = await MarketTestHelpers.GetOrderBookSnapshotAsync(client);
+            httpSnapshot.Bids.Should().NotBeEmpty();
+            httpSnapshot.Asks.Should().BeEmpty();
+        }
+        finally
+        {
+            await MarketTestHelpers.ClearUserMarketStateAsync(fixture, userId);
+        }
+    }
 }
