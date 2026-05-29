@@ -4,6 +4,7 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-30
 
+- spec: Live order book depth US-06 (`docs/specs/20260530-002008-live-order-book-depth.md`)
 - plan: US-05 Story 4 — empty and one-sided book UX (`docs/plans/20260530-010000-best-bid-ask-story-4.md`, GitHub #61)
 
 ## 2026-05-29
