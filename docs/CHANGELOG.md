@@ -2,6 +2,10 @@
 
 All notable project and process changes are tracked here.
 
+## 2026-05-30
+
+- plan: US-05 Story 4 — empty and one-sided book UX (`docs/plans/20260530-010000-best-bid-ask-story-4.md`, GitHub #61)
+
 ## 2026-05-29
 
 - impl: US-05 Story 3 — client-side spread/mid derivation and top-of-book strip cells (GitHub #60); branch `feature/best-bid-ask-story-3`

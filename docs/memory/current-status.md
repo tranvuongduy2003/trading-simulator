@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-29 (US-05 Story 3 impl)
+Last updated: 2026-05-30 (US-05 Story 4 impl)
 
 Owner: @tranvuongduy2003
 
@@ -15,12 +15,15 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
+- US-05 Story 4: empty / one-sided book — **implementation complete** on `feature/best-bid-ask-story-4` (#61); manual UI checklist + integration tests (Docker) pending operator/CI
 - US-05 Story 3: spread and mid-price — **implementation complete** on `feature/best-bid-ask-story-3` (#60); manual UI checklist pending operator
 - US-05 Story 2: real-time top-of-book — **implementation complete** on `feature/best-bid-ask-story-2` (GitHub #59); manual UI checklist pending operator
 - US-05 Story 1: best bid/ask — **implementation complete** on `feature/best-bid-ask-story-1` (GitHub #58); manual UI checklist pending operator
 
 ## Latest Completed
 
+- impl: US-05 Story 4 — liquidity state, empty strip copy, logout orderbook cache purge, bid/ask-only integration tests (`feature/best-bid-ask-story-4`, #61); `yarn lint` + `yarn build` green
+- plan: US-05 Story 4 — empty and one-sided book (`docs/plans/20260530-010000-best-bid-ask-story-4.md`, #61)
 - impl: US-05 Story 3 — spread/mid derivation + strip UI (`feature/best-bid-ask-story-3`, #60); Api integration **97** passed; `yarn lint` + `yarn build` green
 - plan: US-05 Story 3 — spread and mid-price (`docs/plans/20260529-220000-best-bid-ask-story-3.md`, #60)
 - impl: US-05 Story 2 — `IOrderBookMarketDataNotifier`, hub `setQueryData`, reconnect badge, SignalR integration test (`feature/best-bid-ask-story-2`, #59); Api integration **97** passed; `web api:verify` + `yarn build` green
@@ -32,6 +35,7 @@ Owner: @tranvuongduy2003
 
 ## In Progress
 
+- Operator: US-05 Story 4 manual UI checklist (plan §Manual UI checklist) on Aspire
 - Operator: US-05 Story 3 manual UI checklist (plan §Manual UI checklist) on Aspire
 - Operator: US-05 Story 2 manual UI checklist (plan §Manual UI checklist) on Aspire
 - Operator: US-05 Story 1 manual UI checklist (plan §Manual UI checklist) on Aspire
@@ -39,6 +43,7 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
+- PR `feature/best-bid-ask-story-4` → `main` (closes #61)
 - PR `feature/best-bid-ask-story-3` → `main` (closes #60)
 - PR `feature/best-bid-ask-story-2` → `main` (closes #59)
 - PR `feature/best-bid-ask-story-1` → `main` (closes #58)

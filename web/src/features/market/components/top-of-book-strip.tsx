@@ -3,11 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { TopOfBookDisplay } from '@/features/market/top-of-book-display'
 import {
+  deriveBookLiquidityState,
+  EMPTY_BOOK_MESSAGE,
   formatMidPrice,
   formatSpreadAbsolute,
   formatSpreadPercent,
-  formatTopOfBookPrice,
   formatTopOfBookQuantity,
+  formatTopOfBookSidePrice,
   MARKET_LOAD_ERROR_MESSAGE,
 } from '@/features/market/top-of-book-display'
 
@@ -28,6 +30,8 @@ export function TopOfBookStrip({
 }: TopOfBookStripProps) {
   const symbolLabel = display?.symbol ?? 'AAPL'
   const spreadPercentLabel = display ? formatSpreadPercent(display.spread) : null
+  const liquidityState = display ? deriveBookLiquidityState(display) : null
+  const showEmptyBookBanner = liquidityState === 'empty'
 
   return (
     <Card>
@@ -68,34 +72,43 @@ export function TopOfBookStrip({
         ) : null}
 
         {!isPending && !isError && display ? (
-          <div
-            className="grid gap-3 sm:grid-cols-2"
-            aria-live="polite"
-            aria-label={`Best bid, best ask, spread, and mid for ${symbolLabel}`}
-          >
-            <TopOfBookSide
-              label="Best bid"
-              touch={display.bestBid}
-              valueClassName="text-bid tabular-nums"
-            />
-            <TopOfBookSide
-              label="Best ask"
-              touch={display.bestAsk}
-              valueClassName="text-ask tabular-nums"
-            />
-            <MetricCell label="Spread">
-              <p className="text-foreground text-2xl font-semibold tabular-nums">
-                {formatSpreadAbsolute(display.spread)}
+          <div className="flex flex-col gap-3">
+            {showEmptyBookBanner ? (
+              <p className="text-muted-foreground text-sm" aria-live="polite">
+                {EMPTY_BOOK_MESSAGE}
               </p>
-              {spreadPercentLabel ? (
-                <p className="text-muted-foreground text-xs tabular-nums">{spreadPercentLabel}</p>
-              ) : null}
-            </MetricCell>
-            <MetricCell label="Mid">
-              <p className="text-muted-foreground text-2xl font-semibold tabular-nums">
-                {formatMidPrice(display.midPrice)}
-              </p>
-            </MetricCell>
+            ) : null}
+            <div
+              className="grid gap-3 sm:grid-cols-2"
+              aria-live="polite"
+              aria-label={`Best bid, best ask, spread, and mid for ${symbolLabel}`}
+            >
+              <TopOfBookSide
+                label="Best bid"
+                touch={display.bestBid}
+                side="bid"
+                valueClassName="text-bid tabular-nums"
+              />
+              <TopOfBookSide
+                label="Best ask"
+                touch={display.bestAsk}
+                side="ask"
+                valueClassName="text-ask tabular-nums"
+              />
+              <MetricCell label="Spread">
+                <p className="text-foreground text-2xl font-semibold tabular-nums">
+                  {formatSpreadAbsolute(display.spread)}
+                </p>
+                {spreadPercentLabel ? (
+                  <p className="text-muted-foreground text-xs tabular-nums">{spreadPercentLabel}</p>
+                ) : null}
+              </MetricCell>
+              <MetricCell label="Mid">
+                <p className="text-muted-foreground text-2xl font-semibold tabular-nums">
+                  {formatMidPrice(display.midPrice)}
+                </p>
+              </MetricCell>
+            </div>
           </div>
         ) : null}
       </CardContent>
@@ -106,15 +119,22 @@ export function TopOfBookStrip({
 type TopOfBookSideProps = {
   label: string
   touch: TopOfBookDisplay['bestBid']
+  side: 'bid' | 'ask'
   valueClassName: string
 }
 
-function TopOfBookSide({ label, touch, valueClassName }: TopOfBookSideProps) {
+function TopOfBookSide({ label, touch, side, valueClassName }: TopOfBookSideProps) {
   const quantityLabel = formatTopOfBookQuantity(touch)
+  const priceLabel = formatTopOfBookSidePrice(touch, side)
+  const isEmptySideCopy = touch === null
 
   return (
     <MetricCell label={label}>
-      <p className={`text-2xl font-semibold ${valueClassName}`}>{formatTopOfBookPrice(touch)}</p>
+      <p
+        className={`text-2xl font-semibold ${isEmptySideCopy ? 'text-muted-foreground' : valueClassName}`}
+      >
+        {priceLabel}
+      </p>
       {quantityLabel ? (
         <p className="text-muted-foreground text-xs tabular-nums">{quantityLabel}</p>
       ) : null}
