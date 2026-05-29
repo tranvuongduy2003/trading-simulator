@@ -9,6 +9,7 @@ type OrderBookDepthPanelProps = {
   isPending: boolean
   isError: boolean
   snapshot: OrderBookSnapshotResponse | null
+  showReconnectingBadge?: boolean
   onRetry?: () => void
 }
 
@@ -16,6 +17,7 @@ export function OrderBookDepthPanel({
   isPending,
   isError,
   snapshot,
+  showReconnectingBadge = false,
   onRetry,
 }: OrderBookDepthPanelProps) {
   const symbolLabel = snapshot?.symbol ?? 'AAPL'
@@ -23,10 +25,20 @@ export function OrderBookDepthPanel({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">
-          Order book depth{' '}
-          <span className="text-muted-foreground font-normal">({symbolLabel})</span>
-        </CardTitle>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <CardTitle className="text-base">
+            Order book depth{' '}
+            <span className="text-muted-foreground font-normal">({symbolLabel})</span>
+          </CardTitle>
+          {showReconnectingBadge ? (
+            <span
+              className="bg-muted text-muted-foreground rounded-md px-2 py-0.5 text-xs font-medium"
+              aria-live="polite"
+            >
+              Reconnecting…
+            </span>
+          ) : null}
+        </div>
       </CardHeader>
       <CardContent>
         {isPending ? (

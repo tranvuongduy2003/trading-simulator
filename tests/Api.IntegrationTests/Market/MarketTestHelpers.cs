@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using TradingSimulator.Api.Common;
 using TradingSimulator.Api.IntegrationTests.Portfolios;
 using TradingSimulator.Application.Abstractions.Cache;
+using TradingSimulator.Application.Abstractions.Market;
+using TradingSimulator.Contracts.Market;
 using TradingSimulator.Contracts.Users;
 using TradingSimulator.Infrastructure.Persistence;
 using TradingSimulator.Testing.Common.Fixtures;
@@ -91,6 +93,56 @@ internal static class MarketTestHelpers
             filledQuantity: 0,
             status: PortfolioResetTestHelpers.PendingStatus,
             cancellationToken: cancellationToken);
+
+    public static async Task CancelOrderAsync(
+        IntegrationTestFixture fixture,
+        Guid orderId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+        var terminatedAt = DateTimeOffset.UtcNow;
+        var rowsUpdated = await databaseContext.Orders
+            .Where(orderRecord => orderRecord.Id == orderId)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(
+                        orderRecord => orderRecord.Status,
+                        PortfolioResetTestHelpers.CancelledStatus)
+                    .SetProperty(orderRecord => orderRecord.TerminatedAt, terminatedAt),
+                cancellationToken);
+
+        rowsUpdated.Should().Be(1);
+        await ClearOrderBookSnapshotCacheAsync(fixture, cancellationToken);
+    }
+
+    public static async Task<OrderBookSnapshotResponse> GetOrderBookSnapshotAsync(
+        HttpClient client,
+        int depth = 10,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await client.GetAsync(
+            $"/api/market/orderbook?symbol=AAPL&depth={depth}",
+            cancellationToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var snapshot = await response.Content.ReadFromJsonAsync<OrderBookSnapshotResponse>(
+            JsonOptions,
+            cancellationToken);
+
+        snapshot.Should().NotBeNull();
+        return snapshot!;
+    }
+
+    public static async Task NotifyOrderBookChangedAsync(
+        IntegrationTestFixture fixture,
+        CancellationToken cancellationToken = default)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var notifier = scope.ServiceProvider.GetRequiredService<IOrderBookMarketDataNotifier>();
+        await notifier.NotifyOrderBookChangedAsync("AAPL", cancellationToken);
+    }
 
     public static async Task AssertInvalidSymbolAsync(HttpResponseMessage response)
     {

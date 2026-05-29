@@ -54,6 +54,7 @@ export function TradingPage() {
           isPending={orderBookQuery.isPending}
           isError={orderBookQuery.isError}
           snapshot={orderBookQuery.isSuccess ? orderBookQuery.data : null}
+          showReconnectingBadge={showReconnectingBadge}
           onRetry={() => {
             void orderBookQuery.refetch()
           }}

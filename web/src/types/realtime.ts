@@ -3,6 +3,7 @@
 export type OrderBookLevel = {
   price: number
   quantity: number
+  orderCount?: number
 }
 
 export type OrderBookUpdatedMessage = {
