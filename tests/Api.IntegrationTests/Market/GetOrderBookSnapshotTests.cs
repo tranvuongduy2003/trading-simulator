@@ -57,6 +57,7 @@ public sealed class GetOrderBookSnapshotTests(IntegrationTestFixture fixture)
         var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_bid_only");
 
         await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.25m, 100);
+        await MarketTestHelpers.ClearOrderBookSnapshotCacheAsync(fixture);
 
         using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL");
 
@@ -77,6 +78,7 @@ public sealed class GetOrderBookSnapshotTests(IntegrationTestFixture fixture)
         var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_ask_only");
 
         await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 150.50m, 50);
+        await MarketTestHelpers.ClearOrderBookSnapshotCacheAsync(fixture);
 
         using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL");
 

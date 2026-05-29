@@ -129,6 +129,15 @@ internal static class MarketTestHelpers
         return connection;
     }
 
+    public static async Task ClearOrderBookSnapshotCacheAsync(
+        IntegrationTestFixture fixture,
+        CancellationToken cancellationToken = default)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
+        await cacheService.DeleteAsync("orderbook:AAPL:snapshot", cancellationToken);
+    }
+
     public static async Task ClearUserMarketStateAsync(
         IntegrationTestFixture fixture,
         Guid userId,
@@ -140,8 +149,7 @@ internal static class MarketTestHelpers
             .Where(orderRecord => orderRecord.UserId == userId)
             .ExecuteDeleteAsync(cancellationToken);
 
-        var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
-        await cacheService.DeleteAsync("orderbook:AAPL:snapshot", cancellationToken);
+        await ClearOrderBookSnapshotCacheAsync(fixture, cancellationToken);
     }
 
     public static async Task WaitUntilAsync(
