@@ -4,6 +4,7 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-30
 
+- impl: US-06 Story 1 — order book depth table on trading view (`feature/live-order-book-depth-story-1`, GitHub #70)
 - spec: Live order book depth US-06 (`docs/specs/20260530-002008-live-order-book-depth.md`)
 - plan: US-05 Story 4 — empty and one-sided book UX (`docs/plans/20260530-010000-best-bid-ask-story-4.md`, GitHub #61)
 

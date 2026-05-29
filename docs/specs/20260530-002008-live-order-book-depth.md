@@ -10,7 +10,7 @@ updated_at: 2026-05-30T00:20:08+07:00
 status: draft
 owner: product
 tags: [spec, feature, trading-simulator, market-data, order-book, depth, liquidity, AAPL]
-related_plan: null
+related_plan: docs/plans/20260530-140000-live-order-book-depth-story-1.md
 related_specs: [docs/specs/20260529-010501-best-bid-ask.md]
 github_epic_issue: 69
 github_story_issues: [70, 71, 72, 73]
