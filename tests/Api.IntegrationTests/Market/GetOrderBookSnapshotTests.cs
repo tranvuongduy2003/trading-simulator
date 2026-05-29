@@ -28,6 +28,8 @@ public sealed class GetOrderBookSnapshotTests(IntegrationTestFixture fixture)
     {
         var (_, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_empty");
 
+        await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
+
         using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -100,8 +102,10 @@ public sealed class GetOrderBookSnapshotTests(IntegrationTestFixture fixture)
     {
         var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_seeded");
 
+        await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
         await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.25m, 100);
         await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 150.50m, 50);
+        await MarketTestHelpers.ClearOrderBookSnapshotCacheAsync(fixture);
 
         using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL");
 
@@ -126,6 +130,7 @@ public sealed class GetOrderBookSnapshotTests(IntegrationTestFixture fixture)
     {
         var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_redis");
 
+        await MarketTestHelpers.ResetAaplOrderBookAsync(fixture);
         await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 149.00m, 10);
         await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 151.00m, 10);
 
