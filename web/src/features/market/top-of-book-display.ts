@@ -19,7 +19,13 @@ export type TopOfBookDisplay = {
   midPrice: number | null
 }
 
+export type BookLiquidityState = 'two-sided' | 'bid-only' | 'ask-only' | 'empty'
+
+export const EMPTY_BOOK_MESSAGE = 'No market — waiting for liquidity'
+
 const missingValueLabel = '—'
+const noBidsLabel = 'No bids'
+const noAsksLabel = 'No asks'
 
 function round4(value: number): number {
   return Math.round(value * 10000) / 10000
@@ -73,12 +79,39 @@ export function deriveTopOfBook(snapshot: OrderBookSnapshotResponse): TopOfBookD
   }
 }
 
+export function deriveBookLiquidityState(display: TopOfBookDisplay): BookLiquidityState {
+  const hasBid = display.bestBid !== null
+  const hasAsk = display.bestAsk !== null
+
+  if (hasBid && hasAsk) {
+    return 'two-sided'
+  }
+
+  if (hasBid) {
+    return 'bid-only'
+  }
+
+  if (hasAsk) {
+    return 'ask-only'
+  }
+
+  return 'empty'
+}
+
 export function formatTopOfBookPrice(touch: TopOfBookTouch): string {
   if (!touch) {
     return missingValueLabel
   }
 
   return formatPrice(touch.price)
+}
+
+export function formatTopOfBookSidePrice(touch: TopOfBookTouch, side: 'bid' | 'ask'): string {
+  if (touch) {
+    return formatTopOfBookPrice(touch)
+  }
+
+  return side === 'bid' ? noBidsLabel : noAsksLabel
 }
 
 export function formatTopOfBookQuantity(touch: TopOfBookTouch): string | null {

@@ -52,6 +52,46 @@ public sealed class GetOrderBookSnapshotTests(IntegrationTestFixture fixture)
     }
 
     [Fact]
+    public async Task GetOrderBookSnapshot_BidOnly_ReturnsEmptyAsks()
+    {
+        var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_bid_only");
+
+        await MarketTestHelpers.SeedOpenBidAsync(fixture, userId, 150.25m, 100);
+
+        using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var snapshot = await response.Content.ReadFromJsonAsync<OrderBookSnapshotResponse>(
+            MarketTestHelpers.JsonOptions);
+        snapshot.Should().NotBeNull();
+        snapshot!.Bids.Should().ContainSingle();
+        snapshot.Bids[0].Price.Should().Be(150.25m);
+        snapshot.Bids[0].Quantity.Should().Be(100);
+        snapshot.Asks.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetOrderBookSnapshot_AskOnly_ReturnsEmptyBids()
+    {
+        var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_ask_only");
+
+        await MarketTestHelpers.SeedOpenAskAsync(fixture, userId, 150.50m, 50);
+
+        using var response = await client.GetAsync("/api/market/orderbook?symbol=AAPL");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var snapshot = await response.Content.ReadFromJsonAsync<OrderBookSnapshotResponse>(
+            MarketTestHelpers.JsonOptions);
+        snapshot.Should().NotBeNull();
+        snapshot!.Bids.Should().BeEmpty();
+        snapshot.Asks.Should().ContainSingle();
+        snapshot.Asks[0].Price.Should().Be(150.50m);
+        snapshot.Asks[0].Quantity.Should().Be(50);
+    }
+
+    [Fact]
     public async Task GetOrderBookSnapshot_WithSeededOrders_ReturnsBestBidAndAsk()
     {
         var (userId, client) = await MarketTestHelpers.RegisterAndLoginAsync(fixture, "market_seeded");
