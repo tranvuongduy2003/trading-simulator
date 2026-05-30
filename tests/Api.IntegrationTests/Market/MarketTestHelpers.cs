@@ -14,6 +14,7 @@ using TradingSimulator.Application.Abstractions.Market;
 using TradingSimulator.Contracts.Market;
 using TradingSimulator.Contracts.Users;
 using TradingSimulator.Infrastructure.Persistence;
+using TradingSimulator.Infrastructure.Persistence.Entities;
 using TradingSimulator.Testing.Common.Fixtures;
 using TradingSimulator.Testing.Common.Integration;
 using ClientHubConnection = Microsoft.AspNetCore.SignalR.Client.HubConnection;
@@ -188,6 +189,132 @@ internal static class MarketTestHelpers
         await using var scope = fixture.Factory.Services.CreateAsyncScope();
         var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
         await cacheService.DeleteAsync("orderbook:AAPL:snapshot", cancellationToken);
+    }
+
+    public static async Task ClearRecentTradesCacheAsync(
+        IntegrationTestFixture fixture,
+        CancellationToken cancellationToken = default)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
+        await cacheService.DeleteAsync("trades:AAPL:recent", cancellationToken);
+    }
+
+    public static async Task SeedRecentTradesCacheAsync(
+        IntegrationTestFixture fixture,
+        RecentTradesResponse snapshot,
+        CancellationToken cancellationToken = default)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
+        var payload = JsonSerializer.Serialize(snapshot, JsonOptions);
+        await cacheService.SetAsync(
+            $"trades:{snapshot.Symbol}:recent",
+            payload,
+            TimeSpan.FromMinutes(5),
+            cancellationToken);
+    }
+
+    public static async Task ResetAaplMarketTradesAsync(
+        IntegrationTestFixture fixture,
+        CancellationToken cancellationToken = default)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+        await databaseContext.Trades
+            .Where(tradeRecord => tradeRecord.Symbol == "AAPL")
+            .ExecuteDeleteAsync(cancellationToken);
+
+        await ClearRecentTradesCacheAsync(fixture, cancellationToken);
+    }
+
+    public static async Task<Guid> SeedMarketTradeAsync(
+        IntegrationTestFixture fixture,
+        Guid buyerUserId,
+        Guid sellerUserId,
+        decimal price,
+        long quantity,
+        DateTimeOffset executedAt,
+        CancellationToken cancellationToken = default)
+    {
+        var buyOrderId = Guid.NewGuid();
+        var sellOrderId = Guid.NewGuid();
+        var tradeIdentifier = Guid.NewGuid();
+
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var databaseContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+
+        await databaseContext.Orders.AddRangeAsync(
+            [
+                new OrderRecord
+                {
+                    Id = buyOrderId,
+                    UserId = buyerUserId,
+                    Symbol = "AAPL",
+                    Side = 0,
+                    Type = 0,
+                    Price = price,
+                    OriginalQuantity = quantity,
+                    FilledQuantity = quantity,
+                    Status = 2,
+                    IsSimulated = false,
+                    CreatedAt = executedAt.AddMinutes(-1),
+                    UpdatedAt = executedAt,
+                    TerminatedAt = executedAt,
+                },
+                new OrderRecord
+                {
+                    Id = sellOrderId,
+                    UserId = sellerUserId,
+                    Symbol = "AAPL",
+                    Side = 1,
+                    Type = 0,
+                    Price = price,
+                    OriginalQuantity = quantity,
+                    FilledQuantity = quantity,
+                    Status = 2,
+                    IsSimulated = false,
+                    CreatedAt = executedAt.AddMinutes(-1),
+                    UpdatedAt = executedAt,
+                    TerminatedAt = executedAt,
+                },
+            ],
+            cancellationToken);
+
+        await databaseContext.Trades.AddAsync(
+            new TradeRecord
+            {
+                ExternalId = tradeIdentifier,
+                Symbol = "AAPL",
+                BuyOrderId = buyOrderId,
+                SellOrderId = sellOrderId,
+                BuyerUserId = buyerUserId,
+                SellerUserId = sellerUserId,
+                Price = price,
+                Quantity = quantity,
+                ExecutedAt = executedAt,
+            },
+            cancellationToken);
+
+        await databaseContext.SaveChangesAsync(cancellationToken);
+        await ClearRecentTradesCacheAsync(fixture, cancellationToken);
+
+        return tradeIdentifier;
+    }
+
+    public static async Task AssertInvalidLimitAsync(HttpResponseMessage response)
+    {
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest,
+            $"expected 400 but got {(int)response.StatusCode} with body: {responseBody}");
+
+        response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
+
+        var problem = JsonSerializer.Deserialize<ApiProblemDetails>(responseBody, JsonOptions);
+        problem.Should().NotBeNull();
+        problem!.Status.Should().Be(400);
+        problem.Code.Should().Be("INVALID_LIMIT");
     }
 
     public static async Task ResetAaplOrderBookAsync(

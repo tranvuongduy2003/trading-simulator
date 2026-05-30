@@ -20,3 +20,24 @@ export function getOrderBook(symbol: string, signal?: AbortSignal) {
     suppressErrorToast: true,
   })
 }
+
+export type RecentTradeItemResponse = {
+  tradeIdentifier: string
+  price: number
+  quantity: number
+  executedAt: string
+}
+
+export type RecentTradesResponse = {
+  symbol: string
+  trades: RecentTradeItemResponse[]
+  updatedAt: string
+}
+
+export function getRecentTrades(symbol: string, limit: number, signal?: AbortSignal) {
+  const search = new URLSearchParams({ symbol, limit: String(limit) })
+  return apiClient.get<RecentTradesResponse>(`/api/market/trades?${search.toString()}`, {
+    signal,
+    suppressErrorToast: true,
+  })
+}

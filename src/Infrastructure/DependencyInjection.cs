@@ -73,6 +73,7 @@ public static class DependencyInjection
         services.AddScoped<IWalletReadRepository, WalletReadRepository>();
         services.AddScoped<IOrderReadRepository, OrderReadRepository>();
         services.AddScoped<IOrderBookSnapshotReadRepository, OrderBookSnapshotReadRepository>();
+        services.AddScoped<IRecentTradesReadRepository, RecentTradesReadRepository>();
         services.AddScoped<IOrderBookMarketDataNotifier, OrderBookMarketDataNotifier>();
         services.AddScoped<ITradeReadRepository, TradeReadRepository>();
         services.AddScoped<IPortfolioResetReadRepository, PortfolioResetReadRepository>();

@@ -1,7 +1,9 @@
 import { OrderBookDepthPanel } from '@/features/market/components/order-book-depth-panel'
 import { TopOfBookStrip } from '@/features/market/components/top-of-book-strip'
+import { TradeTapePanel } from '@/features/market/components/trade-tape-panel'
 import { useMarketConnectionStatus } from '@/features/market/hooks/use-market-connection-status'
 import { useOrderBookQuery } from '@/features/market/hooks/use-order-book-query'
+import { useRecentTradesQuery } from '@/features/market/hooks/use-recent-trades-query'
 import { deriveTopOfBook } from '@/features/market/top-of-book-display'
 import { PortfolioActivityTabs } from '@/features/trading/components/portfolio-activity-tabs'
 import {
@@ -20,6 +22,7 @@ export function TradingPage() {
   const sessionUserId = useAuthStore((state) => state.userId)
   const walletQuery = useWalletQuery()
   const orderBookQuery = useOrderBookQuery()
+  const recentTradesQuery = useRecentTradesQuery()
   const showReconnectingBadge = useMarketConnectionStatus()
 
   const walletUnauthorized =
@@ -38,6 +41,10 @@ export function TradingPage() {
 
   const refetchOrderBook = () => {
     void orderBookQuery.refetch()
+  }
+
+  const refetchRecentTrades = () => {
+    void recentTradesQuery.refetch()
   }
 
   return (
@@ -60,6 +67,12 @@ export function TradingPage() {
               snapshot={orderBookQuery.isSuccess ? orderBookQuery.data : null}
               showReconnectingBadge={showReconnectingBadge}
               onRetry={refetchOrderBook}
+            />
+            <TradeTapePanel
+              isPending={recentTradesQuery.isPending}
+              isError={recentTradesQuery.isError}
+              snapshot={recentTradesQuery.isSuccess ? recentTradesQuery.data : null}
+              onRetry={refetchRecentTrades}
             />
           </>
         }
