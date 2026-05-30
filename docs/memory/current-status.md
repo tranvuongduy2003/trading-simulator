@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-30 (US-06 Story 2 implementation complete)
+Last updated: 2026-05-30 (US-06 Story 3 impl)
 
 Owner: @tranvuongduy2003
 
@@ -15,6 +15,7 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
+- US-06 Story 3: empty / one-sided depth panel — **implementation complete** on `feature/live-order-book-depth-story-3` (#72); manual UI checklist pending operator
 - US-06 Story 2: real-time depth table updates — **implementation complete** on `feature/live-order-book-depth-story-2` (#71); 5 SignalR + 11 snapshot integration tests passed; manual UI checklist pending operator
 - US-06 Story 1: order book depth table — **implementation complete** on `feature/live-order-book-depth-story-1` (#70); integration tests compile; Docker + manual UI checklist pending operator
 - US-05 Story 4: empty / one-sided book — **implementation complete** on `feature/best-bid-ask-story-4` (#61); manual UI checklist + integration tests (Docker) pending operator/CI
@@ -24,6 +25,8 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- impl: US-06 Story 3 — `getDepthSideEmptyMessage`, depth table empty states, `OrderBookUpdated_EmptyPayload_*` / `BidOnly_*` tests (`feature/live-order-book-depth-story-3`, #72)
+- plan: US-06 Story 3 — empty/one-sided depth panel (`docs/plans/20260530-220000-live-order-book-depth-story-3.md`, #72)
 - impl: US-06 Story 2 — depth reconnect badge, hub `orderCount`, client normalize/dedupe, SignalR integration tests (`feature/live-order-book-depth-story-2`, #71); 16 market tests passed; `yarn lint` + `yarn build` + `api:verify` green
 - plan: US-06 Story 2 — real-time depth updates (`docs/plans/20260530-210000-live-order-book-depth-story-2.md`, #71)
 - impl: US-06 Story 1 — depth panel, `depth=10` client param, multi-level/aggregation integration tests (`feature/live-order-book-depth-story-1`, #70); `yarn lint` + `yarn build` + `api:verify` green
@@ -52,9 +55,11 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
+- Operator: US-06 Story 3 manual UI checklist (plan §Manual UI checklist) on Aspire
+- PR `feature/live-order-book-depth-story-3` → `main` (closes #72)
 - PR `feature/live-order-book-depth-story-2` → `main` (closes #71)
 - PR `feature/live-order-book-depth-story-1` → `main` (closes #70)
-- `/plan` for US-06 Stories 3–4 (#72–#73) when ready
+- `/plan` for US-06 Story 4 (#73) when ready
 - PR `feature/best-bid-ask-story-4` → `main` (closes #61)
 - PR `feature/best-bid-ask-story-3` → `main` (closes #60)
 - PR `feature/best-bid-ask-story-2` → `main` (closes #59)
