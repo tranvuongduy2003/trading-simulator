@@ -4,6 +4,8 @@ All notable project and process changes are tracked here.
 
 ## 2026-05-30
 
+- impl: US-07 Story 1 — trade tape snapshot API + panel (`feature/trade-tape-story-1`, GitHub #80); 8 `GetRecentTrades_*` integration tests passed; `yarn lint` + `yarn build` + `api:verify` green
+- plan: US-07 Story 1 — trade tape snapshot (`docs/plans/20260530-160000-trade-tape-story-1.md`, GitHub #80)
 - spec: Trade tape US-07 (`docs/specs/20260530-151901-trade-tape.md`)
 - impl: US-06 Story 4 — PRD §8.1 trading workspace grid, left-zone depth + strip, chart/order placeholders (`feature/live-order-book-depth-story-4`, GitHub #73); `yarn lint` + `yarn build` + `api:verify` green
 - plan: US-06 Story 4 — depth panel trading layout PRD §8.1 (`docs/plans/20260530-230000-live-order-book-depth-story-4.md`, GitHub #73)

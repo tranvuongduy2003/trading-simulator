@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-30 (US-07 spec; merged with main US-06 Story 4)
+Last updated: 2026-05-30 (US-07 Story 1 impl; merged with main US-06 Story 4)
 
 Owner: @tranvuongduy2003
 
@@ -15,6 +15,7 @@ Owner: @tranvuongduy2003
 
 ## Active Focus
 
+- US-07 Story 1: trade tape snapshot — **implementation complete** on `feature/trade-tape-story-1` (#80); manual UI checklist pending operator
 - US-06 Story 4: depth panel trading layout — **implementation complete** on `feature/live-order-book-depth-story-4` (#73); manual UI checklist pending operator
 - US-06 Story 3: empty / one-sided depth panel — **implementation complete** on `feature/live-order-book-depth-story-3` (#72); manual UI checklist pending operator
 - US-06 Story 2: real-time depth table updates — **implementation complete** on `feature/live-order-book-depth-story-2` (#71); 5 SignalR + 11 snapshot integration tests passed; manual UI checklist pending operator
@@ -26,6 +27,8 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- impl: US-07 Story 1 — trade tape snapshot API + panel (`feature/trade-tape-story-1`, #80); 8 `GetRecentTrades_*` tests passed; `api:verify` green
+- plan: US-07 Story 1 — trade tape snapshot API + panel (`docs/plans/20260530-160000-trade-tape-story-1.md`, GitHub #80)
 - spec: Trade tape US-07 (`docs/specs/20260530-151901-trade-tape.md`)
 - impl: US-06 Story 4 — PRD §8.1 workspace grid, left-zone strip + depth, placeholders (`feature/live-order-book-depth-story-4`, #73)
 - plan: US-06 Story 4 — PRD §8.1 trading workspace grid, left-zone depth, tablet stack (`docs/plans/20260530-230000-live-order-book-depth-story-4.md`, #73)
@@ -59,7 +62,8 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
-- `/plan` for US-07 trade tape (`docs/specs/20260530-151901-trade-tape.md`)
+- Operator: US-07 Story 1 manual UI checklist (plan §Manual UI checklist) on Aspire
+- PR `feature/trade-tape-story-1` → `main` (closes #80)
 - Operator: US-06 Story 3 manual UI checklist (plan §Manual UI checklist) on Aspire
 - PR `feature/live-order-book-depth-story-3` → `main` (closes #72)
 - PR `feature/live-order-book-depth-story-2` → `main` (closes #71)
