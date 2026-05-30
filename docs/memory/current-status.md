@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-30 (US-06 Story 3 impl)
+Last updated: 2026-05-30 (US-07 spec)
 
 Owner: @tranvuongduy2003
 
@@ -25,6 +25,7 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- spec: Trade tape US-07 (`docs/specs/20260530-151901-trade-tape.md`)
 - impl: US-06 Story 3 — `getDepthSideEmptyMessage`, depth table empty states, `OrderBookUpdated_EmptyPayload_*` / `BidOnly_*` tests (`feature/live-order-book-depth-story-3`, #72)
 - plan: US-06 Story 3 — empty/one-sided depth panel (`docs/plans/20260530-220000-live-order-book-depth-story-3.md`, #72)
 - impl: US-06 Story 2 — depth reconnect badge, hub `orderCount`, client normalize/dedupe, SignalR integration tests (`feature/live-order-book-depth-story-2`, #71); 16 market tests passed; `yarn lint` + `yarn build` + `api:verify` green
@@ -55,6 +56,7 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
+- `/plan` for US-07 trade tape (`docs/specs/20260530-151901-trade-tape.md`)
 - Operator: US-06 Story 3 manual UI checklist (plan §Manual UI checklist) on Aspire
 - PR `feature/live-order-book-depth-story-3` → `main` (closes #72)
 - PR `feature/live-order-book-depth-story-2` → `main` (closes #71)
