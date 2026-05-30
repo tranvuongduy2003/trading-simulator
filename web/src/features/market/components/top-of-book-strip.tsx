@@ -34,7 +34,7 @@ export function TopOfBookStrip({
   const showEmptyBookBanner = liquidityState === 'empty'
 
   return (
-    <Card>
+    <Card className="min-w-0">
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">

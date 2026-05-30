@@ -4,6 +4,12 @@ import { useMarketConnectionStatus } from '@/features/market/hooks/use-market-co
 import { useOrderBookQuery } from '@/features/market/hooks/use-order-book-query'
 import { deriveTopOfBook } from '@/features/market/top-of-book-display'
 import { PortfolioActivityTabs } from '@/features/trading/components/portfolio-activity-tabs'
+import {
+  ChartPlaceholder,
+  OrderFormPlaceholder,
+} from '@/features/trading/components/trading-workspace-placeholders'
+import { TradingWorkspaceGrid } from '@/features/trading/components/trading-workspace-grid'
+import { TradingWorkspaceHeader } from '@/features/trading/components/trading-workspace-header'
 import { VirtualCashCard } from '@/features/trading/components/virtual-cash-card'
 import { useWalletQuery } from '@/features/trading/hooks/use-wallet-query'
 import { canDisplayWallet } from '@/features/trading/wallet-display'
@@ -30,42 +36,42 @@ export function TradingPage() {
 
   const topOfBookDisplay = orderBookQuery.isSuccess ? deriveTopOfBook(orderBookQuery.data) : null
 
+  const refetchOrderBook = () => {
+    void orderBookQuery.refetch()
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Trading</h1>
-        <p className="text-muted-foreground text-sm">
-          AAPL simulator — order book and chart modules will mount here.
-        </p>
-      </div>
+      <TradingWorkspaceHeader />
 
-      <div className="grid gap-4 md:max-w-2xl">
-        <TopOfBookStrip
-          isPending={orderBookQuery.isPending}
-          isError={orderBookQuery.isError}
-          display={topOfBookDisplay}
-          showReconnectingBadge={showReconnectingBadge}
-          onRetry={() => {
-            void orderBookQuery.refetch()
-          }}
-        />
+      <TradingWorkspaceGrid
+        left={
+          <>
+            <TopOfBookStrip
+              isPending={orderBookQuery.isPending}
+              isError={orderBookQuery.isError}
+              display={topOfBookDisplay}
+              showReconnectingBadge={showReconnectingBadge}
+              onRetry={refetchOrderBook}
+            />
+            <OrderBookDepthPanel
+              isPending={orderBookQuery.isPending}
+              isError={orderBookQuery.isError}
+              snapshot={orderBookQuery.isSuccess ? orderBookQuery.data : null}
+              showReconnectingBadge={showReconnectingBadge}
+              onRetry={refetchOrderBook}
+            />
+          </>
+        }
+        center={<ChartPlaceholder />}
+        right={<OrderFormPlaceholder />}
+      />
 
-        <OrderBookDepthPanel
-          isPending={orderBookQuery.isPending}
-          isError={orderBookQuery.isError}
-          snapshot={orderBookQuery.isSuccess ? orderBookQuery.data : null}
-          showReconnectingBadge={showReconnectingBadge}
-          onRetry={() => {
-            void orderBookQuery.refetch()
-          }}
-        />
-
-        <VirtualCashCard
-          isPending={walletQuery.isPending}
-          isError={showWalletError}
-          wallet={displayWallet}
-        />
-      </div>
+      <VirtualCashCard
+        isPending={walletQuery.isPending}
+        isError={showWalletError}
+        wallet={displayWallet}
+      />
 
       <PortfolioActivityTabs />
     </div>

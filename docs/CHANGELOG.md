@@ -5,6 +5,8 @@ All notable project and process changes are tracked here.
 ## 2026-05-30
 
 - spec: Trade tape US-07 (`docs/specs/20260530-151901-trade-tape.md`)
+- impl: US-06 Story 4 — PRD §8.1 trading workspace grid, left-zone depth + strip, chart/order placeholders (`feature/live-order-book-depth-story-4`, GitHub #73); `yarn lint` + `yarn build` + `api:verify` green
+- plan: US-06 Story 4 — depth panel trading layout PRD §8.1 (`docs/plans/20260530-230000-live-order-book-depth-story-4.md`, GitHub #73)
 - impl: US-06 Story 3 — depth empty/one-sided copy, SignalR empty-payload integration tests (`feature/live-order-book-depth-story-3`, GitHub #72); `yarn lint` + `yarn build` green; 7 `OrderBookUpdated_*` + 11 `GetOrderBookSnapshot_*` passed
 - plan: US-06 Story 3 — empty and one-sided depth panel (`docs/plans/20260530-220000-live-order-book-depth-story-3.md`, GitHub #72)
 - impl: US-06 Story 2 — real-time depth updates, hub `orderCount`, depth reconnect badge, SignalR integration tests (`feature/live-order-book-depth-story-2`, GitHub #71)
