@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-30 (US-06 Story 4 impl)
+Last updated: 2026-05-30 (US-07 spec; merged with main US-06 Story 4)
 
 Owner: @tranvuongduy2003
 
@@ -26,6 +26,7 @@ Owner: @tranvuongduy2003
 
 ## Latest Completed
 
+- spec: Trade tape US-07 (`docs/specs/20260530-151901-trade-tape.md`)
 - impl: US-06 Story 4 — PRD §8.1 workspace grid, left-zone strip + depth, placeholders (`feature/live-order-book-depth-story-4`, #73)
 - plan: US-06 Story 4 — PRD §8.1 trading workspace grid, left-zone depth, tablet stack (`docs/plans/20260530-230000-live-order-book-depth-story-4.md`, #73)
 - impl: US-06 Story 3 — `getDepthSideEmptyMessage`, depth table empty states, `OrderBookUpdated_EmptyPayload_*` / `BidOnly_*` tests (`feature/live-order-book-depth-story-3`, #72)
@@ -58,6 +59,7 @@ Owner: @tranvuongduy2003
 
 ## Next Up
 
+- `/plan` for US-07 trade tape (`docs/specs/20260530-151901-trade-tape.md`)
 - Operator: US-06 Story 3 manual UI checklist (plan §Manual UI checklist) on Aspire
 - PR `feature/live-order-book-depth-story-3` → `main` (closes #72)
 - PR `feature/live-order-book-depth-story-2` → `main` (closes #71)
